@@ -67,8 +67,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/redhood-insights.git
-cd redhood-insights
+git clone https://github.com/yourusername/redhood-systems.git
+cd redhood-systems
 
 # Install dependencies
 pip install -r requirements.txt --break-system-packages
@@ -256,7 +256,7 @@ This is a portfolio project, but feedback is welcome!
 **How to provide feedback:**
 1. Open an issue with suggestions
 2. Fork and submit a PR with improvements
-3. Reach out directly: [your-email@example.com]
+3. Reach out directly: ctazeem@gmail.com
 
 ---
 
@@ -268,22 +268,31 @@ MIT License - feel free to use this code for your own projects.
 
 ## 👨‍💼 About the Creator
 
-**[Your Name]**  
-Product Manager | Technical Background
+**Tazeem Chowdhury**  
+Product Manager | Business Analyst | Financial Markets Analyst
 
-- 🎓 Background: [Your background]
-- 💼 Experience: [Your relevant experience]
-- 🔗 LinkedIn: [Your LinkedIn URL]
-- 🐦 Twitter: [Your Twitter handle]
-- 📧 Email: [your-email@example.com]
+- 🎓 **Background:** Engineering degree with specialization in business analysis, data analytics, and enterprise service delivery. Currently pursuing CBAP (Certified Business Analysis Professional) and PMP certifications.
+- 💼 **Experience:** 
+  - Project coordination and infrastructure delivery (Nav Canada, Mitel)
+  - Business requirements gathering and solution design (RBC Capital Markets, IRCC)
+  - Enterprise software implementation and QA (consulting engagements)
+  - Cloud infrastructure and data visualization (Azure, Power BI)
+  - Financial markets and cryptocurrency research and analysis
+- 🔗 **LinkedIn:** [linkedin.com/in/tazeemchowdhury](https://www.linkedin.com/in/tazeemchowdhury/)
+- 🐦 **Twitter/X:** [@redhoodcapital](https://x.com/redhoodcapital)
+- 📧 **Email:** [ctazeem@gmail.com](mailto:ctazeem@gmail.com)
+- 📰 **Substack:** [RedHood Reads](https://substack.com/@redhoodcapital) *(market analysis newsletter)*
 
 **Why I Built This:**
-As a trader myself, I was spending 3+ hours daily scrolling through Twitter, Telegram, and newsletters looking for signals. I realized this was a perfect opportunity to demonstrate:
-- **Product thinking:** Identifying a real problem with a large TAM
-- **Technical execution:** Building a working AI-powered solution
-- **Business acumen:** Market research and go-to-market strategy
 
-This project showcases my ability to go from problem identification → PRD → working prototype → GTM strategy - the full PM skillset.
+As a trader and market analyst, I was spending 3+ hours daily across Twitter, Telegram, financial feeds, and newsletters hunting for signals and synthesizing fragmented data. I realized this was the perfect opportunity to demonstrate:
+
+- **Product Thinking:** Identifying a real problem (information fragmentation across crypto, equities, macro, and geopolitical landscapes) with a massive TAM (retail traders, PMs, institutional analysts)
+- **Technical Execution:** Building an AI-powered solution that aggregates, synthesizes, and surfaces actionable market insights
+- **Business Acumen:** Market research, competitive positioning, and go-to-market strategy for financial intelligence tools
+- **Domain Expertise:** Deep knowledge of financial markets, blockchain, macroeconomics, and business analysis frameworks
+
+This project showcases the full PM skillset: problem identification → PRD → working prototype → user testing → GTM strategy—all while shipping real value to traders and analysts who face the same daily grind.
 
 ---
 
@@ -300,9 +309,6 @@ This project showcases my ability to go from problem identification → PRD → 
 - [Twitter API Documentation](https://developer.twitter.com/)
 - [Telegram API](https://core.telegram.org/api)
 
-**Product Management:**
-- [SVPG - Product Management Resources](https://www.svpg.com/)
-- [Lenny's Newsletter](https://www.lennysnewsletter.com/)
 
 ---
 
@@ -310,14 +316,14 @@ This project showcases my ability to go from problem identification → PRD → 
 
 Have questions about the project or want to discuss product opportunities?
 
-**Email:** [your-email@example.com]  
-**LinkedIn:** [linkedin.com/in/yourprofile]  
-**Portfolio:** [yourportfolio.com]  
-**Calendar:** [Book a 15-min chat](https://calendly.com/yourname)
+**Email:** [ctazeem@gmail.com](mailto:ctazeem@gmail.com)  
+**LinkedIn:** [linkedin.com/in/tazeemchowdhury](https://www.linkedin.com/in/tazeemchowdhury/)  
+**Newsletter:** [RedHood Reads on Substack](https://substack.com/@redhoodcapital)  
+**Twitter/X:** [@redhoodcapital](https://x.com/redhoodcapital)
 
 ---
 
-**Last Updated:** February 15, 2026  
+**Last Updated:** February 22, 2026  
 **Version:** 1.0 (MVP)
 
 ⭐️ If you find this project valuable, please star the repo!
