@@ -1,0 +1,22 @@
+# RedHood Insights - Python Dependencies
+# Install with: pip install -r requirements.txt --break-system-packages
+
+# Core dependencies
+anthropic>=0.18.0
+feedparser>=6.0.10
+python-dotenv>=1.0.0
+pandas>=2.0.0
+
+# Optional: For Twitter scraping
+tweepy>=4.14.0
+
+# Optional: For Telegram scraping
+telethon>=1.34.0
+
+# Optional: For data analysis
+numpy>=1.24.0
+matplotlib>=3.7.0
+
+# Optional: For web interface
+fastapi>=0.109.0
+uvicorn>=0.27.0
