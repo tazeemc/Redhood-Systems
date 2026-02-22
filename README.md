@@ -1,7 +1,7 @@
 # 🔥 RedHood Insights
 ## AI-Powered Market Intelligence Dashboard
 
-> **Portfolio Project by [Your Name]**  
+> **Portfolio Project by Tazeem Chowdhury  
 > Transforming information overload into actionable trading insights using AI
 
 ![Status](https://img.shields.io/badge/status-MVP%20Development-yellow)
