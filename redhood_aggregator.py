@@ -10,17 +10,16 @@ Created: February 15, 2026
 GitHub: https://github.com/tazeemc/Redhood-Systems
 
 Key Features:
-- Multi-source scraping (X/Twitter, Telegram, Substack RSS)
+- Multi-source scraping (X/Twitter, Substack RSS)
 - AI-powered narrative extraction using Claude API
 - Entropy risk scoring (market uncertainty quantification)
 - Trade hypothesis generation
 - Exportable insights (JSON, CSV)
 
 Dependencies:
-    pip install anthropic feedparser telethon tweepy pandas python-dotenv --break-system-packages
+    pip install anthropic feedparser tweepy pandas python-dotenv --break-system-packages
 """
 
-import asyncio
 import os
 import json
 import time
@@ -39,8 +38,6 @@ class Config:
     # API Keys (set via environment variables)
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
     TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN', '')
-    TELEGRAM_API_ID = os.getenv('TELEGRAM_API_ID', '')
-    TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '')
     
     # Feed Sources (customize these!)
     TWITTER_ACCOUNTS = [
@@ -231,73 +228,6 @@ class TwitterScraper:
         return items
 
 
-class TelegramScraper:
-    """Scraper for Telegram channels using telethon"""
-
-    def __init__(self, api_id: str, api_hash: str):
-        self.api_id = api_id
-        self.api_hash = api_hash
-        self.enabled = bool(api_id and api_hash)
-
-    async def _fetch_async(self, channels: List[str], hours_back: int) -> List[FeedItem]:
-        """Async implementation using telethon"""
-        from telethon import TelegramClient
-
-        items = []
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours_back)
-        session_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'redhood_session')
-
-        async with TelegramClient(session_path, int(self.api_id), self.api_hash) as client:
-            for channel in channels:
-                try:
-                    handle = channel.lstrip('@')
-                    async for message in client.iter_messages(channel, limit=100):
-                        msg_time = message.date.replace(tzinfo=None)  # telethon gives UTC-aware
-                        if msg_time < cutoff_time:
-                            break
-                        if not message.text:
-                            continue
-                        item = FeedItem(
-                            source='telegram',
-                            author=f"@{handle}",
-                            content=message.text,
-                            timestamp=msg_time,
-                            url=f"https://t.me/{handle}/{message.id}",
-                            metadata={
-                                'views': message.views or 0,
-                                'forwards': message.forwards or 0,
-                                'message_id': message.id,
-                            }
-                        )
-                        items.append(item)
-                except Exception as e:
-                    print(f"Error fetching Telegram channel {channel}: {e}")
-
-        return items
-
-    def fetch(self, channels: List[str], hours_back: int = 24) -> List[FeedItem]:
-        """Fetch recent messages from Telegram channels"""
-
-        if not self.enabled:
-            print("⚠️  Telegram API not configured - skipping")
-            return []
-
-        if not channels:
-            return []
-
-        try:
-            import telethon  # noqa: F401
-        except ImportError:
-            print("⚠️  telethon not installed - install with: pip install telethon")
-            return []
-
-        try:
-            return asyncio.run(self._fetch_async(channels, hours_back))
-        except Exception as e:
-            print(f"❌ Error fetching Telegram feeds: {e}")
-            return []
-
-
 # ============================================================================
 # AI ANALYSIS ENGINE
 # ============================================================================
@@ -462,10 +392,6 @@ class RedHoodAggregator:
         # Initialize scrapers
         self.rss_scraper = RSSFeedScraper()
         self.twitter_scraper = TwitterScraper(self.config.TWITTER_BEARER_TOKEN)
-        self.telegram_scraper = TelegramScraper(
-            self.config.TELEGRAM_API_ID,
-            self.config.TELEGRAM_API_HASH
-        )
         
         # Initialize AI engine
         self.ai_engine = NarrativeExtractor(self.config.ANTHROPIC_API_KEY)
@@ -498,12 +424,7 @@ class RedHoodAggregator:
         twitter_feeds = self.twitter_scraper.fetch(self.config.TWITTER_ACCOUNTS, hours_back)
         all_feeds.extend(twitter_feeds)
         print(f"   ✅ Found {len(twitter_feeds)} tweets\n")
-        
-        print("💬 Fetching Telegram feeds...")
-        telegram_feeds = self.telegram_scraper.fetch(self.config.TELEGRAM_CHANNELS, hours_back)
-        all_feeds.extend(telegram_feeds)
-        print(f"   ✅ Found {len(telegram_feeds)} Telegram messages\n")
-        
+
         print(f"📊 Total feeds collected: {len(all_feeds)}\n")
         
         if not all_feeds:
