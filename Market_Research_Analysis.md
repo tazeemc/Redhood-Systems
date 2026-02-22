@@ -2,7 +2,7 @@
 ## RedHood Insights - AI-Powered Market Intelligence Dashboard
 
 **Research Date:** February 15, 2026  
-**Analyst:** [Your Name]  
+**Analyst:** Tazeem Chowdhury  
 **Document Version:** 1.0
 
 ---
@@ -671,6 +671,6 @@ The retail trading intelligence market is growing rapidly with 15M+ active retai
 
 ---
 
-**Document prepared by:** [Your Name]  
+**Document prepared by:** Tazeem Chowdhury  
 **Contact:** [Your Email] | [Your LinkedIn]  
 **Last updated:** February 15, 2026

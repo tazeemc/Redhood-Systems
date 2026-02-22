@@ -1,7 +1,7 @@
 # Product Requirements Document: RedHood Insights
 ## AI-Powered Market Intelligence Dashboard
 
-**Document Owner:** [Your Name]  
+**Document Owner:** Tazeem Chowdhury  
 **Last Updated:** February 15, 2026  
 **Status:** Week 1 - Foundation Phase  
 **Target Launch:** March 15, 2026 (MVP)

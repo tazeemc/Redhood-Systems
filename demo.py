@@ -245,7 +245,7 @@ def main():
     print("1. Get Anthropic API key: https://console.anthropic.com/")
     print("2. Set environment variable: export ANTHROPIC_API_KEY='your-key'")
     print("3. Run: python redhood_aggregator.py\n")
-    print("Questions? Email: [your-email@example.com]")
+    print("Questions? Email: ctazeem@gmail.com")
     print("Portfolio: See PRD_RedHood_Insights.md for full documentation\n")
 
 if __name__ == '__main__':
