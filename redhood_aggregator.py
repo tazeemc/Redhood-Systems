@@ -10,14 +10,14 @@ Created: February 15, 2026
 GitHub: https://github.com/tazeemc/Redhood-Systems
 
 Key Features:
-- Multi-source scraping (X/Twitter, Telegram, Substack RSS)
+- Multi-source scraping (X/Twitter, Substack RSS)
 - AI-powered narrative extraction using Claude API
 - Entropy risk scoring (market uncertainty quantification)
 - Trade hypothesis generation
 - Exportable insights (JSON, CSV)
 
 Dependencies:
-    pip install anthropic feedparser telethon tweepy pandas python-dotenv --break-system-packages
+    pip install anthropic feedparser tweepy pandas python-dotenv --break-system-packages
 """
 
 import os
@@ -38,27 +38,18 @@ class Config:
     # API Keys (set via environment variables)
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
     TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN', '')
-    TELEGRAM_API_ID = os.getenv('TELEGRAM_API_ID', '')
-    TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '')
     
     # Feed Sources (customize these!)
     TWITTER_ACCOUNTS = [
-        'zerohedge',
-        'unusual_whales', 
-        'DeItaone',
-        'carlquintanilla',
-        'lisaabramowicz1'
+        'unusual_whales',
+        'FirstSquawk',
+        'AutismCapital',
     ]
     
     SUBSTACK_FEEDS = [
         'https://arbitrageandy.substack.com/feed',
         'https://doomberg.substack.com/feed',
         'https://noahpinion.substack.com/feed'
-    ]
-    
-    TELEGRAM_CHANNELS = [
-        # Add your channel usernames/IDs here
-        # Example: '@wallstreetbets', '@cryptosignals'
     ]
     
     # AI Configuration
@@ -237,31 +228,6 @@ class TwitterScraper:
         return items
 
 
-class TelegramScraper:
-    """Scraper for Telegram channels"""
-    
-    def __init__(self, api_id: str, api_hash: str):
-        self.api_id = api_id
-        self.api_hash = api_hash
-        self.enabled = bool(api_id and api_hash)
-    
-    def fetch(self, channels: List[str], hours_back: int = 24) -> List[FeedItem]:
-        """Fetch recent messages from Telegram channels"""
-        
-        if not self.enabled:
-            print("⚠️  Telegram API not configured - skipping")
-            return []
-        
-        # NOTE: Requires telethon library and async implementation
-        # This is a placeholder for the structure
-        
-        items = []
-        print("⚠️  Telegram scraping requires async implementation with telethon")
-        print("    See: https://docs.telethon.dev/en/stable/")
-        
-        return items
-
-
 # ============================================================================
 # AI ANALYSIS ENGINE
 # ============================================================================
@@ -426,10 +392,6 @@ class RedHoodAggregator:
         # Initialize scrapers
         self.rss_scraper = RSSFeedScraper()
         self.twitter_scraper = TwitterScraper(self.config.TWITTER_BEARER_TOKEN)
-        self.telegram_scraper = TelegramScraper(
-            self.config.TELEGRAM_API_ID,
-            self.config.TELEGRAM_API_HASH
-        )
         
         # Initialize AI engine
         self.ai_engine = NarrativeExtractor(self.config.ANTHROPIC_API_KEY)
@@ -462,12 +424,7 @@ class RedHoodAggregator:
         twitter_feeds = self.twitter_scraper.fetch(self.config.TWITTER_ACCOUNTS, hours_back)
         all_feeds.extend(twitter_feeds)
         print(f"   ✅ Found {len(twitter_feeds)} tweets\n")
-        
-        print("💬 Fetching Telegram feeds...")
-        telegram_feeds = self.telegram_scraper.fetch(self.config.TELEGRAM_CHANNELS, hours_back)
-        all_feeds.extend(telegram_feeds)
-        print(f"   ✅ Found {len(telegram_feeds)} Telegram messages\n")
-        
+
         print(f"📊 Total feeds collected: {len(all_feeds)}\n")
         
         if not all_feeds:
