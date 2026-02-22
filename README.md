@@ -1,7 +1,7 @@
 # 🔥 RedHood Insights
 ## AI-Powered Market Intelligence Dashboard
 
-> **Portfolio Project by Tazeem Chowdhury  
+> **Portfolio Project by Tazeem Chowdhury**  
 > Transforming information overload into actionable trading insights using AI
 
 ![Status](https://img.shields.io/badge/status-MVP%20Development-yellow)
@@ -256,7 +256,7 @@ This is a portfolio project, but feedback is welcome!
 **How to provide feedback:**
 1. Open an issue with suggestions
 2. Fork and submit a PR with improvements
-3. Reach out directly: ctazeem@gmail.com
+3. Reach out directly: [ctazeem@gmail.com](mailto:ctazeem@gmail.com)
 
 ---
 
@@ -272,7 +272,7 @@ MIT License - feel free to use this code for your own projects.
 Product Manager | Business Analyst | Financial Markets Analyst
 
 - 🎓 **Background:** Engineering degree with specialization in business analysis, data analytics, and enterprise service delivery. Currently pursuing CBAP (Certified Business Analysis Professional) and PMP certifications.
-- 💼 **Experience:** 
+- 💼 **Experience:**
   - Project coordination and infrastructure delivery (Nav Canada, Mitel)
   - Business requirements gathering and solution design (RBC Capital Markets, IRCC)
   - Enterprise software implementation and QA (consulting engagements)
@@ -292,23 +292,14 @@ As a trader and market analyst, I was spending 3+ hours daily across Twitter, Te
 - **Business Acumen:** Market research, competitive positioning, and go-to-market strategy for financial intelligence tools
 - **Domain Expertise:** Deep knowledge of financial markets, blockchain, macroeconomics, and business analysis frameworks
 
-This project showcases the full PM skillset: problem identification → PRD → working prototype → user testing → GTM strategy—all while shipping real value to traders and analysts who face the same daily grind.
+This project showcases the full PM skillset: problem identification → PRD → working prototype → user testing → GTM strategy — all while shipping real value to traders and analysts who face the same daily grind.
 
 ---
 
 ## 📚 Resources & References
 
-**Market Intelligence Tools:**
-- [Arbitrage Andy (Substack)](https://arbitrageandy.substack.com/)
-- [Bloomberg Terminal](https://www.bloomberg.com/professional/solution/bloomberg-terminal/)
-- [Koyfin](https://www.koyfin.com/)
-- [StockTwits](https://stocktwits.com/)
-
 **AI & APIs:**
-- [Anthropic Claude API](https://docs.anthropic.com/)
-- [Twitter API Documentation](https://developer.twitter.com/)
 - [Telegram API](https://core.telegram.org/api)
-
 
 ---
 
