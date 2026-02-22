@@ -27,6 +27,9 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import feedparser
 from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from project root if present
 
 # ============================================================================
 # CONFIGURATION
@@ -489,8 +492,8 @@ def main():
     parser.add_argument(
         '--hours',
         type=float,
-        default=24,
-        help='Hours of history to fetch, accepts decimals e.g. 0.05 for 3 minutes (default: 24)'
+        default=round(5/60, 4),
+        help='Hours of history to fetch, accepts decimals e.g. 0.083 for 5 minutes (default: 0.083)'
     )
     parser.add_argument(
         '--api-key',
