@@ -44,21 +44,15 @@ class Config:
     
     # Feed Sources (customize these!)
     TWITTER_ACCOUNTS = [
-        'zerohedge',
-        'unusual_whales', 
-        'DeItaone',
-        'carlquintanilla',
-        'lisaabramowicz1'
+        'unusual_whales',
+        'FirstSquawk',
+        'AutismCapital',
     ]
     
     SUBSTACK_FEEDS = [
         'https://arbitrageandy.substack.com/feed',
         'https://doomberg.substack.com/feed',
         'https://noahpinion.substack.com/feed'
-    ]
-    
-    TELEGRAM_CHANNELS = [
-        '@marketfeed',
     ]
     
     # AI Configuration
