@@ -23,7 +23,9 @@ Dependencies:
 import os
 import json
 import time
+import base64
 import urllib.request
+import urllib.error
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import sqlite3
@@ -378,6 +380,84 @@ IMPORTANT:
 
 
 # ============================================================================
+# GITHUB PAGES PUBLISHER
+# ============================================================================
+
+class GitHubPagesPublisher:
+    """Publishes RedHood Reads HTML reports to GitHub Pages via the Contents API."""
+
+    OWNER     = "tazeemc"
+    REPO      = "Redhood-Systems"
+    BRANCH    = "main"
+    DOCS_PATH = "docs"
+    BASE_URL  = "https://tazeemc.github.io/Redhood-Systems"
+
+    def __init__(self, token: str):
+        self._headers = {
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "RedHood-Insights",
+        }
+
+    def _get_sha(self, path: str):
+        """Return current blob SHA for a file (needed to update existing files)."""
+        url = (f"https://api.github.com/repos/{self.OWNER}/{self.REPO}"
+               f"/contents/{path}?ref={self.BRANCH}")
+        req = urllib.request.Request(url, headers=self._headers)
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return json.loads(r.read()).get("sha")
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            raise
+
+    def _put_file(self, path: str, content: str, message: str, sha=None):
+        """Create or update a file via the GitHub Contents API."""
+        url = (f"https://api.github.com/repos/{self.OWNER}/{self.REPO}"
+               f"/contents/{path}")
+        body: Dict[str, Any] = {
+            "message": message,
+            "content": base64.b64encode(content.encode("utf-8")).decode(),
+            "branch": self.BRANCH,
+        }
+        if sha:
+            body["sha"] = sha
+        data = json.dumps(body).encode()
+        req = urllib.request.Request(
+            url, data=data,
+            headers={**self._headers, "Content-Type": "application/json"},
+            method="PUT",
+        )
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return json.loads(r.read())
+
+    def publish(self, html_path: str) -> str:
+        """
+        Push html_path to docs/ on GitHub Pages.
+
+        Publishes two files:
+          - docs/redhood_reads_TIMESTAMP.html  (permanent archive URL)
+          - docs/latest.html                   (stable link, always current)
+
+        Returns the permanent archive URL.
+        """
+        filename = os.path.basename(html_path)
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        ts  = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+        msg = f"Auto-publish RedHood Reads {ts}"
+
+        archive_path = f"{self.DOCS_PATH}/{filename}"
+        self._put_file(archive_path, html, msg, self._get_sha(archive_path))
+
+        latest_path = f"{self.DOCS_PATH}/latest.html"
+        self._put_file(latest_path, html, f"Update latest {ts}", self._get_sha(latest_path))
+
+        return f"{self.BASE_URL}/{filename}"
+
+
+# ============================================================================
 # MAIN AGGREGATOR
 # ============================================================================
 
@@ -452,8 +532,18 @@ class RedHoodAggregator:
         
         json_path, html_path = self._save_results(results, narratives, hours_back)
         self._persist_to_db(hours_back, all_feeds, narratives, json_path, html_path)
+
+        github_token = os.getenv("GITHUB_TOKEN")
+        if github_token:
+            try:
+                pub_url = GitHubPagesPublisher(github_token).publish(html_path)
+                print(f"\n🌐 [GitHub Pages] Published:  {pub_url}")
+                print(f"🌐 [GitHub Pages] Latest URL: {GitHubPagesPublisher.BASE_URL}/latest.html")
+            except Exception as e:
+                print(f"\n⚠️  [GitHub Pages] Publish failed: {e}")
+
         self._print_summary(narratives)
-        
+
         return results
     
     def _save_results(self, results: Dict[str, Any],
