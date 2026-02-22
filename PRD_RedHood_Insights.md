@@ -1,20 +1,20 @@
 # Product Requirements Document: RedHood Insights
 ## AI-Powered Market Intelligence Dashboard
 
-**Document Owner:** Tazeem Chowdhury  
-**Last Updated:** February 15, 2026  
-**Status:** Week 1 - Foundation Phase  
-**Target Launch:** March 15, 2026 (MVP)
+**Document Owner:** Tazeem Chowdhury
+**Last Updated:** February 22, 2026
+**Status:** MVP Complete — v1.1
+**Target Launch:** March 15, 2026 (Web Dashboard)
 
 ---
 
-## 📊 Executive Summary
+## Executive Summary
 
-**Problem Statement:**  
-Retail traders and small fund analysts spend 2-4 hours daily monitoring 20+ information sources (X/Twitter, Telegram channels, Substack newsletters, financial news) to identify market narratives and trading opportunities. This creates information overload, analysis paralysis, and missed opportunities due to signal fragmentation.
+**Problem Statement:**
+Retail traders and small fund analysts spend 2-4 hours daily monitoring 20+ information sources (X/Twitter, Substack newsletters, financial news) to identify market narratives and trading opportunities. This creates information overload, analysis paralysis, and missed opportunities due to signal fragmentation.
 
-**Solution:**  
-RedHood Insights is an AI-powered feed aggregator that consolidates multi-source market intelligence, extracts actionable narratives using LLM analysis, and scores opportunities based on "entropy risk" (market uncertainty/volatility metrics). The product reduces research time by 80% while improving signal quality through systematic narrative extraction.
+**Solution:**
+RedHood Insights is an AI-powered feed aggregator that consolidates multi-source market intelligence, extracts actionable narratives using LLM analysis, scores opportunities based on "entropy risk" (market uncertainty/volatility metrics), generates styled HTML briefings, and persists all data to SQLite. The product reduces research time by 80% while improving signal quality through systematic narrative extraction.
 
 **Success Metrics (90-day targets):**
 - **Time saved:** 2.5 hours → 30 minutes per user daily (83% reduction)
@@ -24,12 +24,12 @@ RedHood Insights is an AI-powered feed aggregator that consolidates multi-source
 
 ---
 
-## 🎯 Strategic Context
+## Strategic Context
 
 ### Market Opportunity
 - **TAM (Total Addressable Market):** 15M retail traders in US (source: Robinhood, Fidelity user counts)
 - **SAM (Serviceable Available Market):** 2M "serious" traders who follow 5+ sources daily
-- **SOM (Serviceable Obtainable Market):** 10K traders in finance X/Telegram communities (year 1)
+- **SOM (Serviceable Obtainable Market):** 10K traders in finance X communities (year 1)
 
 ### Competitive Landscape
 | Competitor | Strengths | Weaknesses | Our Differentiation |
@@ -43,7 +43,7 @@ RedHood Insights is an AI-powered feed aggregator that consolidates multi-source
 
 ---
 
-## 👥 User Research
+## User Research
 
 ### Primary Persona: "Active Alex"
 **Demographics:**
@@ -55,15 +55,15 @@ RedHood Insights is an AI-powered feed aggregator that consolidates multi-source
 
 **Pain Points:**
 1. "I follow 30 accounts but miss critical signals when I'm in meetings"
-2. "Too much noise - I need signal extraction, not more feeds"
-3. "I can't quantify risk systematically - it's gut feel"
+2. "Too much noise — I need signal extraction, not more feeds"
+3. "I can't quantify risk systematically — it's gut feel"
 4. "My notes are scattered across Notion/Excel/screenshots"
 
 **Jobs to be Done:**
-- ✅ Stay updated on macro narratives without constant checking
-- ✅ Identify high-conviction trades with systematic risk scoring
-- ✅ Archive and backtest past signals vs. actual outcomes
-- ✅ Share insights with trading group without manual summaries
+- Stay updated on macro narratives without constant checking
+- Identify high-conviction trades with systematic risk scoring
+- Archive and backtest past signals vs. actual outcomes
+- Share insights with trading group without manual summaries
 
 ### Secondary Persona: "Portfolio Pat"
 **Demographics:**
@@ -80,31 +80,26 @@ RedHood Insights is an AI-powered feed aggregator that consolidates multi-source
 
 ---
 
-## 🏗️ Product Specification
+## Product Specification
 
-### MVP Feature Set (Week 1-4)
+### MVP Feature Set — Shipped (v1.1)
 
-#### **Core Features (Must-Have)**
+#### 1. Feed Aggregation Engine
+- **User Story:** "As a trader, I want to see all relevant posts from my curated sources in one place"
+- **Shipped:**
+  - X/Twitter via Nitter RSS (multi-instance fallback, no API key required)
+  - Substack RSS aggregation via feedparser
+  - Configurable time window (default: 5 minutes; supports hours)
+  - 50 most recent items processed per run
+- **Tech:** `feedparser`, `NitterScraper` class with instance rotation
 
-**1. Feed Aggregation Engine**
-- **User Story:** "As a trader, I want to see all relevant posts from my curated sources in one place, so I don't have to check 5 apps"
-- **Acceptance Criteria:**
-  - [ ] Supports X/Twitter, Telegram, Substack RSS
-  - [ ] Updates every 15 minutes (or on-demand refresh)
-  - [ ] Displays 50 most recent items with timestamps
-  - [ ] Filters by keyword/hashtag (e.g., $SPY, Fed, oil)
-- **Technical Requirements:**
-  - Python scraper using `tweepy`, `telethon`, `feedparser`
-  - Rate limit handling (X API: 300 requests/15 min)
-  - Caching to avoid redundant fetches
-
-**2. AI Narrative Extraction**
-- **User Story:** "As a trader, I want AI to identify the top 3 market narratives from 100+ posts, so I can focus on what matters"
-- **Acceptance Criteria:**
-  - [ ] Claude API integration (Sonnet 4 for cost efficiency)
-  - [ ] Outputs structured data: Narrative, Supporting Evidence, Risk Score (1-10)
-  - [ ] Physics-inspired analogies (entropy, momentum, phase transitions)
-  - [ ] Processing time: <60 seconds for 100 posts
+#### 2. AI Narrative Extraction
+- **User Story:** "As a trader, I want AI to identify the top 3 market narratives from 100+ posts"
+- **Shipped:**
+  - Claude claude-sonnet-4-6 integration
+  - Structured JSON output with fallback parser (strips markdown fences)
+  - Physics-inspired analogies (entropy, momentum, phase transitions)
+  - Processing time: <60 seconds for 50 posts
 - **Prompt Engineering:**
 ```
 You are a portfolio manager with a physics PhD. Analyze these market feeds:
@@ -120,134 +115,109 @@ Task:
    - Expected catalysts (events, data releases)
 4. Use physics analogies (e.g., "Market in unstable equilibrium—high entropy")
 
-Output as JSON:
-{
-  "narratives": [
-    {
-      "title": "Fed Dovish Pivot",
-      "entropy_risk": 3,
-      "hypothesis": "Long QQQ calls",
-      "rationale": "...",
-      "catalysts": ["FOMC minutes 2/21", "CPI data 2/28"]
-    }
-  ]
-}
+Output as JSON only.
 ```
 
-**3. Dashboard UI**
-- **User Story:** "As a trader, I want a clean interface that shows insights without clutter"
-- **Wireframe Components:**
-  - Top Banner: Daily brief (1-sentence summary)
-  - Card Grid: 3 narrative cards with expand/collapse
-  - Side Panel: Raw feeds (scrollable)
-  - Bottom: Trade journal (log executed trades)
-- **Tech Stack:**
-  - React + Tailwind CSS (responsive, modern)
-  - Recharts for entropy timeseries
-  - LocalStorage for user preferences
+#### 3. RedHood Reads HTML Report
+- **User Story:** "As a trader, I want a polished briefing I can open and share"
+- **Shipped:**
+  - Auto-generated every run to `data/redhood_reads_TIMESTAMP.html`
+  - Sections: topbar with pulse dot, scrolling ticker, hero masthead, 5-metric strip, 3-column narrative grid, trade hypothesis block, raw signal links table, footer
+  - Design: Playfair Display + IBM Plex Mono + DM Serif Display; dark theme (#0A0A0A), red (#C1121F) accent
+  - Sparkline bars visualize entropy risk level per narrative
+  - `%%TOKEN%%` placeholder system avoids f-string/CSS brace conflicts
 
-**4. Trade Journal**
-- **User Story:** "As a trader, I want to log trades based on signals so I can measure accuracy over time"
-- **Acceptance Criteria:**
-  - [ ] Manual entry: Symbol, Entry, Thesis, P&L
-  - [ ] Links to originating narrative
-  - [ ] Win rate calculation (closed trades only)
-  - [ ] Export to CSV
+#### 4. SQLite Persistence
+- **User Story:** "As a trader, I want all runs archived so I can track signal history"
+- **Shipped:**
+  - 5 tables: `twitter_accounts`, `runs`, `feeds`, `narratives`, `narrative_feeds`
+  - `INSERT OR IGNORE` for feed deduplication across runs
+  - Unique narrative IDs: `f"narrative_{int(time.time())}_{id(self)}"`
+  - All outputs (JSON path, HTML path) recorded per run
 
-#### **Nice-to-Have (Post-MVP)**
+#### 5. Account Management CLI
+- **User Story:** "As a trader, I want to add/remove tracked accounts without editing code"
+- **Shipped:**
+  - `python accounts_db.py --list / --add / --remove / --toggle`
+  - Per-account metadata: category, notes, active/inactive
+  - `get_active_handles()` called each run; falls back to Config defaults if DB empty
+
+#### 6. Trading System Analysis (run.ps1)
+- **User Story:** "As a trader, I want position sizing recommendations alongside narrative signals"
+- **Shipped:**
+  - Thermodynamic position sizing: temperature, entropy, momentum, RSI, heat factor
+  - Yahoo Finance market data (MA20, MA50, trend, recommendation: IN/OUT/NEUTRAL)
+  - `-SkipTrading` and `-SkipRedHood` flags for selective execution
+  - Results saved to `data/TradingAnalysis_TIMESTAMP.json`
+
+---
+
+### Post-MVP Features (Planned)
+
+**Phase 2:**
 - Real-time alerts (Telegram bot: "High entropy event detected")
-- Backtesting: "Show me all 'Fed dovish' signals from 2024"
-- Social sharing: "Tweet my daily brief"
+- Live ticker data in HTML report (wire Yahoo Finance prices from run.ps1)
+- Backtesting: "Show me all 'Fed dovish' signals from past runs"
+- Sentiment trend tracking across runs (DB-powered)
+
+**Phase 3:**
+- React + FastAPI web dashboard
+- Trade journal UI with P&L tracking
 - Mobile app (React Native)
+- User authentication
 
 ---
 
-## 📐 Technical Architecture
+## Technical Architecture
 
-### System Design (High-Level)
+### Current System Design (Shipped)
 
 ```
-┌─────────────────┐
-│   Data Sources  │
-│ (X, Telegram,   │
-│  Substack)      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Scraper Layer  │
-│  (Python cron)  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Data Store    │
-│ (SQLite/Postgres│
-│  for MVP)       │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  AI Processing  │
-│ (Claude API via │
-│  FastAPI)       │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Frontend (React│
-│  Dashboard)     │
-└─────────────────┘
+┌──────────────────────────────────────────┐
+│  Data Sources                            │
+│  Nitter RSS (X/Twitter) + Substack RSS   │
+└────────────────┬─────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────┐
+│  redhood_aggregator.py                   │
+│  - NitterScraper (multi-instance)        │
+│  - RSSFeedScraper                        │
+│  - NarrativeExtractor (Claude API)       │
+└────────┬───────────────────┬─────────────┘
+         │                   │
+         ▼                   ▼
+┌──────────────┐   ┌─────────────────────────┐
+│  redhood.db  │   │  data/                  │
+│  (SQLite)    │   │  redhood_reads_*.html   │
+│  5 tables    │   │  redhood_insights_*.json│
+└──────────────┘   └─────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│  run.ps1 (PowerShell)                    │
+│  - Yahoo Finance market data             │
+│  - Thermodynamic position sizing         │
+│  - Calls redhood_aggregator.py           │
+└──────────────────────────────────────────┘
 ```
 
-### Data Models
+### Data Models (Implemented in models.py)
 
-**Feed Item**
-```python
-{
-  "id": "uuid",
-  "source": "twitter",
-  "author": "@zerohedge",
-  "content": "BREAKING: Fed signals...",
-  "timestamp": "2026-02-15T08:30:00Z",
-  "url": "https://x.com/...",
-  "keywords": ["fed", "rates"]
-}
-```
-
-**Narrative**
-```python
-{
-  "id": "uuid",
-  "date": "2026-02-15",
-  "title": "Fed Dovish Pivot",
-  "entropy_risk": 3,
-  "hypothesis": "Long QQQ calls",
-  "supporting_feeds": ["feed_id_1", "feed_id_2"],
-  "status": "active" | "expired" | "executed"
-}
-```
-
-**Trade**
-```python
-{
-  "id": "uuid",
-  "narrative_id": "uuid",
-  "symbol": "QQQ",
-  "entry_price": 485.0,
-  "exit_price": 490.5,
-  "pnl_percent": 1.13,
-  "outcome": "win" | "loss"
-}
+**SQLite Tables:**
+```sql
+twitter_accounts (id, handle, added_at, active, category, notes)
+runs             (id, run_at, hours_back, feeds_collected, narratives_extracted, json_path, html_path)
+feeds            (id, run_id, source, author, content, published_at, url, nitter_instance)
+narratives       (id, run_id, title, entropy_risk, hypothesis, rationale, catalysts, created_at)
+narrative_feeds  (narrative_id, feed_id)  -- join table
 ```
 
 ---
 
-## 📊 Success Metrics & Analytics
+## Success Metrics & Analytics
 
 ### North Star Metric
 **Time to Actionable Insight:** Average minutes from feed update to trade decision
-
 **Target:** <30 minutes (vs. 180 min baseline)
 
 ### Key Performance Indicators (KPIs)
@@ -260,43 +230,26 @@ Output as JSON:
 **Quality Metrics:**
 - Signal accuracy: % of narratives that move markets (±2% within 48h)
 - User-reported trade outcomes (win rate)
-- Entropy score correlation with volatility (measure R²)
+- Entropy score correlation with volatility (R²)
 
 **Business Metrics:**
 - Free → Paid conversion rate (target: 10%)
 - Churn rate (target: <20% monthly)
-- NPS (Net Promoter Score) (target: 40+)
-
-### Analytics Implementation
-```javascript
-// Example event tracking
-trackEvent('narrative_viewed', {
-  narrative_id: 'abc123',
-  entropy_risk: 7,
-  user_action: 'expanded' | 'ignored'
-});
-
-trackEvent('trade_logged', {
-  symbol: 'QQQ',
-  outcome: 'win',
-  pnl_percent: 1.13,
-  from_narrative: true
-});
-```
+- NPS (target: 40+)
 
 ---
 
-## 🚀 Go-to-Market Strategy
+## Go-to-Market Strategy
 
-### Phase 1: Portfolio & Early Validation (Month 1)
-- Build MVP for personal use
+### Phase 1: Portfolio & Early Validation (Month 1) — Active
+- MVP complete and running locally
 - Document on LinkedIn/Substack (build in public)
-- Recruit 5 beta users from trading X/Telegram communities
-- Collect qualitative feedback
+- 5 beta users from trading X communities
+- Collect qualitative feedback → 66% WTP validated at $49/mo
 
 ### Phase 2: Product-Market Fit (Month 2-3)
 - Refine based on beta feedback
-- Add top 2 requested features
+- Add top 2 requested features (live ticker data, trade journal)
 - Launch on Product Hunt / Hacker News
 - Target: 50 free users, 10 paid ($49/mo)
 
@@ -309,74 +262,80 @@ trackEvent('trade_logged', {
 **Free Tier:**
 - 10 feeds max
 - 1 narrative update daily
-- 7-day trade journal history
+- 7-day history
 
 **Pro Tier ($49/month):**
-- Unlimited feeds
-- Real-time updates (15-min refresh)
-- Unlimited trade journal + backtest
+- Unlimited feeds + account management
+- Configurable time windows
+- Full HTML reports + trade journal + backtest
 - Export to CSV/Notion
 - Priority support
 
 **Enterprise ($499/month):**
 - White-label dashboard
-- Custom sources (Bloomberg, internal Slack)
+- Custom sources
 - Team collaboration features
 - API access
 
 ---
 
-## 🗓️ Development Roadmap
+## Development Roadmap
 
-### Week 1: Foundation (Current)
-- [x] PRD completion
-- [ ] Python scraper prototype
-- [ ] Market research doc
-- [ ] GitHub repo setup
+### Phase 1: MVP — Complete (February 2026)
+- [x] Python aggregator (RSS + Nitter RSS)
+- [x] Claude AI narrative extraction
+- [x] Entropy risk scoring (1-10)
+- [x] RedHood Reads HTML report (auto-generated each run)
+- [x] SQLite persistence (5 tables)
+- [x] Account management CLI (accounts_db.py)
+- [x] Trading system analysis (run.ps1)
+- [x] .env support for API key management
+- [x] GitHub repo published
 
-### Week 2: Core Build
-- [ ] Working scraper (X + Telegram + RSS)
-- [ ] Claude API integration
-- [ ] SQLite database schema
-- [ ] Basic FastAPI backend
+### Phase 2: Enhanced Analysis (March 2026)
+- [ ] Live ticker data in HTML report
+- [ ] Historical backtesting across DB runs
+- [ ] Sentiment trend charts
+- [ ] Alert system for high-entropy events
 
-### Week 3: Frontend MVP
-- [ ] React dashboard scaffolding
-- [ ] Narrative card components
+### Phase 3: Web Dashboard (April 2026)
+- [ ] React frontend
+- [ ] FastAPI backend
+- [ ] User authentication
 - [ ] Trade journal UI
-- [ ] Deployed on Vercel
+- [ ] Deployed demo (Vercel)
 
-### Week 4: Polish & Portfolio
-- [ ] User testing with 3 traders
-- [ ] Case study write-up
-- [ ] Demo video
-- [ ] LinkedIn launch post
+### Phase 4: Scale (Post-MVP)
+- [ ] Real-time alerts (Telegram bot)
+- [ ] Mobile app (React Native)
+- [ ] B2B features (team collaboration)
+- [ ] API access for developers
 
 ---
 
-## ❓ Open Questions & Risks
+## Open Questions & Risks
 
 ### Technical Risks
-**Q:** Can we scrape X without getting rate-limited?  
-**Mitigation:** Use official API with caching, or fallback to RSS feeds
+**Q:** Nitter instances can go offline — how do we ensure feed availability?
+**Mitigation:** Multi-instance list with automatic fallback (already implemented); add self-hosted Nitter as ultimate fallback
 
-**Q:** Will Claude API costs blow up with 50+ users?  
+**Q:** Will Claude API costs blow up with 50+ users?
 **Mitigation:** Batch processing, cache narratives, use Haiku for simple tasks
 
 ### Product Risks
-**Q:** Will users actually log trades, or is manual entry too much friction?  
-**Mitigation:** Auto-import from brokerage APIs (TD Ameritrade, Alpaca) in v2
+**Q:** Will users log trades, or is manual entry too much friction?
+**Mitigation:** Auto-import from brokerage APIs (Alpaca) in v2
 
-**Q:** Is "entropy risk" too abstract for non-technical users?  
+**Q:** Is "entropy risk" too abstract for non-technical users?
 **Mitigation:** A/B test with simpler label like "Uncertainty Score"
 
 ### Market Risks
-**Q:** Does this violate X/Telegram ToS?  
-**Mitigation:** Review ToS, use official APIs only, add disclaimer
+**Q:** Does Nitter RSS usage violate X ToS?
+**Mitigation:** Nitter is a read-only proxy for public content; usage is within fair use for personal research tools. Monitor Nitter availability.
 
 ---
 
-## 📚 Appendix
+## Appendix
 
 ### User Research Interview Script
 ```
@@ -388,21 +347,22 @@ trackEvent('trade_logged', {
 ```
 
 ### Competitive Feature Matrix
-| Feature | Bloomberg | Koyfin | StockTwits | RedHood |
-|---------|-----------|--------|------------|---------|
-| Social feeds | ❌ | ❌ | ✅ | ✅ |
-| AI analysis | ❌ | ❌ | ❌ | ✅ |
-| Trade journal | ✅ | ❌ | ❌ | ✅ |
+| Feature | Bloomberg | Koyfin | StockTwits | RedHood (v1.1) |
+|---------|-----------|--------|------------|----------------|
+| Social feeds | No | No | Yes | Yes |
+| AI analysis | No | No | No | Yes |
+| HTML reports | No | No | No | Yes |
+| SQLite persistence | No | No | No | Yes |
+| Trade journal | Yes | No | No | Planned |
 | Price | $24K/yr | Free | Free | $49/mo |
 
 ### Related Resources
-- [Arbitrage Andy Substack](https://arbitrageandy.substack.com/)
-- [Product Hunt: Top Finance Tools 2025](https://producthunt.com)
-- [LLM Prompting for Finance](https://docs.anthropic.com)
+- [Anthropic Claude API Docs](https://docs.anthropic.com)
+- [Nitter Project](https://github.com/zedeus/nitter)
+- [feedparser Docs](https://feedparser.readthedocs.io/)
 
 ---
 
 **Document History:**
 - v1.0 (Feb 15, 2026): Initial PRD
-- v1.1 (TBD): Post-user testing revisions
-
+- v1.1 (Feb 22, 2026): Updated to reflect shipped MVP — SQLite, HTML reports, Nitter RSS, account CLI, trading system

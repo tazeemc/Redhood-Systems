@@ -1,158 +1,162 @@
-# 🚀 QUICK START GUIDE
+# QUICK START GUIDE
 ## Get Up and Running in 15 Minutes
 
 ---
 
-## 📋 What You Have
+## What You Have
 
-You now have a complete portfolio project with:
-- ✅ Working Python prototype
-- ✅ Professional PRD (Product Requirements Document)
-- ✅ Comprehensive market research
-- ✅ Portfolio case study
-- ✅ Demo mode (no API keys needed)
+A complete, working portfolio project:
+- Working Python aggregator with AI narrative extraction
+- Styled **RedHood Reads** HTML report generated each run
+- SQLite database storing all runs, feeds, and narratives
+- Account management CLI for tracked X/Twitter handles
+- PowerShell runner with integrated trading system analysis
+- Professional PRD and market research documents
 
 ---
 
-## 🎯 Three Ways to Use This
+## Three Ways to Use This
 
-### 1️⃣ **For Job Applications (Fastest)**
-
-**What to do:**
-1. Read the `CASE_STUDY.md` file first
-2. Add it to your portfolio website
-3. Link to GitHub repo in your resume
-4. Mention in cover letter: *"Built an AI-powered market intelligence platform that reduces research time by 83%"*
+### 1. For Job Applications (Fastest)
 
 **Resume bullet point (copy-paste ready):**
 ```
-• Built RedHood Insights, an AI-powered market intelligence dashboard 
-  that aggregates 50+ daily feeds and uses Claude AI to extract 
-  actionable narratives, reducing trader research time by 83% 
-  (180 min → 30 min daily)
+• Built RedHood Insights, an AI-powered market intelligence pipeline that
+  aggregates X/Twitter and Substack feeds, extracts top narratives via
+  Claude AI, generates styled HTML briefings, and persists all data to
+  SQLite — reducing trader research time by 83% (180 min → 30 min daily)
 ```
 
 **Where to host:**
 - Personal website portfolio page
-- GitHub repo (make it public)
+- GitHub repo (already public: github.com/tazeemc/Redhood-Systems)
 - LinkedIn featured section
-- PDF in job applications
 
 ---
 
-### 2️⃣ **Run the Demo (No Setup Required)**
-
-**What to do:**
-```bash
-cd redhood-portfolio
-python demo.py
-```
-
-**What it shows:**
-- Sample market feeds (Twitter, Substack)
-- AI-generated narratives
-- Entropy risk scoring
-- Trade hypotheses
-
-**Use case:** Show interviewers during portfolio walkthroughs
-
----
-
-### 3️⃣ **Run with Real Data (Requires API Key)**
+### 2. Run with Real Data (Requires API Key)
 
 **Setup (5 minutes):**
 
 1. **Get Anthropic API Key** (free tier available)
    - Visit: https://console.anthropic.com/
    - Sign up → Get API key
-   - You'll get $5 free credit (enough for testing)
 
-2. **Configure environment:**
-```bash
-cd redhood-portfolio
-cp .env.example .env
-# Edit .env and add your API key
+2. **Create .env file:**
+```
+ANTHROPIC_API_KEY=sk-ant-your-key-here
 ```
 
 3. **Install dependencies:**
 ```bash
-pip install -r requirements.txt --break-system-packages
+pip install anthropic feedparser python-dotenv --break-system-packages
 ```
 
-4. **Run the aggregator:**
+4. **Run via PowerShell (recommended):**
+```powershell
+.\run.ps1                          # 5-min window + trading analysis
+.\run.ps1 -Hours 1                 # last 1 hour
+.\run.ps1 -Hours 24 -SkipTrading   # 24h RedHood only
+```
+
+5. **Or run Python directly:**
 ```bash
-python redhood_aggregator.py
+python redhood_aggregator.py --hours 1
 ```
 
-**What it does:**
-- Fetches real RSS feeds (Substack newsletters)
-- Processes with Claude AI
-- Generates actual market narratives
-- Saves to data/ directory
+**What it produces:**
+- Console summary of top narratives
+- `data/redhood_reads_TIMESTAMP.html` — styled editorial briefing
+- `data/redhood_insights_TIMESTAMP.json` — raw feed + narrative data
+- `redhood.db` entry for the run (all feeds + narratives persisted)
 
 **Expected output:**
 ```
-🔥 REDHOOD INSIGHTS - Feed Aggregator
-============================================================
 📰 Fetching RSS feeds...
-   ✅ Found 23 RSS items
+   ✅ Found 18 RSS items
 
-🤖 Analyzing 23 feeds with Claude...
+🐦 Fetching Twitter feeds...
+   📋 Active accounts from DB: @unusual_whales, @FirstSquawk...
+   ✅ Found 12 tweets
+
+📊 Total feeds collected: 30
+
+🧠 AI Analysis Phase...
 ✅ Extracted 3 narratives
 
-📋 DAILY BRIEF - TOP NARRATIVES
 [1] Fed Signals Dovish Pivot
     Entropy Risk: 🟢 LOW (3/10)
     💡 Hypothesis: Long QQQ calls...
+
+📰 Report saved to: data/redhood_reads_20260222_083045.html
+🗄️  DB: run #5 saved — 30 feeds, 3 narratives
 ```
 
 ---
 
-## 📁 File Guide
+### 3. Manage Tracked Accounts
 
-**Essential Documents:**
+The aggregator reads tracked Twitter accounts from SQLite. Default accounts are seeded automatically on first run.
 
-| File | Purpose | Read This If... |
-|------|---------|-----------------|
-| `CASE_STUDY.md` | Portfolio writeup | You're applying for jobs |
-| `README.md` | Technical overview | Recruiters ask "what did you build?" |
-| `PRD_RedHood_Insights.md` | Product spec | They want to see PM thinking |
-| `Market_Research_Analysis.md` | Business strategy | They ask about market opportunity |
-| `demo.py` | Interactive demo | You're presenting live |
+```bash
+# View all tracked accounts
+python accounts_db.py --list
 
-**Code Files:**
-- `redhood_aggregator.py` - Main application (show technical skills)
-- `requirements.txt` - Dependencies
-- `.env.example` - Configuration template
+# Add a new account
+python accounts_db.py --add FinancialJuice --category news --notes "Real-time headlines"
+
+# Pause/resume an account
+python accounts_db.py --toggle unusual_whales
+
+# Remove an account
+python accounts_db.py --remove SomeHandle
+```
+
+**Default accounts:**
+| Handle | Category | Notes |
+|--------|----------|-------|
+| unusual_whales | market | Options flow and dark pool alerts |
+| FirstSquawk | news | Real-time macro and geopolitical headlines |
+| AutismCapital | macro | Macro intelligence and geopolitical signals |
+| Mayhem4Markets | market | Market structure and volatility commentary |
+| BasedBiohacker | bio | Biotech and health sector signals |
 
 ---
 
-## 🎤 Talking Points for Interviews
+## File Guide
+
+| File | Purpose |
+|------|---------|
+| `redhood_aggregator.py` | Main aggregator — scraping, AI, HTML report, DB persistence |
+| `accounts_db.py` | CLI for managing tracked X/Twitter accounts in SQLite |
+| `models.py` | SQLite schema definitions + init helpers |
+| `run.ps1` | PowerShell runner: trading analysis + RedHood aggregator |
+| `redhood.db` | SQLite database (created automatically on first run) |
+| `CASE_STUDY.md` | Portfolio writeup for job applications |
+| `README.md` | Technical overview |
+| `PRD_RedHood_Insights.md` | Product spec — shows PM thinking |
+| `Market_Research_Analysis.md` | Business strategy — shows market acumen |
+
+---
+
+## Talking Points for Interviews
 
 ### "Walk me through a project you're proud of"
 
-**Answer Structure:**
+1. **Problem (30s):** "As a trader, I was spending 3+ hours daily aggregating market intelligence from Twitter, Substack, and newsletters. I validated this was a widespread pain point."
 
-1. **Problem (30 seconds):**
-   "As a trader, I was spending 3+ hours daily aggregating market intelligence from Twitter, Telegram, and newsletters. I validated this was a widespread pain point by surveying 50 traders."
+2. **Solution (30s):** "I built RedHood Insights — an AI-powered pipeline that aggregates feeds, uses Claude to extract top narratives with entropy risk scoring, generates styled HTML briefings, and persists everything to SQLite."
 
-2. **Solution (30 seconds):**
-   "I built RedHood Insights, an AI-powered dashboard that aggregates feeds and uses Claude to extract top narratives with 'entropy risk' scoring - a physics-inspired framework for quantifying market uncertainty."
+3. **Process (60s):** "I followed a full PM cycle: user research → PRD → prototype → validation. The interesting challenge was the Nitter RSS integration for Twitter (no API key needed) and prompt engineering to get consistent JSON from Claude."
 
-3. **Process (60 seconds):**
-   "I followed a full PM cycle: user research → PRD → technical prototype → validation. The interesting challenge was prompt engineering - getting Claude to consistently output structured JSON for narratives."
+4. **Results (30s):** "Reduced research time by 83%, validated 66% willingness-to-pay at $49/month, and shipped a system that generates styled market briefings every run."
 
-4. **Results (30 seconds):**
-   "Reduced research time by 83%, validated 66% willingness-to-pay at $49/month, and created portfolio artifacts that demonstrate strategy, execution, and technical skills."
-
-5. **Learnings (30 seconds):**
-   "Key learning: I should have done mobile mockups earlier - 4/5 beta users wanted mobile access. Next time I'll validate device preference in week 1."
+5. **Learnings (30s):** "Key learning: I should have done mobile mockups earlier — users wanted mobile access. Next time I'll validate device preference in Week 1."
 
 ---
 
 ### "How do you approach product-market fit?"
 
-**Point to your research:**
 - TAM/SAM/SOM analysis ($7.5B → $1.2B → $5.9M)
 - User surveys (N=50) and interviews (N=5)
 - Competitive gaps (no AI-native aggregation tool)
@@ -164,134 +168,45 @@ python redhood_aggregator.py
 
 ### "Can you show me code you've written?"
 
-**Demo the prototype:**
-```bash
-python demo.py
-```
-
-**Highlight:**
-- Modular architecture (scrapers, AI engine separated)
-- Error handling for API calls
-- Prompt engineering for consistent AI output
-- Production-ready documentation
-
-**Show file:** `redhood_aggregator.py`
+**Highlight in `redhood_aggregator.py`:**
+- Modular architecture (scrapers, AI engine, DB layer separated)
+- Nitter RSS scraping (multi-instance fallback for reliability)
+- Prompt engineering for consistent JSON output
+- `%%TOKEN%%` placeholder approach for CSS-safe HTML generation
+- SQLite persistence with `INSERT OR IGNORE` deduplication
+- Unique narrative ID via `f"narrative_{int(time.time())}_{id(self)}"`
 
 ---
 
-## 💡 Customization Tips
+## FAQ
 
-### Make it Your Own
-
-**1. Update Personal Info:**
-- Search for `[Your Name]` and replace everywhere
-- Add your email, LinkedIn, GitHub links
-- Update the "About the Creator" section in README
-
-**2. Customize Feed Sources:**
-- Edit `redhood_aggregator.py` lines 40-60
-- Add your favorite X accounts, Substacks, Telegram channels
-- This makes it authentic to YOUR use case
-
-**3. Add Your Industry Focus:**
-- Current: General market intelligence
-- Options: Crypto-specific, real estate, SaaS metrics
-- Adjust AI prompts to your domain expertise
-
-**4. Create Visual Assets:**
-- Screenshots of demo output → add to README
-- Mockups in Figma/Canva → add to case study
-- Demo video (2-3 min Loom) → LinkedIn portfolio
-
----
-
-## 🎯 Next 48 Hours Action Plan
-
-### Day 1: Package for Portfolio
-- [ ] Read CASE_STUDY.md (understand the narrative)
-- [ ] Run demo.py (see it in action)
-- [ ] Update all [Your Name] placeholders
-- [ ] Create GitHub repo (make it public)
-- [ ] Add to portfolio website
-
-### Day 2: Share & Apply
-- [ ] LinkedIn post: "Just built an AI-powered market intelligence platform..."
-- [ ] Screenshot your demo output → visual proof
-- [ ] Update resume with bullet point (see above)
-- [ ] Apply to 3-5 PM roles with this as featured project
-
----
-
-## 🔥 Power Moves
-
-**1. Turn This Into Content:**
-- LinkedIn carousel: "How I Built RedHood Insights in 4 Weeks"
-- Blog post: "From Trader Pain Point to Product Prototype"
-- Substack: Share your actual daily briefs (build in public)
-
-**2. Get User Testimonials:**
-- Share with 3-5 trader friends
-- Collect feedback quotes
-- Add to case study (social proof)
-
-**3. Live Demo for Interviews:**
-- Practice presenting in 5 minutes
-- Have demo.py ready to run
-- Prepare to answer: "How would you scale this?"
-
----
-
-## ❓ FAQ
-
-**Q: Do I need Twitter API access?**
-A: No! The MVP works with just RSS feeds (free). Twitter is optional.
+**Q: Do I need a Twitter API key?**
+A: No! Twitter/X is scraped via Nitter RSS — completely free, no API credentials required.
 
 **Q: How much does Claude API cost?**
-A: ~$0.50-2.00/day for personal use. You get $5 free credit to start.
+A: ~$0.50-2.00/day for personal use. You get free credit to start.
 
 **Q: What if I don't know Python?**
-A: That's okay! The demo mode shows functionality. For PM roles, showing the PRD and market research is often more valuable than code.
+A: For PM roles, showing the PRD and market research is often more valuable than the code itself. Use the CASE_STUDY.md as your primary artifact.
 
-**Q: Can I use this for crypto instead of stocks?**
-A: Yes! Just change the feed sources to crypto Twitter accounts and newsletters.
+**Q: Where does output go?**
+A: The `data/` folder. HTML reports open directly in any browser. JSON files can be viewed in any text editor or VS Code.
 
-**Q: Should I deploy this to production?**
-A: For portfolio purposes, a local demo is sufficient. If you want to go further, I can help you deploy to Vercel/Heroku.
-
----
-
-## 📞 Need Help?
-
-**Stuck on setup?**
-- Check `.env.example` for configuration
-- Verify Python 3.9+ is installed
-- Make sure `pip install` completed successfully
-
-**Want to customize?**
-- Edit `Config` class in `redhood_aggregator.py`
-- Modify AI prompt (lines 200-250)
-- Adjust feed sources (lines 40-60)
-
-**Ready to level up?**
-- Want React frontend? → I can help build
-- Need deployment guide? → Vercel/AWS Lambda
-- Want to monetize? → Stripe integration
+**Q: What's in the database?**
+A: Open `redhood.db` with any SQLite viewer (DB Browser for SQLite is free). Tables: `runs`, `feeds`, `narratives`, `narrative_feeds`, `twitter_accounts`.
 
 ---
 
-## ✅ Success Checklist
+## Success Checklist
 
 **Before your next interview:**
-- [ ] Read and understand CASE_STUDY.md
-- [ ] Run demo.py successfully
-- [ ] Upload to GitHub (public repo)
-- [ ] Add to portfolio website
-- [ ] Update resume with bullet point
+- [ ] Set up `.env` and run `python redhood_aggregator.py` successfully
+- [ ] Open `data/redhood_reads_*.html` in a browser — see the styled report
+- [ ] Run `python accounts_db.py --list` to see tracked accounts
+- [ ] Read and understand `CASE_STUDY.md`
+- [ ] Update resume with bullet point above
 - [ ] Practice 3-minute walkthrough
-- [ ] Prepare for questions (see talking points above)
 
 ---
 
-**You're ready to showcase this! Good luck with the job search! 🚀**
-
-Questions? Just ask Claude to help you customize or extend this project.
+**You're ready to showcase this. Good luck!**
