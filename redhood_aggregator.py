@@ -23,6 +23,7 @@ Dependencies:
 import os
 import json
 import time
+import urllib.request
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import sqlite3
@@ -473,6 +474,50 @@ class RedHoodAggregator:
 
         return json_path, html_path
 
+    @staticmethod
+    def _fetch_ticker_prices() -> str:
+        """Fetch live prices from Yahoo Finance and return ticker tape HTML (doubled for loop)."""
+        TICKERS = [
+            ('BTC/USD',  'BTC-USD',   '{:,.0f}',  '$'),
+            ('S&P 500',  '^GSPC',     '{:,.0f}',  ''),
+            ('WTI',      'CL=F',      '{:.2f}',   '$'),
+            ('GOLD',     'GC=F',      '{:,.0f}',  '$'),
+            ('VIX',      '^VIX',      '{:.2f}',   ''),
+            ('10YR UST', '^TNX',      '{:.3f}',   ''),
+            ('USD/CAD',  'USDCAD=X',  '{:.4f}',   ''),
+        ]
+        items = []
+        for label, symbol, fmt, prefix in TICKERS:
+            try:
+                url = (f'https://query1.finance.yahoo.com/v8/finance/chart/'
+                       f'{urllib.request.quote(symbol)}?interval=1d&range=2d')
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    data = json.loads(resp.read())
+                meta = data['chart']['result'][0]['meta']
+                price = meta.get('regularMarketPrice') or meta.get('previousClose', 0)
+                prev  = meta.get('previousClose') or price
+                chg   = ((price - prev) / prev * 100) if prev else 0
+                val_str = prefix + fmt.format(price)
+                chg_str = f'{chg:+.2f}%'
+                css = 'up' if chg >= 0 else 'down'
+                items.append(
+                    f'<span class="tick-item">'
+                    f'<span class="tick-sym">{label}</span>'
+                    f'<span class="tick-val {css}">{val_str}</span>'
+                    f'<span class="tick-chg {css}">{chg_str}</span>'
+                    f'</span>'
+                )
+            except Exception:
+                items.append(
+                    f'<span class="tick-item">'
+                    f'<span class="tick-sym">{label}</span>'
+                    f'<span class="tick-val">—</span>'
+                    f'</span>'
+                )
+        tape = '\n    '.join(items)
+        return tape + '\n    ' + tape  # duplicate for seamless loop
+
     def _save_html_report(self, results: Dict[str, Any], narratives: List[Narrative],
                           filepath: str, timestamp: str, hours_back: float):
         """Generate styled RedHood Reads HTML report from run data."""
@@ -566,6 +611,8 @@ class RedHoodAggregator:
             for f in twitter_feeds
         )
 
+        ticker_html = self._fetch_ticker_prices()
+
         # Build HTML using string replacement to avoid f-string brace conflicts with CSS
         tpl = self._html_report_template()
         html_out = (tpl
@@ -581,6 +628,7 @@ class RedHoodAggregator:
             .replace('%%LINK_ROWS%%',    link_rows)
             .replace('%%FEED_COUNT%%',   str(feed_count))
             .replace('%%RUN_TIME%%',     run_time_short)
+            .replace('%%TICKER_HTML%%',  ticker_html)
         )
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(html_out)
@@ -633,6 +681,7 @@ class RedHoodAggregator:
     font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
   .tick-sym { color: var(--gold); font-weight: 500; }
   .tick-val { color: var(--cream); }
+  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
   .up { color: #4CAF50; } .down { color: var(--red); }
   .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
   .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
@@ -727,20 +776,7 @@ class RedHoodAggregator:
   </div>
 
   <div class="ticker-wrap"><div class="ticker-inner">
-    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">S&amp;P 500</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">S&amp;P 500</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val">—</span></span>
-    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val">—</span></span>
+    %%TICKER_HTML%%
   </div></div>
 
   <div class="hero">
