@@ -20,6 +20,7 @@ Dependencies:
     pip install anthropic feedparser telethon tweepy pandas python-dotenv --break-system-packages
 """
 
+import asyncio
 import os
 import json
 import time
@@ -57,8 +58,7 @@ class Config:
     ]
     
     TELEGRAM_CHANNELS = [
-        # Add your channel usernames/IDs here
-        # Example: '@wallstreetbets', '@cryptosignals'
+        '@marketfeed',
     ]
     
     # AI Configuration
@@ -238,28 +238,70 @@ class TwitterScraper:
 
 
 class TelegramScraper:
-    """Scraper for Telegram channels"""
-    
+    """Scraper for Telegram channels using telethon"""
+
     def __init__(self, api_id: str, api_hash: str):
         self.api_id = api_id
         self.api_hash = api_hash
         self.enabled = bool(api_id and api_hash)
-    
+
+    async def _fetch_async(self, channels: List[str], hours_back: int) -> List[FeedItem]:
+        """Async implementation using telethon"""
+        from telethon import TelegramClient
+
+        items = []
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours_back)
+        session_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'redhood_session')
+
+        async with TelegramClient(session_path, int(self.api_id), self.api_hash) as client:
+            for channel in channels:
+                try:
+                    handle = channel.lstrip('@')
+                    async for message in client.iter_messages(channel, limit=100):
+                        msg_time = message.date.replace(tzinfo=None)  # telethon gives UTC-aware
+                        if msg_time < cutoff_time:
+                            break
+                        if not message.text:
+                            continue
+                        item = FeedItem(
+                            source='telegram',
+                            author=f"@{handle}",
+                            content=message.text,
+                            timestamp=msg_time,
+                            url=f"https://t.me/{handle}/{message.id}",
+                            metadata={
+                                'views': message.views or 0,
+                                'forwards': message.forwards or 0,
+                                'message_id': message.id,
+                            }
+                        )
+                        items.append(item)
+                except Exception as e:
+                    print(f"Error fetching Telegram channel {channel}: {e}")
+
+        return items
+
     def fetch(self, channels: List[str], hours_back: int = 24) -> List[FeedItem]:
         """Fetch recent messages from Telegram channels"""
-        
+
         if not self.enabled:
             print("⚠️  Telegram API not configured - skipping")
             return []
-        
-        # NOTE: Requires telethon library and async implementation
-        # This is a placeholder for the structure
-        
-        items = []
-        print("⚠️  Telegram scraping requires async implementation with telethon")
-        print("    See: https://docs.telethon.dev/en/stable/")
-        
-        return items
+
+        if not channels:
+            return []
+
+        try:
+            import telethon  # noqa: F401
+        except ImportError:
+            print("⚠️  telethon not installed - install with: pip install telethon")
+            return []
+
+        try:
+            return asyncio.run(self._fetch_async(channels, hours_back))
+        except Exception as e:
+            print(f"❌ Error fetching Telegram feeds: {e}")
+            return []
 
 
 # ============================================================================
