@@ -5,9 +5,9 @@ RedHood Insights - Feed Aggregator & AI Analysis Tool
 A production-ready prototype for aggregating market intelligence from multiple sources
 and extracting actionable narratives using Claude AI.
 
-Author: [Your Name]
+Author: Tazeem Chowdhury
 Created: February 15, 2026
-GitHub: [Your GitHub URL]
+GitHub: https://github.com/tazeemc/Redhood-Systems
 
 Key Features:
 - Multi-source scraping (X/Twitter, Telegram, Substack RSS)
@@ -17,7 +17,7 @@ Key Features:
 - Exportable insights (JSON, CSV)
 
 Dependencies:
-    pip install anthropic feedparser python-telegram-bot tweepy pandas python-dotenv --break-system-packages
+    pip install anthropic feedparser telethon tweepy pandas python-dotenv --break-system-packages
 """
 
 import os
@@ -62,11 +62,11 @@ class Config:
     ]
     
     # AI Configuration
-    CLAUDE_MODEL = 'claude-sonnet-4-20250514'
+    CLAUDE_MODEL = 'claude-sonnet-4-5'
     MAX_FEEDS_TO_PROCESS = 50  # Limit for cost control
     
     # Output
-    OUTPUT_DIR = '/home/claude/redhood-portfolio/data'
+    OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
 
 # ============================================================================

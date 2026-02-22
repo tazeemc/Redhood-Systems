@@ -428,6 +428,6 @@ If you want to go deeper, you can extend this project:
 **Package Version:** 1.0  
 **Last Updated:** February 15, 2026  
 **Created by:** Claude (Anthropic)  
-**For:** [Your Name]'s PM Portfolio
+**For:** Tazeem Chowdhury's PM Portfolio
 
 *All artifacts are production-ready and can be used immediately in job applications.*

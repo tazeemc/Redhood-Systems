@@ -67,8 +67,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/redhood-systems.git
-cd redhood-systems
+git clone https://github.com/tazeemc/Redhood-Systems.git
+cd Redhood-Systems
 
 # Install dependencies
 pip install -r requirements.txt --break-system-packages
