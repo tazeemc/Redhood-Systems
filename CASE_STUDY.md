@@ -1,8 +1,8 @@
 # Portfolio Case Study: RedHood Insights
 ## Building an AI-Powered Market Intelligence Platform from Scratch
 
-**Author:** [Your Name]  
-**Role:** Product Manager  
+**Author:** Tazeem Chowdhury  
+**Role:** Product Manager | Business Analyst | Financial Markets Analyst  
 **Timeline:** 4 weeks (February 2026)  
 **Status:** MVP Complete
 
@@ -340,10 +340,10 @@ This project showcases the full PM skillset:
 
 ### Portfolio Links
 
-- **GitHub Repo:** [github.com/yourname/redhood-insights](https://github.com)
-- **Live Demo:** [demo.redhoodinsights.com](https://example.com)
-- **LinkedIn Post Series:** [linkedin.com/yourname](https://linkedin.com)
-- **Case Study PDF:** [Download here](link)
+- **GitHub Repo:** [github.com/tazeemc/Redhood-Systems](https://github.com/tazeemc/Redhood-Systems)
+- **LinkedIn:** [linkedin.com/in/tazeemchowdhury](https://www.linkedin.com/in/tazeemchowdhury/)
+- **Newsletter:** [RedHood Reads on Substack](https://substack.com/@redhoodcapital)
+- **Twitter/X:** [@redhoodcapital](https://x.com/redhoodcapital)
 
 ### Testimonials
 
@@ -362,10 +362,10 @@ This project showcases the full PM skillset:
 
 **Interested in discussing this project or exploring opportunities?**
 
-📧 Email: [your-email@example.com]  
-💼 LinkedIn: [linkedin.com/in/yourprofile]  
-🐦 Twitter: [@yourhandle](https://twitter.com)  
-📅 Schedule a call: [calendly.com/yourname](https://calendly.com)
+📧 Email: [ctazeem@gmail.com](mailto:ctazeem@gmail.com)  
+💼 LinkedIn: [linkedin.com/in/tazeemchowdhury](https://www.linkedin.com/in/tazeemchowdhury/)  
+🐦 Twitter/X: [@redhoodcapital](https://x.com/redhoodcapital)  
+📰 Newsletter: [RedHood Reads on Substack](https://substack.com/@redhoodcapital)
 
 ---
 
