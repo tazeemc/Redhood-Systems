@@ -32,4 +32,6 @@ if (-not $env:ANTHROPIC_API_KEY) {
 }
 
 Write-Host "Running RedHood Insights (last $Hours hours)..." -ForegroundColor Cyan
+$env:PYTHONIOENCODING = "utf-8"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 python "$ScriptDir\redhood_aggregator.py" --hours $Hours
