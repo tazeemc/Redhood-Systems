@@ -17,7 +17,7 @@ Key Features:
 - Exportable insights (JSON, CSV)
 
 Dependencies:
-    pip install anthropic feedparser tweepy pandas python-dotenv --break-system-packages
+    pip install anthropic feedparser pandas python-dotenv --break-system-packages
 """
 
 import os
@@ -27,6 +27,9 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import feedparser
 from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from project root if present
 
 # ============================================================================
 # CONFIGURATION
@@ -37,13 +40,19 @@ class Config:
     
     # API Keys (set via environment variables)
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
-    TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN', '')
-    
+
     # Feed Sources (customize these!)
     TWITTER_ACCOUNTS = [
         'unusual_whales',
         'FirstSquawk',
         'AutismCapital',
+    ]
+
+    # Nitter instances to try in order (free, no API key required)
+    NITTER_INSTANCES = [
+        'nitter.poast.org',
+        'nitter.privacydev.net',
+        'nitter.net',
     ]
     
     SUBSTACK_FEEDS = [
@@ -127,7 +136,7 @@ class RSSFeedScraper:
     """Scraper for Substack and other RSS feeds"""
     
     @staticmethod
-    def fetch(feed_urls: List[str], hours_back: int = 24) -> List[FeedItem]:
+    def fetch(feed_urls: List[str], hours_back: float = 24) -> List[FeedItem]:
         """Fetch recent posts from RSS feeds"""
         items = []
         cutoff_time = datetime.now() - timedelta(hours=hours_back)
@@ -159,72 +168,54 @@ class RSSFeedScraper:
         return items
 
 
-class TwitterScraper:
-    """Scraper for X/Twitter using official API"""
-    
-    def __init__(self, bearer_token: str):
-        self.bearer_token = bearer_token
-        self.enabled = bool(bearer_token)
-    
-    def fetch(self, accounts: List[str], hours_back: int = 24) -> List[FeedItem]:
-        """Fetch recent tweets from specified accounts"""
-        
-        if not self.enabled:
-            print("⚠️  Twitter API not configured - skipping")
-            return []
-        
-        # NOTE: This is a simplified version. 
-        # In production, use tweepy library with proper authentication
+class NitterScraper:
+    """Scraper for X/Twitter via Nitter RSS (no API key required)"""
+
+    def __init__(self, instances: List[str]):
+        self.instances = instances
+
+    def _rss_url(self, instance: str, account: str) -> str:
+        return f"https://{instance}/{account}/rss"
+
+    def fetch(self, accounts: List[str], hours_back: float = 24) -> List[FeedItem]:
+        """Fetch recent tweets via Nitter RSS, trying each instance per account."""
         items = []
-        
-        try:
-            import tweepy
-            
-            # Authenticate
-            client = tweepy.Client(bearer_token=self.bearer_token)
-            cutoff_time = datetime.now() - timedelta(hours=hours_back)
-            
-            for account in accounts:
+        cutoff_time = datetime.now() - timedelta(hours=hours_back)
+
+        for account in accounts:
+            fetched = False
+            for instance in self.instances:
+                url = self._rss_url(instance, account)
                 try:
-                    # Get user ID
-                    user = client.get_user(username=account)
-                    user_id = user.data.id
-                    
-                    # Get recent tweets
-                    tweets = client.get_users_tweets(
-                        user_id, 
-                        max_results=10,
-                        tweet_fields=['created_at', 'public_metrics']
-                    )
-                    
-                    if not tweets.data:
+                    feed = feedparser.parse(url)
+                    if feed.bozo and not feed.entries:
                         continue
-                    
-                    for tweet in tweets.data:
-                        if tweet.created_at < cutoff_time:
+                    for entry in feed.entries[:20]:
+                        if not entry.get('published_parsed'):
                             continue
-                        
+                        pub_date = datetime(*entry.published_parsed[:6])
+                        if pub_date < cutoff_time:
+                            continue
+                        # Nitter links point back to nitter; rewrite to x.com
+                        link = entry.get('link', '')
+                        link = link.replace(f'https://{instance}', 'https://x.com')
                         item = FeedItem(
                             source='twitter',
                             author=f"@{account}",
-                            content=tweet.text,
-                            timestamp=tweet.created_at,
-                            url=f"https://twitter.com/{account}/status/{tweet.id}",
-                            metadata={
-                                'likes': tweet.public_metrics['like_count'],
-                                'retweets': tweet.public_metrics['retweet_count']
-                            }
+                            content=entry.get('summary', entry.get('title', '')),
+                            timestamp=pub_date,
+                            url=link,
+                            metadata={'nitter_instance': instance}
                         )
                         items.append(item)
-                        
+                    fetched = True
+                    break
                 except Exception as e:
-                    print(f"Error fetching tweets from @{account}: {e}")
-            
-        except ImportError:
-            print("⚠️  tweepy not installed - install with: pip install tweepy")
-        except Exception as e:
-            print(f"Error with Twitter API: {e}")
-        
+                    print(f"   Nitter instance {instance} failed for @{account}: {e}")
+
+            if not fetched:
+                print(f"⚠️  Could not fetch @{account} from any Nitter instance")
+
         return items
 
 
@@ -391,7 +382,7 @@ class RedHoodAggregator:
         
         # Initialize scrapers
         self.rss_scraper = RSSFeedScraper()
-        self.twitter_scraper = TwitterScraper(self.config.TWITTER_BEARER_TOKEN)
+        self.twitter_scraper = NitterScraper(self.config.NITTER_INSTANCES)
         
         # Initialize AI engine
         self.ai_engine = NarrativeExtractor(self.config.ANTHROPIC_API_KEY)
@@ -399,7 +390,7 @@ class RedHoodAggregator:
         # Ensure output directory exists
         os.makedirs(self.config.OUTPUT_DIR, exist_ok=True)
     
-    def run(self, hours_back: int = 24) -> Dict[str, Any]:
+    def run(self, hours_back: float = 24) -> Dict[str, Any]:
         """
         Run full aggregation and analysis pipeline
         
@@ -500,9 +491,9 @@ def main():
     )
     parser.add_argument(
         '--hours',
-        type=int,
-        default=24,
-        help='Hours of history to fetch (default: 24)'
+        type=float,
+        default=round(5/60, 4),
+        help='Hours of history to fetch, accepts decimals e.g. 0.083 for 5 minutes (default: 0.083)'
     )
     parser.add_argument(
         '--api-key',
