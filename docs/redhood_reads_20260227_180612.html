@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHood Reads — 2026-02-27 18:06</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
+    --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
+    --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
+  }
+  body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6; }
+  .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
+    border: 1px solid rgba(193,18,31,0.25); z-index: 1; overflow: hidden; }
+  .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
+    height: 200px; background: var(--red); transform: rotate(45deg); opacity: 0.08; }
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px; border-bottom: 1px solid var(--wire);
+    background: rgba(193,18,31,0.05); }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(193,18,31,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(193,18,31,0); }
+  }
+  .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); font-weight: 500; }
+  .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
+    background: var(--mid); padding: 7px 0; }
+  .ticker-inner { display: flex; gap: 0; animation: ticker 28s linear infinite; white-space: nowrap; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
+    font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
+  .tick-sym { color: var(--gold); font-weight: 500; }
+  .tick-val { color: var(--cream); }
+  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
+  .up { color: #4CAF50; } .down { color: var(--red); }
+  .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
+  .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .issue-num { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); }
+  .issue-rule { flex: 1; height: 1px; background: linear-gradient(to right, var(--wire), transparent); }
+  .masthead { font-family: "Playfair Display", serif; font-weight: 900;
+    font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
+    color: var(--cream); margin-bottom: 6px; }
+  .masthead .red-accent { color: var(--red); font-style: italic; }
+  .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 28px; }
+  .headline-block { max-width: 620px; }
+  .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
+    line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
+  .deck { font-size: 10.5px; line-height: 1.7; color: var(--text-muted);
+    letter-spacing: 0.03em; max-width: 540px; }
+  .corner-deco { position: absolute; top: 44px; right: 40px; text-align: right; }
+  .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
+    text-transform: uppercase; }
+  .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
+    font-weight: 900; color: rgba(193,18,31,0.12); line-height: 1; letter-spacing: -0.04em; }
+  .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--wire); }
+  .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
+  .grid-col:last-child { border-right: none; }
+  .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 10px; font-weight: 500; }
+  .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
+    line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
+  .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
+  .bar { flex: 1; background: var(--wire); border-radius: 1px; }
+  .bar.hi { background: rgba(76,175,80,0.5); }
+  .bar.lo { background: rgba(193,18,31,0.5); }
+  .bar.mid-hi { background: rgba(184,151,90,0.4); }
+  .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--wire); }
+  .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
+  .metric:last-child { border-right: none; }
+  .metric-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .metric-val { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
+  .metric-delta.up { color: #4CAF50; }
+  .metric-delta.dn { color: var(--red); }
+  .metric-delta.neutral { color: var(--gold); }
+  .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
+    display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
+  .thought-rule { background: linear-gradient(to bottom, var(--red), transparent);
+    height: 100%; min-height: 60px; }
+  .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 8px; font-weight: 500; }
+  .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
+    line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
+  .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 14px; font-weight: 500; }
+  .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
+  .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
+    border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
+  .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top; }
+  .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
+  .author { color: var(--gold); white-space: nowrap; width: 140px; }
+  .links-table a { color: #4ea3ff; text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; }
+  .footer { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: rgba(193,18,31,0.04); }
+  .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .footer-left span { color: var(--gold); }
+  .footer-right { display: flex; align-items: center; gap: 18px; }
+  .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
+  .footer-tag.active { border-color: rgba(193,18,31,0.4); color: var(--red); }
+  .scanline { position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
+  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
+    color: var(--gold); font-weight: 500; }
+  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
+    color: var(--gold); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scanline"></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pulse"></div>
+      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+    </div>
+    <span class="topbar-date">Friday, 27 February 2026 &nbsp;|&nbsp; Week 09</span>
+  </div>
+
+  <div class="ticker-wrap"><div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$65,679</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">6,879</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$67.29</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$5,296</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.86</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">3.962</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3642</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$65,679</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">6,879</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$67.29</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$5,296</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.86</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">3.962</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3642</span><span class="tick-chg up">+0.00%</span></span>
+  </div></div>
+
+  <div class="hero">
+    <div class="issue-line">
+      <span class="issue-num">Run &middot; 5.0h window &middot; 2026-02-27 18:06</span>
+      <div class="issue-rule"></div>
+    </div>
+    <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
+    <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
+    <div class="headline-block">
+      <div class="headline">Anthropic Faces Federal Government Crackdown</div>
+      <div class="deck">Trump ordering immediate cessation of Anthropic products across all federal agencies with DoD designation as &#x27;Supply-Chain Risk&#x27; creates severe uncertainty for AI commercial adoption. This represents a potential phase transition from scale-…</div>
+    </div>
+    <div class="corner-deco">
+      <div class="vol-label">Day</div>
+      <div class="vol-num">27</div>
+    </div>
+  </div>
+
+  <div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">101</div><div class="metric-delta neutral">5.0h window</div></div>
+<div class="metric"><div class="metric-label">Anthropic Faces Federal Go…</div><div class="metric-val" style="color:#C1121F">9/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">AI Capex Spending Model Co…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Iran Geopolitical Tension …</div><div class="metric-val" style="color:#B8975A">6/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">3</div><div class="metric-delta neutral">Extracted</div></div></div>
+
+  <div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 9/10</div><div class="col-title">Anthropic Faces Federal Government Crackdown</div><div class="col-body">Short AI infrastructure (NVDA, AMD, SMCI) via put spreads; long legacy defense contractors (LMT, RTX) as DoD AI procurement shifts</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Federal procurement represents &lt;5% of Anthropic&#x27;s revenue and &lt;2% of total AI infrastructure demand, making this a non-material event for NVDA/AMD with 6+ month lag before any capex impact. The simult…</div><div class="conviction-tag">Pass — 9/10 entropy with conflicting Pentagon signals and immaterial revenue exposure creates unacceptable risk/reward for directional equity positions versus option premium cost</div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 7/10</div><div class="col-title">AI Capex Spending Model Collapsing Momentum</div><div class="col-body">Long Dell (beneficiary of efficiency pivot per +22% move), short hyperscaler capex plays (GOOGL, MSFT); pair trade long DELL vs short EQIX/DLR data center REITs</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">OpenAI cutting capex is company-specific distress (losing market share to Claude/Gemini, burn rate concerns) not industry trend—Morgan Stanley&#x27;s $2T figure aggregates multi-year commitments already em…</div><div class="conviction-tag">Quarter Size — Dell long may work tactically but shorting hyperscaler capex fights $2T institutional momentum and structural competitive dynamics, making pair trade asymmetry unfavorable</div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 6/10</div><div class="col-title">Iran Geopolitical Tension Escalating Despite Oil Complacency</div><div class="col-body">Long crude oil (WTI calls, XLE), short treasury bonds (TLT puts) as tail-risk hedge; size at 2-3% portfolio given Trump&#x27;s &#x27;not concerned&#x27; signal creating underpriced vol</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Trump explicitly saying &#x27;not concerned about oil prices&#x27; is strategic signaling that he has back-channel assurances Iran won&#x27;t disrupt Hormuz or he&#x27;s coordinated sufficient spare capacity (Venezuela t…</div><div class="conviction-tag">Half Size — 6/10 entropy and crowded TLT short positioning justify asymmetric tail-risk hedge but Trump&#x27;s explicit comfort statement suggests better-informed view than market gives credit for</div></div></div>
+
+  <div class="thought-block">
+    <div class="thought-rule"></div>
+    <div>
+      <div class="thought-label">Top Trade Hypothesis</div>
+      <div class="thought-q">Short AI infrastructure (NVDA, AMD, SMCI) via put spreads; long legacy defense contractors (LMT, RTX) as DoD AI procurement shifts</div>
+      <div class="thought-body">6-month phase-out deadline enforcement actions, Anthropic compliance response within days, Other AI companies (OpenAI, Google) potential designation spillover, Defense appropriations committee hearings</div>
+      <div class="thought-bear-label">Bear Case</div>
+      <div class="thought-bear">Federal procurement represents &lt;5% of Anthropic&#x27;s revenue and &lt;2% of total AI infrastructure demand, making this a non-material event for NVDA/AMD with 6+ month lag before any capex impact. The simultaneous Pentagon negotiations signal this is political posturing rather than genuine supply-chain risk—Trump administration has repeatedly walked back tech bans when economic costs materialized (TikTok precedent), and defense contractors already have multi-year AI budgets allocated to existing vendors making short-term pivot impossible.</div>
+      <div class="thought-conviction">Pass — 9/10 entropy with conflicting Pentagon signals and immaterial revenue exposure creates unacceptable risk/reward for directional equity positions versus option premium cost</div>
+    </div>
+  </div>
+
+  <div class="links-section">
+    <div class="links-header">Raw Signal Links &mdash; 101 feeds &middot; 2026-02-27 18:06</div>
+    <table class="links-table">
+      <thead><tr><th>Timestamp</th><th>Account</th><th>Link</th></tr></thead>
+      <tbody><tr><td class="ts">2026-02-27 22:52</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027517313017381068#m" target="_blank">https://x.com/AutismCapital/status/2027517313017381068#m</a></td></tr><tr><td class="ts">2026-02-27 22:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027511813303156764#m" target="_blank">https://x.com/unusual_whales/status/2027511813303156764#m</a></td></tr><tr><td class="ts">2026-02-27 22:30</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027511638467768810#m" target="_blank">https://x.com/Mayhem4Markets/status/2027511638467768810#m</a></td></tr><tr><td class="ts">2026-02-27 22:11</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027506902654222809#m" target="_blank">https://x.com/AutismCapital/status/2027506902654222809#m</a></td></tr><tr><td class="ts">2026-02-27 22:05</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027505513756561729#m" target="_blank">https://x.com/AutismCapital/status/2027505513756561729#m</a></td></tr><tr><td class="ts">2026-02-27 22:01</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027504314357268899#m" target="_blank">https://x.com/financialjuice/status/2027504314357268899#m</a></td></tr><tr><td class="ts">2026-02-27 21:56</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027503192833945950#m" target="_blank">https://x.com/financialjuice/status/2027503192833945950#m</a></td></tr><tr><td class="ts">2026-02-27 21:53</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027502451235168473#m" target="_blank">https://x.com/AutismCapital/status/2027502451235168473#m</a></td></tr><tr><td class="ts">2026-02-27 21:53</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027502249921155153#m" target="_blank">https://x.com/unusual_whales/status/2027502249921155153#m</a></td></tr><tr><td class="ts">2026-02-27 21:38</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027498506353590592#m" target="_blank">https://x.com/financialjuice/status/2027498506353590592#m</a></td></tr><tr><td class="ts">2026-02-27 21:31</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496840120369424#m" target="_blank">https://x.com/FirstSquawk/status/2027496840120369424#m</a></td></tr><tr><td class="ts">2026-02-27 21:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027496714282930457#m" target="_blank">https://x.com/unusual_whales/status/2027496714282930457#m</a></td></tr><tr><td class="ts">2026-02-27 21:30</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496700848529467#m" target="_blank">https://x.com/FirstSquawk/status/2027496700848529467#m</a></td></tr><tr><td class="ts">2026-02-27 21:30</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027496629649945062#m" target="_blank">https://x.com/financialjuice/status/2027496629649945062#m</a></td></tr><tr><td class="ts">2026-02-27 21:30</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496594007060637#m" target="_blank">https://x.com/FirstSquawk/status/2027496594007060637#m</a></td></tr><tr><td class="ts">2026-02-27 21:30</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496537782423616#m" target="_blank">https://x.com/FirstSquawk/status/2027496537782423616#m</a></td></tr><tr><td class="ts">2026-02-27 21:30</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496467578163663#m" target="_blank">https://x.com/FirstSquawk/status/2027496467578163663#m</a></td></tr><tr><td class="ts">2026-02-27 21:29</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496367661453495#m" target="_blank">https://x.com/FirstSquawk/status/2027496367661453495#m</a></td></tr><tr><td class="ts">2026-02-27 21:29</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496271385436454#m" target="_blank">https://x.com/FirstSquawk/status/2027496271385436454#m</a></td></tr><tr><td class="ts">2026-02-27 21:28</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027496162769703245#m" target="_blank">https://x.com/FirstSquawk/status/2027496162769703245#m</a></td></tr><tr><td class="ts">2026-02-27 21:28</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027496107333587268#m" target="_blank">https://x.com/AutismCapital/status/2027496107333587268#m</a></td></tr><tr><td class="ts">2026-02-27 21:24</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027495178412728669#m" target="_blank">https://x.com/AutismCapital/status/2027495178412728669#m</a></td></tr><tr><td class="ts">2026-02-27 21:22</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027494460779614703#m" target="_blank">https://x.com/Mayhem4Markets/status/2027494460779614703#m</a></td></tr><tr><td class="ts">2026-02-27 21:19</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027493924663914897#m" target="_blank">https://x.com/AutismCapital/status/2027493924663914897#m</a></td></tr><tr><td class="ts">2026-02-27 21:18</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027493651329282094#m" target="_blank">https://x.com/Mayhem4Markets/status/2027493651329282094#m</a></td></tr><tr><td class="ts">2026-02-27 21:18</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027493441517576597#m" target="_blank">https://x.com/financialjuice/status/2027493441517576597#m</a></td></tr><tr><td class="ts">2026-02-27 21:16</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027493064210813389#m" target="_blank">https://x.com/FirstSquawk/status/2027493064210813389#m</a></td></tr><tr><td class="ts">2026-02-27 21:16</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027493017951588661#m" target="_blank">https://x.com/unusual_whales/status/2027493017951588661#m</a></td></tr><tr><td class="ts">2026-02-27 21:14</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027492569878565191#m" target="_blank">https://x.com/FirstSquawk/status/2027492569878565191#m</a></td></tr><tr><td class="ts">2026-02-27 21:12</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027492122841231511#m" target="_blank">https://x.com/FirstSquawk/status/2027492122841231511#m</a></td></tr><tr><td class="ts">2026-02-27 21:12</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027491948064333929#m" target="_blank">https://x.com/financialjuice/status/2027491948064333929#m</a></td></tr><tr><td class="ts">2026-02-27 21:11</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027491707055706400#m" target="_blank">https://x.com/AutismCapital/status/2027491707055706400#m</a></td></tr><tr><td class="ts">2026-02-27 21:06</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027490525452845157#m" target="_blank">https://x.com/financialjuice/status/2027490525452845157#m</a></td></tr><tr><td class="ts">2026-02-27 21:04</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027489959934873612#m" target="_blank">https://x.com/Mayhem4Markets/status/2027489959934873612#m</a></td></tr><tr><td class="ts">2026-02-27 21:03</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027489913168662905#m" target="_blank">https://x.com/FirstSquawk/status/2027489913168662905#m</a></td></tr><tr><td class="ts">2026-02-27 21:03</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027489893325410310#m" target="_blank">https://x.com/FirstSquawk/status/2027489893325410310#m</a></td></tr><tr><td class="ts">2026-02-27 21:03</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027489872328716781#m" target="_blank">https://x.com/FirstSquawk/status/2027489872328716781#m</a></td></tr><tr><td class="ts">2026-02-27 21:03</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027489851734696053#m" target="_blank">https://x.com/FirstSquawk/status/2027489851734696053#m</a></td></tr><tr><td class="ts">2026-02-27 21:01</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027489384782827594#m" target="_blank">https://x.com/AutismCapital/status/2027489384782827594#m</a></td></tr><tr><td class="ts">2026-02-27 21:01</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027489335386509529#m" target="_blank">https://x.com/FirstSquawk/status/2027489335386509529#m</a></td></tr><tr><td class="ts">2026-02-27 21:00</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027488988064583915#m" target="_blank">https://x.com/AutismCapital/status/2027488988064583915#m</a></td></tr><tr><td class="ts">2026-02-27 20:59</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027488877569589634#m" target="_blank">https://x.com/unusual_whales/status/2027488877569589634#m</a></td></tr><tr><td class="ts">2026-02-27 20:53</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027487380601491469#m" target="_blank">https://x.com/Mayhem4Markets/status/2027487380601491469#m</a></td></tr><tr><td class="ts">2026-02-27 20:51</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027486701233295731#m" target="_blank">https://x.com/financialjuice/status/2027486701233295731#m</a></td></tr><tr><td class="ts">2026-02-27 20:49</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027486383653138534#m" target="_blank">https://x.com/financialjuice/status/2027486383653138534#m</a></td></tr><tr><td class="ts">2026-02-27 20:49</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027486335284453846#m" target="_blank">https://x.com/financialjuice/status/2027486335284453846#m</a></td></tr><tr><td class="ts">2026-02-27 20:49</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027486185178993103#m" target="_blank">https://x.com/FirstSquawk/status/2027486185178993103#m</a></td></tr><tr><td class="ts">2026-02-27 20:49</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027486165881000237#m" target="_blank">https://x.com/FirstSquawk/status/2027486165881000237#m</a></td></tr><tr><td class="ts">2026-02-27 20:49</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027486145563787546#m" target="_blank">https://x.com/FirstSquawk/status/2027486145563787546#m</a></td></tr><tr><td class="ts">2026-02-27 20:46</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2027485415520014707#m" target="_blank">https://x.com/FirstSquawk/status/2027485415520014707#m</a></td></tr><tr><td class="ts">2026-02-27 20:45</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027485369697243434#m" target="_blank">https://x.com/AutismCapital/status/2027485369697243434#m</a></td></tr><tr><td class="ts">2026-02-27 20:43</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027484686587417084#m" target="_blank">https://x.com/financialjuice/status/2027484686587417084#m</a></td></tr><tr><td class="ts">2026-02-27 20:37</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027483123919806956#m" target="_blank">https://x.com/unusual_whales/status/2027483123919806956#m</a></td></tr><tr><td class="ts">2026-02-27 20:31</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027481808225349675#m" target="_blank">https://x.com/financialjuice/status/2027481808225349675#m</a></td></tr><tr><td class="ts">2026-02-27 20:26</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027480505566761023#m" target="_blank">https://x.com/financialjuice/status/2027480505566761023#m</a></td></tr><tr><td class="ts">2026-02-27 20:25</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2027480104671293582#m" target="_blank">https://x.com/BasedBiohacker/status/2027480104671293582#m</a></td></tr><tr><td class="ts">2026-02-27 20:22</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027479392209760360#m" target="_blank">https://x.com/financialjuice/status/2027479392209760360#m</a></td></tr><tr><td class="ts">2026-02-27 20:17</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027478319910863131#m" target="_blank">https://x.com/financialjuice/status/2027478319910863131#m</a></td></tr><tr><td class="ts">2026-02-27 20:17</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027478091245772905#m" target="_blank">https://x.com/unusual_whales/status/2027478091245772905#m</a></td></tr><tr><td class="ts">2026-02-27 20:15</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027477597601345801#m" target="_blank">https://x.com/unusual_whales/status/2027477597601345801#m</a></td></tr><tr><td class="ts">2026-02-27 20:02</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027474472014393581#m" target="_blank">https://x.com/financialjuice/status/2027474472014393581#m</a></td></tr><tr><td class="ts">2026-02-27 20:02</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027474444889759747#m" target="_blank">https://x.com/Mayhem4Markets/status/2027474444889759747#m</a></td></tr><tr><td class="ts">2026-02-27 19:57</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027473057799970917#m" target="_blank">https://x.com/unusual_whales/status/2027473057799970917#m</a></td></tr><tr><td class="ts">2026-02-27 19:49</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027471294455796209#m" target="_blank">https://x.com/financialjuice/status/2027471294455796209#m</a></td></tr><tr><td class="ts">2026-02-27 19:46</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027470525778284622#m" target="_blank">https://x.com/financialjuice/status/2027470525778284622#m</a></td></tr><tr><td class="ts">2026-02-27 19:46</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027470347969143114#m" target="_blank">https://x.com/financialjuice/status/2027470347969143114#m</a></td></tr><tr><td class="ts">2026-02-27 19:37</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027468024480215061#m" target="_blank">https://x.com/unusual_whales/status/2027468024480215061#m</a></td></tr><tr><td class="ts">2026-02-27 19:33</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2027467061639704699#m" target="_blank">https://x.com/financialjuice/status/2027467061639704699#m</a></td></tr><tr><td class="ts">2026-02-27 19:17</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027462991474475417#m" target="_blank">https://x.com/unusual_whales/status/2027462991474475417#m</a></td></tr><tr><td class="ts">2026-02-27 18:58</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027458303710961939#m" target="_blank">https://x.com/AutismCapital/status/2027458303710961939#m</a></td></tr><tr><td class="ts">2026-02-27 18:57</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027457958360268838#m" target="_blank">https://x.com/unusual_whales/status/2027457958360268838#m</a></td></tr><tr><td class="ts">2026-02-27 18:49</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2027455945496731780#m" target="_blank">https://x.com/BasedBiohacker/status/2027455945496731780#m</a></td></tr><tr><td class="ts">2026-02-27 18:42</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027454183184760863#m" target="_blank">https://x.com/unusual_whales/status/2027454183184760863#m</a></td></tr><tr><td class="ts">2026-02-27 18:41</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027454055333736818#m" target="_blank">https://x.com/Mayhem4Markets/status/2027454055333736818#m</a></td></tr><tr><td class="ts">2026-02-27 18:37</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027453147799806295#m" target="_blank">https://x.com/AutismCapital/status/2027453147799806295#m</a></td></tr><tr><td class="ts">2026-02-27 18:37</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027452925078024502#m" target="_blank">https://x.com/unusual_whales/status/2027452925078024502#m</a></td></tr><tr><td class="ts">2026-02-27 18:33</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/GlobalMarketsX/status/2027452087093891357#m" target="_blank">https://x.com/GlobalMarketsX/status/2027452087093891357#m</a></td></tr><tr><td class="ts">2026-02-27 18:32</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027451731307848179#m" target="_blank">https://x.com/AutismCapital/status/2027451731307848179#m</a></td></tr><tr><td class="ts">2026-02-27 18:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027451585119260809#m" target="_blank">https://x.com/unusual_whales/status/2027451585119260809#m</a></td></tr><tr><td class="ts">2026-02-27 18:24</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027449809896972400#m" target="_blank">https://x.com/Mayhem4Markets/status/2027449809896972400#m</a></td></tr><tr><td class="ts">2026-02-27 18:12</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027446844855353499#m" target="_blank">https://x.com/Mayhem4Markets/status/2027446844855353499#m</a></td></tr><tr><td class="ts">2026-02-27 17:57</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027442858836238720#m" target="_blank">https://x.com/unusual_whales/status/2027442858836238720#m</a></td></tr><tr><td class="ts">2026-02-27 17:53</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027442002099622354#m" target="_blank">https://x.com/AutismCapital/status/2027442002099622354#m</a></td></tr><tr><td class="ts">2026-02-27 17:51</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027441388124836210#m" target="_blank">https://x.com/AutismCapital/status/2027441388124836210#m</a></td></tr><tr><td class="ts">2026-02-27 17:37</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027437825847923077#m" target="_blank">https://x.com/unusual_whales/status/2027437825847923077#m</a></td></tr><tr><td class="ts">2026-02-27 17:36</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027437659468271825#m" target="_blank">https://x.com/AutismCapital/status/2027437659468271825#m</a></td></tr><tr><td class="ts">2026-02-27 17:29</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2027436009621946373#m" target="_blank">https://x.com/AutismCapital/status/2027436009621946373#m</a></td></tr><tr><td class="ts">2026-02-27 17:23</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027434530215268731#m" target="_blank">https://x.com/Mayhem4Markets/status/2027434530215268731#m</a></td></tr><tr><td class="ts">2026-02-27 17:17</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027432793915973832#m" target="_blank">https://x.com/unusual_whales/status/2027432793915973832#m</a></td></tr><tr><td class="ts">2026-02-27 17:10</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027431170074423340#m" target="_blank">https://x.com/unusual_whales/status/2027431170074423340#m</a></td></tr><tr><td class="ts">2026-02-27 17:10</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2027431063576801607#m" target="_blank">https://x.com/unusual_whales/status/2027431063576801607#m</a></td></tr><tr><td class="ts">2026-02-27 17:01</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027428827190718819#m" target="_blank">https://x.com/Mayhem4Markets/status/2027428827190718819#m</a></td></tr><tr><td class="ts">2026-02-27 16:25</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027419753875198408#m" target="_blank">https://x.com/Mayhem4Markets/status/2027419753875198408#m</a></td></tr><tr><td class="ts">2026-02-27 16:18</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027418004414152897#m" target="_blank">https://x.com/Mayhem4Markets/status/2027418004414152897#m</a></td></tr><tr><td class="ts">2026-02-27 16:09</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027415790190834119#m" target="_blank">https://x.com/Mayhem4Markets/status/2027415790190834119#m</a></td></tr><tr><td class="ts">2026-02-27 16:01</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027413699959341487#m" target="_blank">https://x.com/Mayhem4Markets/status/2027413699959341487#m</a></td></tr><tr><td class="ts">2026-02-27 15:50</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2027411145720475780#m" target="_blank">https://x.com/Mayhem4Markets/status/2027411145720475780#m</a></td></tr><tr><td class="ts">2026-02-27 15:27</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2027405212193853723#m" target="_blank">https://x.com/BasedBiohacker/status/2027405212193853723#m</a></td></tr><tr><td class="ts">2026-02-27 14:09</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/AyeshaTariq/status/2027385480958931086#m" target="_blank">https://x.com/AyeshaTariq/status/2027385480958931086#m</a></td></tr><tr><td class="ts">2026-02-27 13:59</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2027382964397486389#m" target="_blank">https://x.com/BasedBiohacker/status/2027382964397486389#m</a></td></tr><tr><td class="ts">2026-02-27 13:21</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2027373401418166386#m" target="_blank">https://x.com/BasedBiohacker/status/2027373401418166386#m</a></td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
+    <div class="footer-right">
+      <span class="footer-tag active">AI</span>
+      <span class="footer-tag">MACRO</span>
+      <span class="footer-tag">CRYPTO</span>
+      <span class="footer-tag">SIGNALS</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
