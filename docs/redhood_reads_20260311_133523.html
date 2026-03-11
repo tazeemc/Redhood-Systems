@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHood Reads — 2026-03-11 13:35</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
+    --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
+    --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
+  }
+  body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6; }
+  .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
+    border: 1px solid rgba(193,18,31,0.25); z-index: 1; overflow: hidden; }
+  .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
+    height: 200px; background: var(--red); transform: rotate(45deg); opacity: 0.08; }
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px; border-bottom: 1px solid var(--wire);
+    background: rgba(193,18,31,0.05); }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(193,18,31,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(193,18,31,0); }
+  }
+  .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); font-weight: 500; }
+  .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
+    background: var(--mid); padding: 7px 0; }
+  .ticker-inner { display: flex; gap: 0; animation: ticker 28s linear infinite; white-space: nowrap; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
+    font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
+  .tick-sym { color: var(--gold); font-weight: 500; }
+  .tick-val { color: var(--cream); }
+  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
+  .up { color: #4CAF50; } .down { color: var(--red); }
+  .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
+  .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .issue-num { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); }
+  .issue-rule { flex: 1; height: 1px; background: linear-gradient(to right, var(--wire), transparent); }
+  .masthead { font-family: "Playfair Display", serif; font-weight: 900;
+    font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
+    color: var(--cream); margin-bottom: 6px; }
+  .masthead .red-accent { color: var(--red); font-style: italic; }
+  .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 28px; }
+  .headline-block { max-width: 620px; }
+  .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
+    line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
+  .deck { font-size: 10.5px; line-height: 1.7; color: var(--text-muted);
+    letter-spacing: 0.03em; max-width: 540px; }
+  .corner-deco { position: absolute; top: 44px; right: 40px; text-align: right; }
+  .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
+    text-transform: uppercase; }
+  .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
+    font-weight: 900; color: rgba(193,18,31,0.12); line-height: 1; letter-spacing: -0.04em; }
+  .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--wire); }
+  .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
+  .grid-col:last-child { border-right: none; }
+  .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 10px; font-weight: 500; }
+  .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
+    line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
+  .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
+  .bar { flex: 1; background: var(--wire); border-radius: 1px; }
+  .bar.hi { background: rgba(76,175,80,0.5); }
+  .bar.lo { background: rgba(193,18,31,0.5); }
+  .bar.mid-hi { background: rgba(184,151,90,0.4); }
+  .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--wire); }
+  .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
+  .metric:last-child { border-right: none; }
+  .metric-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .metric-val { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
+  .metric-delta.up { color: #4CAF50; }
+  .metric-delta.dn { color: var(--red); }
+  .metric-delta.neutral { color: var(--gold); }
+  .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
+    display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
+  .thought-rule { background: linear-gradient(to bottom, var(--red), transparent);
+    height: 100%; min-height: 60px; }
+  .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 8px; font-weight: 500; }
+  .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
+    line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
+  .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 14px; font-weight: 500; }
+  .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
+  .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
+    border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
+  .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top; }
+  .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
+  .author { color: var(--gold); white-space: nowrap; width: 140px; }
+  .links-table a { color: #4ea3ff; text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; }
+  .footer { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: rgba(193,18,31,0.04); }
+  .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .footer-left span { color: var(--gold); }
+  .footer-right { display: flex; align-items: center; gap: 18px; }
+  .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
+  .footer-tag.active { border-color: rgba(193,18,31,0.4); color: var(--red); }
+  .scanline { position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
+  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
+    color: var(--gold); font-weight: 500; }
+  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
+    color: var(--gold); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scanline"></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pulse"></div>
+      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+    </div>
+    <span class="topbar-date">Wednesday, 11 March 2026 &nbsp;|&nbsp; Week 11</span>
+  </div>
+
+  <div class="ticker-wrap"><div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$71,246</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">6,774</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$86.71</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$5,180</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">24.91</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.220</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3578</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$71,246</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">6,774</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$86.71</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$5,180</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">24.91</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.220</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3578</span><span class="tick-chg up">+0.00%</span></span>
+  </div></div>
+
+  <div class="hero">
+    <div class="issue-line">
+      <span class="issue-num">Run &middot; 4m window &middot; 2026-03-11 13:35</span>
+      <div class="issue-rule"></div>
+    </div>
+    <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
+    <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
+    <div class="headline-block">
+      <div class="headline">Strait of Hormuz Reopening Reduces Energy Premium</div>
+      <div class="deck">Trump claims Hormuz reopening &#x27;working well&#x27; while Iran exports more oil than pre-war levels, yet Fitch expects near-term spike followed by fundamental-driven drop. This creates a phase transition opportunity: energy premium compression as …</div>
+    </div>
+    <div class="corner-deco">
+      <div class="vol-label">Day</div>
+      <div class="vol-num">11</div>
+    </div>
+  </div>
+
+  <div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">92</div><div class="metric-delta neutral">4m window</div></div>
+<div class="metric"><div class="metric-label">Strait of Hormuz Reopening…</div><div class="metric-val" style="color:#B8975A">6/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Geopolitical Escalation Ri…</div><div class="metric-val" style="color:#C1121F">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Dealer Positioning Creates…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">3</div><div class="metric-delta neutral">Extracted</div></div></div>
+
+  <div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 6/10</div><div class="col-title">Strait of Hormuz Reopening Reduces Energy Premium</div><div class="col-body">Short USO (oil ETF) via put spreads, long maritime insurers (Chubb stock), pairs trade: short XLE/long XLF</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Iran&#x27;s ability to selectively block non-Iranian tankers while allowing its own exports creates asymmetric supply risk that keeps the geopolitical premium embedded in oil prices—Trump&#x27;s &#x27;not finished y…</div><div class="conviction-tag">Quarter Size — because the directional thesis assumes geopolitical normalization while evidence shows Iran maintains chokepoint control and Trump signals continued military action, creating binary risk that overwhelms the technical setup</div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 8/10</div><div class="col-title">Geopolitical Escalation Risk Remains Elevated Iran</div><div class="col-body">Long VIX call spreads (25/30 strike), long defense contractors (LMT, NOC), hedge with short-dated SPX put spreads</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">VIX call spreads and geopolitical hedges are the most crowded trades post-election anxiety, with options market makers now pricing elevated tail risk into baseline—this means asymmetric vol payoff req…</div><div class="conviction-tag">Half Size — because the 8/10 entropy risk is accurate and dealer positioning supports convexity, but crowded positioning in geopolitical hedges and already-elevated defense valuations reduce edge relative to premium paid</div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 7/10</div><div class="col-title">Dealer Positioning Creates Volatility Amplification Regime</div><div class="col-body">Volatility arbitrage: long straddles on high-beta names (momentum stocks), short 0DTE premium on SPX, tactical gamma scalping</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Dealer gamma positioning is backward-looking and changes dynamically throughout each session—the $15.1B delta hedging figure becomes obsolete within hours as new flows arrive, and the &#x27;supercooled liq…</div><div class="conviction-tag">Pass — because the strategy conflates static dealer positioning snapshots with dynamic market-making reality, combines contradictory exposures (long vol via straddles, short vol via 0DTE), and requires precise timing of a &#x27;phase transition&#x27; that may never materialize in current low-volatility regime</div></div></div>
+
+  <div class="thought-block">
+    <div class="thought-rule"></div>
+    <div>
+      <div class="thought-label">Top Trade Hypothesis</div>
+      <div class="thought-q">Short USO (oil ETF) via put spreads, long maritime insurers (Chubb stock), pairs trade: short XLE/long XLF</div>
+      <div class="thought-body">Fitch&#x27;s updated oil price assumptions reflecting post-reopening fundamentals, Chubb&#x27;s formal announcement of government insurance program terms, Weekly EIA petroleum status report showing supply normalization, Iran-Oman diplomatic resolution on Salalah port incident</div>
+      <div class="thought-bear-label">Bear Case</div>
+      <div class="thought-bear">Iran&#x27;s ability to selectively block non-Iranian tankers while allowing its own exports creates asymmetric supply risk that keeps the geopolitical premium embedded in oil prices—Trump&#x27;s &#x27;not finished yet&#x27; statement and ongoing strikes suggest the conflict could rapidly re-escalate, trapping short energy positions. Maritime insurance flows to Chubb may already be priced in, and the XLE/XLF pairs trade assumes financial sector benefits from energy weakness, but rising geopolitical vol typically compresses both sectors simultaneously.</div>
+      <div class="thought-conviction">Quarter Size — because the directional thesis assumes geopolitical normalization while evidence shows Iran maintains chokepoint control and Trump signals continued military action, creating binary risk that overwhelms the technical setup</div>
+    </div>
+  </div>
+
+  <div class="links-section">
+    <div class="links-header">Raw Signal Links &mdash; 92 feeds &middot; 2026-03-11 13:35</div>
+    <table class="links-table">
+      <thead><tr><th>Timestamp</th><th>Account</th><th>Link</th></tr></thead>
+      <tbody><tr><td class="ts">2026-03-11 17:26</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031783820429550057#m" target="_blank">https://x.com/financialjuice/status/2031783820429550057#m</a></td></tr><tr><td class="ts">2026-03-11 17:21</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031782637015097782#m" target="_blank">https://x.com/financialjuice/status/2031782637015097782#m</a></td></tr><tr><td class="ts">2026-03-11 17:21</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031782516676235289#m" target="_blank">https://x.com/financialjuice/status/2031782516676235289#m</a></td></tr><tr><td class="ts">2026-03-11 17:20</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031782430567514557#m" target="_blank">https://x.com/unusual_whales/status/2031782430567514557#m</a></td></tr><tr><td class="ts">2026-03-11 17:19</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031782181761077694#m" target="_blank">https://x.com/financialjuice/status/2031782181761077694#m</a></td></tr><tr><td class="ts">2026-03-11 17:15</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031781138893508724#m" target="_blank">https://x.com/financialjuice/status/2031781138893508724#m</a></td></tr><tr><td class="ts">2026-03-11 17:14</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031780908022579272#m" target="_blank">https://x.com/FirstSquawk/status/2031780908022579272#m</a></td></tr><tr><td class="ts">2026-03-11 17:14</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031780903152689231#m" target="_blank">https://x.com/financialjuice/status/2031780903152689231#m</a></td></tr><tr><td class="ts">2026-03-11 17:13</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031780610168004942#m" target="_blank">https://x.com/financialjuice/status/2031780610168004942#m</a></td></tr><tr><td class="ts">2026-03-11 17:11</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031779957634973838#m" target="_blank">https://x.com/DeItaone/status/2031779957634973838#m</a></td></tr><tr><td class="ts">2026-03-11 17:10</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031779767070982417#m" target="_blank">https://x.com/financialjuice/status/2031779767070982417#m</a></td></tr><tr><td class="ts">2026-03-11 17:10</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2031779737232961706#m" target="_blank">https://x.com/AutismCapital/status/2031779737232961706#m</a></td></tr><tr><td class="ts">2026-03-11 17:09</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031779667053543613#m" target="_blank">https://x.com/DeItaone/status/2031779667053543613#m</a></td></tr><tr><td class="ts">2026-03-11 17:09</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031779538842120307#m" target="_blank">https://x.com/financialjuice/status/2031779538842120307#m</a></td></tr><tr><td class="ts">2026-03-11 17:08</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031779300400074918#m" target="_blank">https://x.com/financialjuice/status/2031779300400074918#m</a></td></tr><tr><td class="ts">2026-03-11 17:07</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031779042488434987#m" target="_blank">https://x.com/FirstSquawk/status/2031779042488434987#m</a></td></tr><tr><td class="ts">2026-03-11 17:05</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031778578782888338#m" target="_blank">https://x.com/FirstSquawk/status/2031778578782888338#m</a></td></tr><tr><td class="ts">2026-03-11 17:03</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031778113592647836#m" target="_blank">https://x.com/unusual_whales/status/2031778113592647836#m</a></td></tr><tr><td class="ts">2026-03-11 17:02</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031777920671220060#m" target="_blank">https://x.com/financialjuice/status/2031777920671220060#m</a></td></tr><tr><td class="ts">2026-03-11 17:02</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031777819647492533#m" target="_blank">https://x.com/FirstSquawk/status/2031777819647492533#m</a></td></tr><tr><td class="ts">2026-03-11 17:02</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031777773157511464#m" target="_blank">https://x.com/DeItaone/status/2031777773157511464#m</a></td></tr><tr><td class="ts">2026-03-11 17:01</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031777501572149547#m" target="_blank">https://x.com/Mayhem4Markets/status/2031777501572149547#m</a></td></tr><tr><td class="ts">2026-03-11 17:00</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031777408190128629#m" target="_blank">https://x.com/financialjuice/status/2031777408190128629#m</a></td></tr><tr><td class="ts">2026-03-11 17:00</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031777371750350868#m" target="_blank">https://x.com/FirstSquawk/status/2031777371750350868#m</a></td></tr><tr><td class="ts">2026-03-11 17:00</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031777255345574212#m" target="_blank">https://x.com/financialjuice/status/2031777255345574212#m</a></td></tr><tr><td class="ts">2026-03-11 17:00</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031777246474879208#m" target="_blank">https://x.com/unusual_whales/status/2031777246474879208#m</a></td></tr><tr><td class="ts">2026-03-11 16:55</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031775939776966899#m" target="_blank">https://x.com/financialjuice/status/2031775939776966899#m</a></td></tr><tr><td class="ts">2026-03-11 16:49</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031774538032153009#m" target="_blank">https://x.com/financialjuice/status/2031774538032153009#m</a></td></tr><tr><td class="ts">2026-03-11 16:47</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031774079766687803#m" target="_blank">https://x.com/financialjuice/status/2031774079766687803#m</a></td></tr><tr><td class="ts">2026-03-11 16:46</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031773861386346837#m" target="_blank">https://x.com/FirstSquawk/status/2031773861386346837#m</a></td></tr><tr><td class="ts">2026-03-11 16:46</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031773823268532415#m" target="_blank">https://x.com/unusual_whales/status/2031773823268532415#m</a></td></tr><tr><td class="ts">2026-03-11 16:45</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031773592262734250#m" target="_blank">https://x.com/DeItaone/status/2031773592262734250#m</a></td></tr><tr><td class="ts">2026-03-11 16:45</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031773499069493565#m" target="_blank">https://x.com/financialjuice/status/2031773499069493565#m</a></td></tr><tr><td class="ts">2026-03-11 16:45</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031773418656297305#m" target="_blank">https://x.com/DeItaone/status/2031773418656297305#m</a></td></tr><tr><td class="ts">2026-03-11 16:44</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031773275894780180#m" target="_blank">https://x.com/financialjuice/status/2031773275894780180#m</a></td></tr><tr><td class="ts">2026-03-11 16:44</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031773259449151989#m" target="_blank">https://x.com/FirstSquawk/status/2031773259449151989#m</a></td></tr><tr><td class="ts">2026-03-11 16:43</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031773135054245976#m" target="_blank">https://x.com/financialjuice/status/2031773135054245976#m</a></td></tr><tr><td class="ts">2026-03-11 16:43</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031772915616940368#m" target="_blank">https://x.com/FirstSquawk/status/2031772915616940368#m</a></td></tr><tr><td class="ts">2026-03-11 16:42</td><td class="author">@financialjuice</td><td><a href="https://x.com/financialjuice/status/2031772845655658536#m" target="_blank">https://x.com/financialjuice/status/2031772845655658536#m</a></td></tr><tr><td class="ts">2026-03-11 16:42</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031772769621606651#m" target="_blank">https://x.com/FirstSquawk/status/2031772769621606651#m</a></td></tr><tr><td class="ts">2026-03-11 16:42</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031772678445789395#m" target="_blank">https://x.com/FirstSquawk/status/2031772678445789395#m</a></td></tr><tr><td class="ts">2026-03-11 16:41</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031772455841546598#m" target="_blank">https://x.com/FirstSquawk/status/2031772455841546598#m</a></td></tr><tr><td class="ts">2026-03-11 16:41</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031772409980719503#m" target="_blank">https://x.com/DeItaone/status/2031772409980719503#m</a></td></tr><tr><td class="ts">2026-03-11 16:40</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031772341446062225#m" target="_blank">https://x.com/FirstSquawk/status/2031772341446062225#m</a></td></tr><tr><td class="ts">2026-03-11 16:39</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031771999664541939#m" target="_blank">https://x.com/DeItaone/status/2031771999664541939#m</a></td></tr><tr><td class="ts">2026-03-11 16:39</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031771914314874899#m" target="_blank">https://x.com/FirstSquawk/status/2031771914314874899#m</a></td></tr><tr><td class="ts">2026-03-11 16:39</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031771907977056341#m" target="_blank">https://x.com/Mayhem4Markets/status/2031771907977056341#m</a></td></tr><tr><td class="ts">2026-03-11 16:39</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031771901337473401#m" target="_blank">https://x.com/DeItaone/status/2031771901337473401#m</a></td></tr><tr><td class="ts">2026-03-11 16:38</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031771815383888170#m" target="_blank">https://x.com/FirstSquawk/status/2031771815383888170#m</a></td></tr><tr><td class="ts">2026-03-11 16:38</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031771758966018456#m" target="_blank">https://x.com/DeItaone/status/2031771758966018456#m</a></td></tr><tr><td class="ts">2026-03-11 16:38</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031771741568246225#m" target="_blank">https://x.com/FirstSquawk/status/2031771741568246225#m</a></td></tr><tr><td class="ts">2026-03-11 16:37</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031771609095147903#m" target="_blank">https://x.com/DeItaone/status/2031771609095147903#m</a></td></tr><tr><td class="ts">2026-03-11 16:37</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031771537884512610#m" target="_blank">https://x.com/FirstSquawk/status/2031771537884512610#m</a></td></tr><tr><td class="ts">2026-03-11 16:37</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031771511409807561#m" target="_blank">https://x.com/DeItaone/status/2031771511409807561#m</a></td></tr><tr><td class="ts">2026-03-11 16:37</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031771399950663963#m" target="_blank">https://x.com/FirstSquawk/status/2031771399950663963#m</a></td></tr><tr><td class="ts">2026-03-11 16:36</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031771378496733481#m" target="_blank">https://x.com/FirstSquawk/status/2031771378496733481#m</a></td></tr><tr><td class="ts">2026-03-11 16:36</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031771353716859045#m" target="_blank">https://x.com/FirstSquawk/status/2031771353716859045#m</a></td></tr><tr><td class="ts">2026-03-11 16:34</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031770783769309242#m" target="_blank">https://x.com/DeItaone/status/2031770783769309242#m</a></td></tr><tr><td class="ts">2026-03-11 16:33</td><td class="author">@FirstSquawk</td><td><a href="https://x.com/FirstSquawk/status/2031770586758918641#m" target="_blank">https://x.com/FirstSquawk/status/2031770586758918641#m</a></td></tr><tr><td class="ts">2026-03-11 16:25</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031768531558166650#m" target="_blank">https://x.com/DeItaone/status/2031768531558166650#m</a></td></tr><tr><td class="ts">2026-03-11 16:24</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031768326125326815#m" target="_blank">https://x.com/Mayhem4Markets/status/2031768326125326815#m</a></td></tr><tr><td class="ts">2026-03-11 16:23</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031767863661367672#m" target="_blank">https://x.com/DeItaone/status/2031767863661367672#m</a></td></tr><tr><td class="ts">2026-03-11 16:21</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031767424710676625#m" target="_blank">https://x.com/DeItaone/status/2031767424710676625#m</a></td></tr><tr><td class="ts">2026-03-11 16:19</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031767081847337322#m" target="_blank">https://x.com/DeItaone/status/2031767081847337322#m</a></td></tr><tr><td class="ts">2026-03-11 16:17</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031766384984678882#m" target="_blank">https://x.com/DeItaone/status/2031766384984678882#m</a></td></tr><tr><td class="ts">2026-03-11 16:16</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031766243376517212#m" target="_blank">https://x.com/DeItaone/status/2031766243376517212#m</a></td></tr><tr><td class="ts">2026-03-11 16:14</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031765637760979299#m" target="_blank">https://x.com/DeItaone/status/2031765637760979299#m</a></td></tr><tr><td class="ts">2026-03-11 16:14</td><td class="author">@DeItaone</td><td><a href="https://x.com/DeItaone/status/2031765609181049328#m" target="_blank">https://x.com/DeItaone/status/2031765609181049328#m</a></td></tr><tr><td class="ts">2026-03-11 16:13</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031765513995473003#m" target="_blank">https://x.com/Mayhem4Markets/status/2031765513995473003#m</a></td></tr><tr><td class="ts">2026-03-11 16:13</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031765436899991560#m" target="_blank">https://x.com/Mayhem4Markets/status/2031765436899991560#m</a></td></tr><tr><td class="ts">2026-03-11 16:04</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031763253873754464#m" target="_blank">https://x.com/Mayhem4Markets/status/2031763253873754464#m</a></td></tr><tr><td class="ts">2026-03-11 16:02</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031762572853035264#m" target="_blank">https://x.com/unusual_whales/status/2031762572853035264#m</a></td></tr><tr><td class="ts">2026-03-11 15:53</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031760457157976373#m" target="_blank">https://x.com/Mayhem4Markets/status/2031760457157976373#m</a></td></tr><tr><td class="ts">2026-03-11 15:39</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031756911545024535#m" target="_blank">https://x.com/Mayhem4Markets/status/2031756911545024535#m</a></td></tr><tr><td class="ts">2026-03-11 15:39</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031756784164061364#m" target="_blank">https://x.com/unusual_whales/status/2031756784164061364#m</a></td></tr><tr><td class="ts">2026-03-11 15:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031754771078803793#m" target="_blank">https://x.com/unusual_whales/status/2031754771078803793#m</a></td></tr><tr><td class="ts">2026-03-11 15:16</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031750996054216770#m" target="_blank">https://x.com/unusual_whales/status/2031750996054216770#m</a></td></tr><tr><td class="ts">2026-03-11 15:15</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031750762838249537#m" target="_blank">https://x.com/unusual_whales/status/2031750762838249537#m</a></td></tr><tr><td class="ts">2026-03-11 15:04</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031747976780288384#m" target="_blank">https://x.com/unusual_whales/status/2031747976780288384#m</a></td></tr><tr><td class="ts">2026-03-11 15:00</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031747174749307391#m" target="_blank">https://x.com/Mayhem4Markets/status/2031747174749307391#m</a></td></tr><tr><td class="ts">2026-03-11 14:51</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031744704757522684#m" target="_blank">https://x.com/unusual_whales/status/2031744704757522684#m</a></td></tr><tr><td class="ts">2026-03-11 14:49</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/SurmountInvest/status/2031744426683326926#m" target="_blank">https://x.com/SurmountInvest/status/2031744426683326926#m</a></td></tr><tr><td class="ts">2026-03-11 14:39</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031741684661592229#m" target="_blank">https://x.com/unusual_whales/status/2031741684661592229#m</a></td></tr><tr><td class="ts">2026-03-11 14:31</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031739772910108672#m" target="_blank">https://x.com/Mayhem4Markets/status/2031739772910108672#m</a></td></tr><tr><td class="ts">2026-03-11 14:27</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031738664724898131#m" target="_blank">https://x.com/unusual_whales/status/2031738664724898131#m</a></td></tr><tr><td class="ts">2026-03-11 14:12</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031735096311763455#m" target="_blank">https://x.com/Mayhem4Markets/status/2031735096311763455#m</a></td></tr><tr><td class="ts">2026-03-11 14:12</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031734890245345622#m" target="_blank">https://x.com/unusual_whales/status/2031734890245345622#m</a></td></tr><tr><td class="ts">2026-03-11 13:59</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031731618478436393#m" target="_blank">https://x.com/unusual_whales/status/2031731618478436393#m</a></td></tr><tr><td class="ts">2026-03-11 13:53</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2031730300263321741#m" target="_blank">https://x.com/Mayhem4Markets/status/2031730300263321741#m</a></td></tr><tr><td class="ts">2026-03-11 13:48</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031728850762117167#m" target="_blank">https://x.com/unusual_whales/status/2031728850762117167#m</a></td></tr><tr><td class="ts">2026-03-11 13:47</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031728598638276962#m" target="_blank">https://x.com/unusual_whales/status/2031728598638276962#m</a></td></tr><tr><td class="ts">2026-03-11 13:34</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2031725445578944594#m" target="_blank">https://x.com/unusual_whales/status/2031725445578944594#m</a></td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
+    <div class="footer-right">
+      <span class="footer-tag active">AI</span>
+      <span class="footer-tag">MACRO</span>
+      <span class="footer-tag">CRYPTO</span>
+      <span class="footer-tag">SIGNALS</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
