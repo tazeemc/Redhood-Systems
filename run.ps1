@@ -228,6 +228,10 @@ if (-not $SkipTrading) {
         $jsonFile   = Join-Path $ScriptDir "data\TradingAnalysis_$timestamp.json"
         $jsonOutput | Out-File -FilePath $jsonFile
         Write-Host "`nFull results saved to: $jsonFile" -ForegroundColor Cyan
+
+        # Write a fixed-path snapshot for the HTML report
+        $latestTradingJson = Join-Path $ScriptDir "data\latest_trading.json"
+        $jsonOutput | Out-File -FilePath $latestTradingJson -Encoding utf8
     } else {
         Write-Error "No valid analysis results obtained for any symbols."
     }
@@ -262,5 +266,11 @@ if (-not $SkipRedHood) {
     Write-Host "`nRunning RedHood Insights (last $Hours hours)..." -ForegroundColor Cyan
     $env:PYTHONIOENCODING = "utf-8"
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-    python "$ScriptDir\redhood_aggregator.py" --hours $Hours
+
+    $latestTradingJson = Join-Path $ScriptDir "data\latest_trading.json"
+    if (-not $SkipTrading -and (Test-Path $latestTradingJson)) {
+        python "$ScriptDir\redhood_aggregator.py" --hours $Hours --trading-json $latestTradingJson
+    } else {
+        python "$ScriptDir\redhood_aggregator.py" --hours $Hours
+    }
 }

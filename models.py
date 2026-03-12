@@ -71,7 +71,10 @@ CREATE TABLE IF NOT EXISTS narratives (
     hypothesis      TEXT    NOT NULL,          -- trade idea
     rationale       TEXT    NOT NULL,          -- AI reasoning
     catalysts       TEXT    NOT NULL,          -- JSON array of strings
-    created_at      TEXT    NOT NULL           -- ISO-8601 UTC
+    created_at      TEXT    NOT NULL,          -- ISO-8601 UTC
+    bear_case                TEXT    NOT NULL DEFAULT '',   -- adversarial counter-thesis
+    disconfirming_signals    TEXT    NOT NULL DEFAULT '[]', -- JSON array of signals
+    conviction_adjustment    TEXT    NOT NULL DEFAULT ''    -- sizing guidance post-stress-test
 );
 
 -- -----------------------------------------------------------------------
@@ -99,6 +102,18 @@ def init_schema(db_path: str = DB_PATH):
     """Apply the full schema to the database (idempotent)."""
     conn = sqlite3.connect(db_path)
     conn.executescript(SCHEMA)
+
+    # Migrate existing databases: add adversarial columns if absent
+    for col, definition in [
+        ('bear_case',             "TEXT NOT NULL DEFAULT ''"),
+        ('disconfirming_signals', "TEXT NOT NULL DEFAULT '[]'"),
+        ('conviction_adjustment', "TEXT NOT NULL DEFAULT ''"),
+    ]:
+        try:
+            conn.execute(f"ALTER TABLE narratives ADD COLUMN {col} {definition}")
+        except sqlite3.OperationalError:
+            pass  # column already exists
+
     conn.commit()
     conn.close()
     print(f"Schema applied: {db_path}")

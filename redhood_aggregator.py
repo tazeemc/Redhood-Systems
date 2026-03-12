@@ -114,7 +114,9 @@ class Narrative:
     """Represents an AI-extracted market narrative"""
     
     def __init__(self, title: str, entropy_risk: int, hypothesis: str,
-                 rationale: str, catalysts: List[str], supporting_feeds: List[str]):
+                 rationale: str, catalysts: List[str], supporting_feeds: List[str],
+                 bear_case: str = '', disconfirming_signals: List[str] = None,
+                 conviction_adjustment: str = ''):
         self.id = f"narrative_{int(time.time())}_{id(self)}"
         self.date = datetime.now()
         self.title = title
@@ -123,7 +125,10 @@ class Narrative:
         self.rationale = rationale
         self.catalysts = catalysts
         self.supporting_feeds = supporting_feeds
-    
+        self.bear_case = bear_case
+        self.disconfirming_signals = disconfirming_signals or []
+        self.conviction_adjustment = conviction_adjustment
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             'id': self.id,
@@ -133,7 +138,10 @@ class Narrative:
             'hypothesis': self.hypothesis,
             'rationale': self.rationale,
             'catalysts': self.catalysts,
-            'supporting_feeds': self.supporting_feeds
+            'supporting_feeds': self.supporting_feeds,
+            'bear_case': self.bear_case,
+            'disconfirming_signals': self.disconfirming_signals,
+            'conviction_adjustment': self.conviction_adjustment,
         }
 
 
@@ -275,8 +283,14 @@ class NarrativeExtractor:
             # Parse response
             response_text = response.content[0].text
             narratives = self._parse_claude_response(response_text, feeds_to_process)
-            
+
             print(f"✅ Extracted {len(narratives)} narratives")
+
+            # Second pass: adversarial stress-test
+            if narratives:
+                print(f"🔴 Running adversarial stress-test...")
+                narratives = self._stress_test_narratives(narratives)
+
             return narratives
             
         except Exception as e:
@@ -332,12 +346,86 @@ OUTPUT FORMAT (strict JSON):
   ]
 }}
 
-IMPORTANT: 
+IMPORTANT:
 - Return ONLY valid JSON, no markdown formatting
 - Include exactly 3 narratives
 - Be specific with trade ideas (not just "buy tech")
 - Entropy scoring should reflect information quality/consensus level"""
-    
+
+    def _build_adversarial_prompt(self, narratives: List['Narrative']) -> str:
+        """Build the adversarial stress-test prompt from extracted narratives"""
+        narr_text = ''
+        for i, n in enumerate(narratives, 1):
+            narr_text += (
+                f"NARRATIVE {i}: {n.title}\n"
+                f"Hypothesis: {n.hypothesis}\n"
+                f"Rationale: {n.rationale}\n"
+                f"Catalysts: {', '.join(n.catalysts)}\n"
+                f"Entropy Risk: {n.entropy_risk}/10\n\n"
+            )
+
+        return f"""You are a skeptical short-seller and risk manager stress-testing trade ideas.
+
+For each narrative below, produce the strongest case AGAINST the trade. Your job is honest pushback, not validation.
+
+NARRATIVES TO STRESS-TEST:
+{narr_text}
+For each narrative produce:
+1. bear_case: The single most compelling reason this trade fails (2-3 sentences). Be specific — cite crowded positioning, structural headwinds, or catalysts that could invalidate the thesis.
+2. disconfirming_signals: 2-3 concrete data points or events that would signal the narrative is breaking down.
+3. conviction_adjustment: One of "Full Size", "Half Size", "Quarter Size", or "Pass" — followed by a one-sentence rationale weighing bear-case severity against the original thesis.
+
+OUTPUT FORMAT (strict JSON):
+{{
+  "stress_tests": [
+    {{
+      "narrative_title": "exact title from above",
+      "bear_case": "...",
+      "disconfirming_signals": ["signal 1", "signal 2"],
+      "conviction_adjustment": "Half Size — because..."
+    }}
+  ]
+}}
+
+IMPORTANT:
+- Return ONLY valid JSON, no markdown formatting
+- Match narrative_title exactly to the titles provided above
+- conviction_adjustment must start with one of: Full Size / Half Size / Quarter Size / Pass"""
+
+    def _stress_test_narratives(self, narratives: List['Narrative']) -> List['Narrative']:
+        """Second Claude pass: adversarial stress-test of each narrative."""
+        prompt = self._build_adversarial_prompt(narratives)
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            response_text = response.content[0].text
+
+            if response_text.strip().startswith('```'):
+                response_text = response_text.split('```')[1]
+                if response_text.startswith('json'):
+                    response_text = response_text[4:]
+
+            data = json.loads(response_text.strip())
+            stress_map = {
+                s['narrative_title']: s
+                for s in data.get('stress_tests', [])
+            }
+
+            for narrative in narratives:
+                st = stress_map.get(narrative.title, {})
+                narrative.bear_case = st.get('bear_case', '')
+                narrative.disconfirming_signals = st.get('disconfirming_signals', [])
+                narrative.conviction_adjustment = st.get('conviction_adjustment', '')
+
+            print(f"🔴 Adversarial stress-test complete")
+        except Exception as e:
+            print(f"⚠️  Stress-test pass failed: {e}")
+
+        return narratives
+
     def _parse_claude_response(self, response_text: str, feeds: List[FeedItem]) -> List[Narrative]:
         """Parse Claude's JSON response into Narrative objects"""
         
@@ -479,10 +567,10 @@ class RedHoodAggregator:
         # Ensure output directory exists
         os.makedirs(self.config.OUTPUT_DIR, exist_ok=True)
     
-    def run(self, hours_back: float = 24) -> Dict[str, Any]:
+    def run(self, hours_back: float = 24, trading_json: str = None) -> Dict[str, Any]:
         """
         Run full aggregation and analysis pipeline
-        
+
         Returns:
             Dictionary with feeds and narratives
         """
@@ -530,7 +618,7 @@ class RedHoodAggregator:
             'narratives': [n.to_dict() for n in narratives]
         }
         
-        json_path, html_path = self._save_results(results, narratives, hours_back)
+        json_path, html_path = self._save_results(results, narratives, hours_back, trading_json)
         self._persist_to_db(hours_back, all_feeds, narratives, json_path, html_path)
 
         github_token = os.getenv("GITHUB_TOKEN")
@@ -547,7 +635,8 @@ class RedHoodAggregator:
         return results
     
     def _save_results(self, results: Dict[str, Any],
-                      narratives: List[Narrative], hours_back: float):
+                      narratives: List[Narrative], hours_back: float,
+                      trading_json: str = None):
         """Save results to JSON and HTML report. Returns (json_path, html_path)."""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
@@ -557,9 +646,20 @@ class RedHoodAggregator:
             json.dump(results, f, indent=2)
         print(f"\n💾 Results saved to: {json_path}")
 
+        # Load trading data if provided
+        trading_data = []
+        if trading_json and os.path.exists(trading_json):
+            try:
+                with open(trading_json, 'r', encoding='utf-8-sig') as f:
+                    raw = json.load(f)
+                trading_data = raw if isinstance(raw, list) else [raw]
+            except Exception as e:
+                print(f"⚠️  Could not load trading JSON: {e}")
+
         html_path = os.path.join(self.config.OUTPUT_DIR,
                                  f'redhood_reads_{timestamp}.html')
-        self._save_html_report(results, narratives, html_path, timestamp, hours_back)
+        self._save_html_report(results, narratives, html_path, timestamp,
+                               hours_back, trading_data)
         print(f"📰 Report saved to:   {html_path}")
 
         return json_path, html_path
@@ -609,7 +709,8 @@ class RedHoodAggregator:
         return tape + '\n    ' + tape  # duplicate for seamless loop
 
     def _save_html_report(self, results: Dict[str, Any], narratives: List[Narrative],
-                          filepath: str, timestamp: str, hours_back: float):
+                          filepath: str, timestamp: str, hours_back: float,
+                          trading_data: list = None):
         """Generate styled RedHood Reads HTML report from run data."""
         import html as H
 
@@ -655,11 +756,19 @@ class RedHoodAggregator:
             tag = H.escape(f'{col_tags[idx]} · Risk {narr.entropy_risk}/10')
             title = H.escape(narr.title)
             body = H.escape(narr.hypothesis[:240] + ('…' if len(narr.hypothesis) > 240 else ''))
+            bear = H.escape(narr.bear_case[:200] + ('…' if len(narr.bear_case) > 200 else '')) if narr.bear_case else ''
+            conviction = H.escape(narr.conviction_adjustment) if narr.conviction_adjustment else ''
+            bear_html = (
+                f'<div class="bear-label">Bear Case</div>'
+                f'<div class="bear-body">{bear}</div>'
+                f'<div class="conviction-tag">{conviction}</div>'
+            ) if bear else ''
             return (f'<div class="grid-col">'
                     f'<div class="col-tag">{tag}</div>'
                     f'<div class="col-title">{title}</div>'
                     f'<div class="col-body">{body}</div>'
-                    f'{sparkline(narr.entropy_risk)}</div>')
+                    f'{sparkline(narr.entropy_risk)}'
+                    f'{bear_html}</div>')
 
         # Metrics: feeds + 3 narrative entropy scores + narrative count
         metric_blocks = []
@@ -692,6 +801,8 @@ class RedHoodAggregator:
                         else (top.rationale if top else ''))
         thought_q = H.escape(top.hypothesis) if top else ''
         thought_body = H.escape(', '.join(top.catalysts)) if top else ''
+        thought_bear = H.escape(top.bear_case) if top and top.bear_case else ''
+        thought_conviction = H.escape(top.conviction_adjustment) if top and top.conviction_adjustment else ''
         grid_html = '\n'.join(grid_col(n, i) for i, n in enumerate(narrs))
 
         link_rows = ''.join(
@@ -703,22 +814,141 @@ class RedHoodAggregator:
 
         ticker_html = self._fetch_ticker_prices()
 
+        # ---- Trading signal panel ----
+        trading_html = ''
+        if trading_data:
+            def rec_css(r):
+                return 'rec-in' if r == 'IN' else 'rec-out' if r == 'OUT' else 'rec-neutral'
+
+            def trend_arrow(t):
+                return '&#9650;' if t == 'UP' else '&#9660;'
+
+            def trend_css(t):
+                return 'up' if t == 'UP' else 'down'
+
+            cards = []
+            for s in trading_data:
+                sym    = H.escape(str(s.get('Symbol', '—')))
+                price  = H.escape(str(s.get('Price', '—')))
+                rec    = str(s.get('Recommendation', 'NEUTRAL')).upper()
+                trend  = str(s.get('Trend', '—')).upper()
+                mom    = s.get('Momentum', 0) or 0
+                rsi    = s.get('RSI', 0) or 0
+                temp   = s.get('Temperature', 0) or 0
+                t_stat = H.escape(str(s.get('TempStatus', '—')))
+                entr   = s.get('Entropy', 0) or 0
+                e_stat = H.escape(str(s.get('EntropyStatus', '—')))
+                pos    = s.get('PositionSize', 0) or 0
+                ma20   = s.get('MA20', 0) or 0
+                ma50   = s.get('MA50', 0) or 0
+                ts_raw = H.escape(str(s.get('Timestamp', '')))
+
+                # Format price nicely
+                try:
+                    p_val = float(str(price).replace(',','').replace('$',''))
+                    price_fmt = f'${p_val:,.0f}' if p_val > 999 else f'${p_val:,.2f}'
+                except Exception:
+                    price_fmt = price
+
+                mom_sign = '+' if mom >= 0 else ''
+                mom_css  = 'up' if mom >= 0 else 'down'
+
+                cards.append(
+                    f'<div class="tc-card">'
+                    f'<div class="tc-header">'
+                    f'<span class="tc-sym">{sym}</span>'
+                    f'<span class="tc-rec {rec_css(rec)}">{rec}</span>'
+                    f'</div>'
+                    f'<div class="tc-price">{price_fmt}'
+                    f'<span class="tc-trend {trend_css(trend)}">'
+                    f'{trend_arrow(trend)} {trend}</span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">Momentum</span>'
+                    f'<span class="tc-val {mom_css}">{mom_sign}{mom:.2f}%</span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">RSI</span>'
+                    f'<span class="tc-val">{rsi:.1f}</span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">Temperature</span>'
+                    f'<span class="tc-val">{temp:.2f} <span class="tc-badge">{t_stat}</span></span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">Entropy</span>'
+                    f'<span class="tc-val">{entr:.3f} <span class="tc-badge">{e_stat}</span></span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">MA20 / MA50</span>'
+                    f'<span class="tc-val">${ma20:,.2f} / ${ma50:,.2f}</span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">Position Size</span>'
+                    f'<span class="tc-val">${pos:,.0f}</span></div>'
+                    f'<div class="tc-ts">{ts_raw}</div>'
+                    f'</div>'
+                )
+
+            cards_html = '\n'.join(cards)
+            trading_html = (
+                f'<div class="trading-section">'
+                f'<div class="trading-label">Quantitative Signal Analysis</div>'
+                f'<div class="trading-grid">{cards_html}</div>'
+                f'</div>'
+            )
+
+        # ---- BBC-style synopsis ----
+        bbc_paras = []
+        if narratives:
+            n1 = narratives[0]
+            risk_word = ('significant' if n1.entropy_risk >= 8
+                         else 'notable' if n1.entropy_risk >= 5 else 'moderate')
+            lede = (n1.rationale if n1.rationale else n1.hypothesis)
+            if lede:
+                bbc_paras.append(H.escape(lede))
+
+            if len(narratives) >= 2:
+                n2 = narratives[1]
+                p2 = n2.hypothesis or ''
+                cats = [c for c in (n2.catalysts or []) if c][:2]
+                if cats:
+                    p2 += f" Market participants are closely monitoring {', '.join(c.lower() for c in cats)}."
+                if p2.strip():
+                    bbc_paras.append(H.escape(p2.strip()))
+
+            bears = [n.bear_case for n in narratives[:3] if n.bear_case]
+            if bears:
+                bbc_paras.append(H.escape(
+                    f"However, analysts have flagged material downside risks. {bears[0]}"
+                ))
+            elif len(narratives) >= 3 and narratives[2].hypothesis:
+                bbc_paras.append(H.escape(narratives[2].hypothesis))
+
+        if bbc_paras:
+            byline = (f"Compiled from {feed_count} signal sources "
+                      f"&middot; {run_time_short} &middot; AI-assisted analysis")
+            paras_html = ''.join(
+                f'<p class="synopsis-para">{p}</p>' for p in bbc_paras
+            )
+            synopsis_html = (
+                f'<div class="synopsis-section">'
+                f'<div class="synopsis-label">Market Intelligence Synopsis</div>'
+                f'<div class="synopsis-byline">{byline}</div>'
+                f'<div class="synopsis-body">{paras_html}</div>'
+                f'</div>'
+            )
+        else:
+            synopsis_html = ''
+
         # Build HTML using string replacement to avoid f-string brace conflicts with CSS
         tpl = self._html_report_template()
         html_out = (tpl
-            .replace('%%TOPBAR_DATE%%',  f'{run_date_full} &nbsp;|&nbsp; Week {week_num:02d}')
-            .replace('%%ISSUE_NUM%%',    f'Run &middot; {window_label} &middot; {run_time_short}')
-            .replace('%%VOL_NUM%%',      str(dt.strftime('%d')))
-            .replace('%%HEADLINE%%',     headline)
-            .replace('%%DECK%%',         deck)
-            .replace('%%METRICS%%',      metrics_html)
-            .replace('%%GRID%%',         grid_html)
-            .replace('%%THOUGHT_Q%%',    thought_q)
-            .replace('%%THOUGHT_BODY%%', thought_body)
-            .replace('%%LINK_ROWS%%',    link_rows)
-            .replace('%%FEED_COUNT%%',   str(feed_count))
-            .replace('%%RUN_TIME%%',     run_time_short)
-            .replace('%%TICKER_HTML%%',  ticker_html)
+            .replace('%%TOPBAR_DATE%%',       f'{run_date_full} &nbsp;|&nbsp; Week {week_num:02d}')
+            .replace('%%ISSUE_NUM%%',         f'Run &middot; {window_label} &middot; {run_time_short}')
+            .replace('%%VOL_NUM%%',           str(dt.strftime('%d')))
+            .replace('%%HEADLINE%%',          headline)
+            .replace('%%DECK%%',              deck)
+            .replace('%%METRICS%%',           metrics_html)
+            .replace('%%GRID%%',              grid_html)
+            .replace('%%THOUGHT_Q%%',         thought_q)
+            .replace('%%THOUGHT_BODY%%',      thought_body)
+            .replace('%%THOUGHT_BEAR%%',      thought_bear)
+            .replace('%%THOUGHT_CONVICTION%%', thought_conviction)
+            .replace('%%TRADING%%',           trading_html)
+            .replace('%%SYNOPSIS%%',          synopsis_html)
+            .replace('%%LINK_ROWS%%',         link_rows)
+            .replace('%%FEED_COUNT%%',        str(feed_count))
+            .replace('%%RUN_TIME%%',          run_time_short)
+            .replace('%%TICKER_HTML%%',       ticker_html)
         )
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(html_out)
@@ -851,6 +1081,55 @@ class RedHoodAggregator:
   .scanline { position: absolute; inset: 0;
     background: repeating-linear-gradient(0deg, transparent, transparent 2px,
       rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
+  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
+    color: var(--gold); font-weight: 500; }
+  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
+    color: var(--gold); font-weight: 500; }
+  .synopsis-section { padding: 28px 40px; border-bottom: 1px solid var(--wire);
+    background: rgba(193,18,31,0.03); }
+  .synopsis-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 6px; font-weight: 500; }
+  .synopsis-byline { font-size: 8px; color: var(--text-muted); letter-spacing: 0.08em;
+    margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wire); }
+  .synopsis-body { column-count: 2; column-gap: 36px; }
+  .synopsis-para { font-size: 10px; line-height: 1.8; color: var(--cream);
+    margin-bottom: 14px; letter-spacing: 0.02em; text-align: justify; }
+  .synopsis-para:first-child::first-letter { font-family: "Playfair Display", serif;
+    font-size: 2.8em; font-weight: 900; float: left; line-height: 0.8;
+    margin: 4px 8px 0 0; color: var(--red); }
+  @media (max-width: 600px) { .synopsis-body { column-count: 1; } }
+  .trading-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .trading-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 14px; font-weight: 500; }
+  .trading-grid { display: flex; gap: 14px; flex-wrap: wrap; }
+  .tc-card { flex: 1; min-width: 180px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--wire); padding: 14px 16px; }
+  .tc-header { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; }
+  .tc-sym { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); }
+  .tc-rec { font-size: 8px; letter-spacing: 0.2em; font-weight: 600;
+    padding: 3px 8px; border: 1px solid; }
+  .rec-in  { color: #4CAF50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.07); }
+  .rec-out { color: var(--red); border-color: rgba(193,18,31,0.4); background: rgba(193,18,31,0.07); }
+  .rec-neutral { color: var(--gold); border-color: rgba(184,151,90,0.4); background: rgba(184,151,90,0.07); }
+  .tc-price { font-size: 15px; font-weight: 500; color: var(--cream);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .tc-trend { font-size: 9px; letter-spacing: 0.05em; }
+  .tc-row { display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .tc-lbl { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .tc-val { font-size: 8.5px; color: var(--cream); text-align: right; }
+  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--gold);
+    border: 1px solid rgba(184,151,90,0.3); padding: 1px 4px; margin-left: 4px; }
+  .tc-ts { font-size: 7px; color: var(--text-muted); margin-top: 8px;
+    letter-spacing: 0.05em; text-align: right; }
 </style>
 </head>
 <body>
@@ -896,8 +1175,15 @@ class RedHoodAggregator:
       <div class="thought-label">Top Trade Hypothesis</div>
       <div class="thought-q">%%THOUGHT_Q%%</div>
       <div class="thought-body">%%THOUGHT_BODY%%</div>
+      <div class="thought-bear-label">Bear Case</div>
+      <div class="thought-bear">%%THOUGHT_BEAR%%</div>
+      <div class="thought-conviction">%%THOUGHT_CONVICTION%%</div>
     </div>
   </div>
+
+  %%TRADING%%
+
+  %%SYNOPSIS%%
 
   <div class="links-section">
     <div class="links-header">Raw Signal Links &mdash; %%FEED_COUNT%% feeds &middot; %%RUN_TIME%%</div>
@@ -947,11 +1233,14 @@ class RedHoodAggregator:
             for narrative in narratives:
                 conn.execute(
                     """INSERT OR IGNORE INTO narratives
-                       (id, run_id, title, entropy_risk, hypothesis, rationale, catalysts, created_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                       (id, run_id, title, entropy_risk, hypothesis, rationale, catalysts, created_at,
+                        bear_case, disconfirming_signals, conviction_adjustment)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (narrative.id, run_id, narrative.title, narrative.entropy_risk,
                      narrative.hypothesis, narrative.rationale,
-                     json.dumps(narrative.catalysts), narrative.date.isoformat())
+                     json.dumps(narrative.catalysts), narrative.date.isoformat(),
+                     narrative.bear_case, json.dumps(narrative.disconfirming_signals),
+                     narrative.conviction_adjustment)
                 )
                 for feed_id in narrative.supporting_feeds:
                     conn.execute(
@@ -985,6 +1274,10 @@ class RedHoodAggregator:
             print(f"    💡 Hypothesis: {narrative.hypothesis}")
             print(f"    📝 Rationale: {narrative.rationale}")
             print(f"    📅 Catalysts: {', '.join(narrative.catalysts)}")
+            if narrative.bear_case:
+                print(f"    🐻 Bear Case: {narrative.bear_case}")
+            if narrative.conviction_adjustment:
+                print(f"    📊 Conviction: {narrative.conviction_adjustment}")
             print()
 
 
@@ -1011,13 +1304,19 @@ def main():
         type=str,
         help='Anthropic API key (or set ANTHROPIC_API_KEY env var)'
     )
-    
+    parser.add_argument(
+        '--trading-json',
+        type=str,
+        default=None,
+        help='Path to latest_trading.json produced by run.ps1'
+    )
+
     args = parser.parse_args()
-    
+
     # Override API key if provided
     if args.api_key:
         os.environ['ANTHROPIC_API_KEY'] = args.api_key
-    
+
     # Check for required API key
     if not os.getenv('ANTHROPIC_API_KEY'):
         print("❌ Error: ANTHROPIC_API_KEY not set")
@@ -1025,10 +1324,10 @@ def main():
         print("  export ANTHROPIC_API_KEY='your-key-here'")
         print("  python redhood_aggregator.py --api-key your-key-here")
         return
-    
+
     # Run aggregator
     aggregator = RedHoodAggregator()
-    results = aggregator.run(hours_back=args.hours)
+    results = aggregator.run(hours_back=args.hours, trading_json=args.trading_json)
     
     print("\n✅ Pipeline complete!")
     print(f"   Feeds processed: {len(results['feeds'])}")
