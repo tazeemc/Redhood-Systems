@@ -35,6 +35,12 @@ from dotenv import load_dotenv
 from accounts_db import get_active_handles, init_db
 from models import DB_PATH, init_schema
 
+try:
+    from redhood_regime_detector import RegimeDetector, Regime
+    _REGIME_AVAILABLE = True
+except ImportError:
+    _REGIME_AVAILABLE = False
+
 load_dotenv()  # loads .env from project root if present
 
 # ============================================================================
@@ -247,26 +253,27 @@ class NarrativeExtractor:
         self.client = Anthropic(api_key=api_key)
         self.model = Config.CLAUDE_MODEL
     
-    def extract_narratives(self, feeds: List[FeedItem], max_feeds: int = 50) -> List[Narrative]:
+    def extract_narratives(self, feeds: List[FeedItem], max_feeds: int = 50, regime_context: str = '') -> List[Narrative]:
         """
         Process feeds through Claude to extract top narratives
-        
+
         Args:
             feeds: List of FeedItem objects
             max_feeds: Maximum number of feeds to process (cost control)
-        
+            regime_context: Optional thermodynamic regime string to include in prompt
+
         Returns:
             List of Narrative objects
         """
-        
+
         # Limit feeds for cost control
         feeds_to_process = feeds[:max_feeds]
-        
+
         # Format feeds for prompt
         feeds_text = self._format_feeds_for_prompt(feeds_to_process)
-        
+
         # Build prompt
-        prompt = self._build_extraction_prompt(feeds_text)
+        prompt = self._build_extraction_prompt(feeds_text, regime_context)
         
         # Call Claude API
         try:
@@ -310,27 +317,33 @@ class NarrativeExtractor:
         
         return "\n".join(formatted)
     
-    def _build_extraction_prompt(self, feeds_text: str) -> str:
+    def _build_extraction_prompt(self, feeds_text: str, regime_context: str = '') -> str:
         """Build the prompt for Claude"""
-        
-        return f"""You are a portfolio manager with a physics PhD analyzing market intelligence feeds.
+        regime_section = (
+            f'\nCURRENT MARKET REGIME (thermodynamic): {regime_context}\n'
+            'Calibrate entropy risk scoring and position sizing recommendations to this regime.\n'
+            'In CRISIS regime, flag all hypotheses as high-risk. In TRENDING, amplify high-conviction ideas.\n'
+        ) if regime_context else ''
 
-Your task: Extract the top 3 market narratives from these feeds and generate actionable trade hypotheses.
+        return f"""You are a portfolio manager with a physics PhD analyzing market intelligence feeds.
+{regime_section}
+Your task: Extract the top 5 market narratives from these feeds and generate actionable trade hypotheses.
 
 FEEDS:
 {feeds_text}
 
 ANALYSIS FRAMEWORK:
-1. Identify the 3 most significant narratives (themes repeated across multiple sources)
-2. Score "entropy risk" for each narrative (1-10 scale):
+1. Identify the 5 most significant narratives (themes repeated across multiple sources)
+2. If any feeds reference Canada — trade policy, tariffs, CAD/USD, Canadian equities, energy, housing, or Canada-US geopolitics — dedicate one narrative specifically to that Canadian angle. If no Canadian content is present, use your best judgement on the 5th narrative.
+3. Score "entropy risk" for each narrative (1-10 scale):
    - Low (1-3): Stable consensus, low uncertainty
    - Medium (4-7): Mixed signals, moderate debate
    - High (8-10): Conflicting information, high volatility potential
-3. Generate a trade hypothesis for each narrative with:
+4. Generate a trade hypothesis for each narrative with:
    - Entry logic (why this trade, why now?)
    - Risk parameters (position size, stop loss)
    - Expected catalysts (upcoming events that could move the market)
-4. Use physics analogies where helpful (entropy, momentum, phase transitions, etc.)
+5. Use physics analogies where helpful (entropy, momentum, phase transitions, etc.)
 
 OUTPUT FORMAT (strict JSON):
 {{
@@ -348,7 +361,7 @@ OUTPUT FORMAT (strict JSON):
 
 IMPORTANT:
 - Return ONLY valid JSON, no markdown formatting
-- Include exactly 3 narratives
+- Include exactly 5 narratives
 - Be specific with trade ideas (not just "buy tech")
 - Entropy scoring should reflect information quality/consensus level"""
 
@@ -566,7 +579,26 @@ class RedHoodAggregator:
         
         # Ensure output directory exists
         os.makedirs(self.config.OUTPUT_DIR, exist_ok=True)
-    
+
+    def _compute_regime(self):
+        """Fetch 3-month SPY closes from Yahoo Finance and compute regime state."""
+        try:
+            import pandas as pd
+            url = ('https://query1.finance.yahoo.com/v8/finance/chart/'
+                   'SPY?interval=1d&range=3mo')
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                data = json.loads(r.read())
+            closes = data['chart']['result'][0]['indicators']['quote'][0]['close']
+            prices = pd.Series([c for c in closes if c is not None])
+            if len(prices) < 25:
+                return None
+            detector = RegimeDetector(base_temp=0.15, base_entropy=2.5, window=20)
+            return detector.update(prices)
+        except Exception as e:
+            print(f"   ⚠️  Regime detection failed: {e}")
+            return None
+
     def run(self, hours_back: float = 24, trading_json: str = None) -> Dict[str, Any]:
         """
         Run full aggregation and analysis pipeline
@@ -603,22 +635,43 @@ class RedHoodAggregator:
         
         # Sort by timestamp (most recent first)
         all_feeds.sort(key=lambda x: x.timestamp, reverse=True)
-        
+
+        # Thermodynamic regime detection
+        regime_state = None
+        regime_context = ''
+        if _REGIME_AVAILABLE:
+            print("🌡️  Computing thermodynamic regime (SPY)...")
+            regime_state = self._compute_regime()
+            if regime_state:
+                label = regime_state.label.value
+                print(f"   Regime: {label} | T={regime_state.temperature:.1%} | "
+                      f"S={regime_state.entropy:.3f} | Mult={regime_state.signal_multiplier:.2f}×"
+                      + (" | ⚠ REGIME DRIFT" if regime_state.warning else ""))
+                regime_context = (
+                    f"Regime={label} | Temperature={regime_state.temperature:.1%} (base 15%) | "
+                    f"Entropy={regime_state.entropy:.3f} (base 2.5) | "
+                    f"Signal Multiplier={regime_state.signal_multiplier:.2f}× | "
+                    f"KL Divergence={regime_state.kl_divergence:.4f}"
+                    + (" | ⚠ REGIME DRIFT ALERT" if regime_state.warning else "")
+                )
+            print()
+
         # Extract narratives using AI
         print("🧠 AI Analysis Phase...\n")
         narratives = self.ai_engine.extract_narratives(
             all_feeds,
-            max_feeds=self.config.MAX_FEEDS_TO_PROCESS
+            max_feeds=self.config.MAX_FEEDS_TO_PROCESS,
+            regime_context=regime_context,
         )
-        
+
         # Save results
         results = {
             'timestamp': datetime.now().isoformat(),
             'feeds': [f.to_dict() for f in all_feeds],
             'narratives': [n.to_dict() for n in narratives]
         }
-        
-        json_path, html_path = self._save_results(results, narratives, hours_back, trading_json)
+
+        json_path, html_path = self._save_results(results, narratives, hours_back, trading_json, regime_state)
         self._persist_to_db(hours_back, all_feeds, narratives, json_path, html_path)
 
         github_token = os.getenv("GITHUB_TOKEN")
@@ -630,13 +683,22 @@ class RedHoodAggregator:
             except Exception as e:
                 print(f"\n⚠️  [GitHub Pages] Publish failed: {e}")
 
-        self._print_summary(narratives)
+        # Reload trading data for terminal display
+        trading_data_for_print = []
+        if trading_json and os.path.exists(trading_json):
+            try:
+                with open(trading_json, 'r', encoding='utf-8-sig') as f:
+                    raw = json.load(f)
+                trading_data_for_print = raw if isinstance(raw, list) else [raw]
+            except Exception:
+                pass
+        self._print_summary(narratives, trading_data_for_print)
 
         return results
     
     def _save_results(self, results: Dict[str, Any],
                       narratives: List[Narrative], hours_back: float,
-                      trading_json: str = None):
+                      trading_json: str = None, regime_state=None):
         """Save results to JSON and HTML report. Returns (json_path, html_path)."""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
@@ -659,7 +721,7 @@ class RedHoodAggregator:
         html_path = os.path.join(self.config.OUTPUT_DIR,
                                  f'redhood_reads_{timestamp}.html')
         self._save_html_report(results, narratives, html_path, timestamp,
-                               hours_back, trading_data)
+                               hours_back, trading_data, regime_state)
         print(f"📰 Report saved to:   {html_path}")
 
         return json_path, html_path
@@ -710,7 +772,7 @@ class RedHoodAggregator:
 
     def _save_html_report(self, results: Dict[str, Any], narratives: List[Narrative],
                           filepath: str, timestamp: str, hours_back: float,
-                          trading_data: list = None):
+                          trading_data: list = None, regime_state=None):
         """Generate styled RedHood Reads HTML report from run data."""
         import html as H
 
@@ -725,7 +787,7 @@ class RedHoodAggregator:
         window_label = (f"{int(hours_back * 60)}m window"
                         if hours_back < 1 else f"{hours_back:.1f}h window")
 
-        narrs = list(narratives[:3]) + [None] * max(0, 3 - len(narratives))
+        narrs = list(narratives[:5]) + [None] * max(0, 5 - len(narratives))
         top = narrs[0]
 
         def ecolor(s):
@@ -748,7 +810,7 @@ class RedHoodAggregator:
                     + ''.join(f'<div class="bar {c}" style="height:{h}%"></div>' for h, c in bars)
                     + '</div>')
 
-        col_tags = ['Intelligence', 'Market Signal', 'Macro View']
+        col_tags = ['Intelligence', 'Market Signal', 'Macro View', 'Geopolitical', 'Canada / FX']
 
         def grid_col(narr, idx):
             if narr is None:
@@ -794,7 +856,7 @@ class RedHoodAggregator:
             f'<div class="metric-val">{len(narratives)}</div>'
             f'<div class="metric-delta neutral">Extracted</div></div>'
         )
-        metrics_html = '\n'.join(metric_blocks[:5])
+        metrics_html = '\n'.join(metric_blocks[:7])
 
         headline = H.escape(top.title) if top else 'Market Intelligence Brief'
         deck = H.escape((top.rationale[:240] + '…') if top and len(top.rationale) > 240
@@ -806,10 +868,11 @@ class RedHoodAggregator:
         grid_html = '\n'.join(grid_col(n, i) for i, n in enumerate(narrs))
 
         link_rows = ''.join(
-            f'<tr><td class="ts">{f["timestamp"][:16].replace("T"," ")}</td>'
+            f'<tr id="feed-{i}"><td class="feed-num">{i}</td>'
+            f'<td class="ts">{f["timestamp"][:16].replace("T"," ")}</td>'
             f'<td class="author">{H.escape(f["author"])}</td>'
             f'<td><a href="{H.escape(f["url"])}" target="_blank">{H.escape(f["url"])}</a></td></tr>'
-            for f in twitter_feeds
+            for i, f in enumerate(twitter_feeds, 1)
         )
 
         ticker_html = self._fetch_ticker_prices()
@@ -905,7 +968,7 @@ class RedHoodAggregator:
                 if p2.strip():
                     bbc_paras.append(H.escape(p2.strip()))
 
-            bears = [n.bear_case for n in narratives[:3] if n.bear_case]
+            bears = [n.bear_case for n in narratives[:5] if n.bear_case]
             if bears:
                 bbc_paras.append(H.escape(
                     f"However, analysts have flagged material downside risks. {bears[0]}"
@@ -929,6 +992,59 @@ class RedHoodAggregator:
         else:
             synopsis_html = ''
 
+        # Auto-link "feed N" / "feeds N-M" references in synopsis to anchors in the links table
+        import re as _re
+        def _linkify_feeds(text):
+            def repl(m):
+                word, nums = m.group(1), m.group(2)
+                if '-' in nums:
+                    a, b = nums.split('-', 1)
+                    return (f'{word} <a class="feed-link" href="#feed-{a}">{a}</a>'
+                            f'-<a class="feed-link" href="#feed-{b}">{b}</a>')
+                return f'<a class="feed-link" href="#feed-{nums}">{word} {nums}</a>'
+            return _re.sub(r'\b(feeds?)\s+(\d+(?:-\d+)?)\b', repl, text, flags=_re.IGNORECASE)
+        synopsis_html = _linkify_feeds(synopsis_html)
+
+        # Regime panel
+        regime_panel_html = ''
+        if regime_state:
+            _REGIME_COLORS = {
+                'TRENDING':   ('#00e5a0', 'Low T &middot; Low S &mdash; amplify signals'),
+                'CHOPPY':     ('#f5a623', 'High T &middot; Low S &mdash; reduce size'),
+                'CRISIS':     ('#ff4060', 'High T &middot; High S &mdash; block entries'),
+                'TRANSITION': ('#7b8cde', 'Low T &middot; High S &mdash; watch closely'),
+            }
+            rlabel = regime_state.label.value
+            rcolor, rdesc = _REGIME_COLORS.get(rlabel, ('#c8d4f0', ''))
+            rwarn = ('<span class="regime-warn">&#9888; REGIME DRIFT</span>'
+                     if regime_state.warning else '')
+            regime_panel_html = (
+                f'<div class="regime-panel">'
+                f'<div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (20-bar)</div>'
+                f'<div class="regime-badge-row">'
+                f'<span class="regime-badge" style="color:{rcolor};border-color:{rcolor}40;background:{rcolor}12">{rlabel}</span>'
+                f'<span class="regime-desc">{rdesc}</span>'
+                f'{rwarn}</div>'
+                f'<div class="regime-metrics">'
+                f'<div class="rm"><div class="rm-lbl">Temperature</div>'
+                f'<div class="rm-val" style="color:{rcolor}">{regime_state.temperature:.1%}</div>'
+                f'<div class="rm-sub">base 15%</div></div>'
+                f'<div class="rm"><div class="rm-lbl">Entropy</div>'
+                f'<div class="rm-val">{regime_state.entropy:.3f}</div>'
+                f'<div class="rm-sub">base 2.50</div></div>'
+                f'<div class="rm"><div class="rm-lbl">KL Divergence</div>'
+                f'<div class="rm-val" style="color:{"#ff9a3c" if regime_state.warning else "#c8d4f0"}">'
+                f'{regime_state.kl_divergence:.4f}</div>'
+                f'<div class="rm-sub">{"drift detected" if regime_state.warning else "within bounds"}</div></div>'
+                f'<div class="rm"><div class="rm-lbl">Signal Mult</div>'
+                f'<div class="rm-val">{regime_state.signal_multiplier:.2f}&times;</div>'
+                f'<div class="rm-sub">applied to signals</div></div>'
+                f'<div class="rm"><div class="rm-lbl">Heat Budget</div>'
+                f'<div class="rm-val">{regime_state.heat_budget:.0%}</div>'
+                f'<div class="rm-sub">remaining</div></div>'
+                f'</div></div>'
+            )
+
         # Build HTML using string replacement to avoid f-string brace conflicts with CSS
         tpl = self._html_report_template()
         html_out = (tpl
@@ -945,6 +1061,7 @@ class RedHoodAggregator:
             .replace('%%THOUGHT_CONVICTION%%', thought_conviction)
             .replace('%%TRADING%%',           trading_html)
             .replace('%%SYNOPSIS%%',          synopsis_html)
+            .replace('%%REGIME_PANEL%%',      regime_panel_html)
             .replace('%%LINK_ROWS%%',         link_rows)
             .replace('%%FEED_COUNT%%',        str(feed_count))
             .replace('%%RUN_TIME%%',          run_time_short)
@@ -969,6 +1086,7 @@ class RedHoodAggregator:
     --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
     --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
     --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
+    --purple: #7B4FD6; --pink: #E8517A; --tangerine: #F47B3A;
   }
   body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -977,21 +1095,23 @@ class RedHoodAggregator:
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
     pointer-events: none; z-index: 0; opacity: 0.6; }
   .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
-    border: 1px solid rgba(193,18,31,0.25); z-index: 1; overflow: hidden; }
+    border: 1px solid rgba(123,79,214,0.3); z-index: 1; overflow: hidden;
+    box-shadow: 0 0 40px rgba(123,79,214,0.06), 0 0 80px rgba(232,81,122,0.03); }
   .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
-    height: 200px; background: var(--red); transform: rotate(45deg); opacity: 0.08; }
+    height: 200px; background: linear-gradient(135deg, var(--purple), var(--pink));
+    transform: rotate(45deg); opacity: 0.1; }
   .topbar { display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 28px; border-bottom: 1px solid var(--wire);
-    background: rgba(193,18,31,0.05); }
+    padding: 12px 28px; border-bottom: 1px solid rgba(123,79,214,0.15);
+    background: rgba(123,79,214,0.04); }
   .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--pink);
     animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(193,18,31,0.5); }
-    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(193,18,31,0); }
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,81,122,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(232,81,122,0); }
   }
   .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--red); font-weight: 500; }
+    color: var(--pink); font-weight: 500; }
   .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
   .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
     background: var(--mid); padding: 7px 0; }
@@ -999,7 +1119,7 @@ class RedHoodAggregator:
   @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
     font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
-  .tick-sym { color: var(--gold); font-weight: 500; }
+  .tick-sym { color: var(--tangerine); font-weight: 500; }
   .tick-val { color: var(--cream); }
   .tick-chg { font-size: 8.5px; color: var(--text-muted); }
   .up { color: #4CAF50; } .down { color: var(--red); }
@@ -1012,7 +1132,7 @@ class RedHoodAggregator:
     color: var(--cream); margin-bottom: 6px; }
   .masthead .red-accent { color: var(--red); font-style: italic; }
   .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
-    text-transform: uppercase; color: var(--gold); margin-bottom: 28px; }
+    text-transform: uppercase; color: var(--tangerine); margin-bottom: 28px; }
   .headline-block { max-width: 620px; }
   .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
     line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
@@ -1022,21 +1142,21 @@ class RedHoodAggregator:
   .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
     text-transform: uppercase; }
   .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
-    font-weight: 900; color: rgba(193,18,31,0.12); line-height: 1; letter-spacing: -0.04em; }
+    font-weight: 900; color: rgba(123,79,214,0.15); line-height: 1; letter-spacing: -0.04em; }
   .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
     border-bottom: 1px solid var(--wire); }
   .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
   .grid-col:last-child { border-right: none; }
   .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--red); margin-bottom: 10px; font-weight: 500; }
+    color: var(--pink); margin-bottom: 10px; font-weight: 500; }
   .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
     line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
   .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
   .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
   .bar { flex: 1; background: var(--wire); border-radius: 1px; }
-  .bar.hi { background: rgba(76,175,80,0.5); }
+  .bar.hi { background: rgba(244,123,58,0.55); }
   .bar.lo { background: rgba(193,18,31,0.5); }
-  .bar.mid-hi { background: rgba(184,151,90,0.4); }
+  .bar.mid-hi { background: rgba(232,81,122,0.45); }
   .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
     border-bottom: 1px solid var(--wire); }
   .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
@@ -1048,53 +1168,57 @@ class RedHoodAggregator:
   .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
   .metric-delta.up { color: #4CAF50; }
   .metric-delta.dn { color: var(--red); }
-  .metric-delta.neutral { color: var(--gold); }
+  .metric-delta.neutral { color: var(--tangerine); }
   .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
     display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
-  .thought-rule { background: linear-gradient(to bottom, var(--red), transparent);
+  .thought-rule { background: linear-gradient(to bottom, var(--purple), var(--pink), transparent);
     height: 100%; min-height: 60px; }
   .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--red); margin-bottom: 8px; font-weight: 500; }
+    color: var(--purple); margin-bottom: 8px; font-weight: 500; }
   .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
     line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
   .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
   .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
   .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--red); margin-bottom: 14px; font-weight: 500; }
+    color: var(--purple); margin-bottom: 14px; font-weight: 500; }
   .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
   .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
     border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
   .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
     vertical-align: top; }
   .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
-  .author { color: var(--gold); white-space: nowrap; width: 140px; }
-  .links-table a { color: #4ea3ff; text-decoration: none; word-break: break-all; }
-  .links-table a:hover { text-decoration: underline; }
+  .author { color: var(--tangerine); white-space: nowrap; width: 140px; }
+  .links-table a { color: var(--pink); text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; color: var(--cream); }
+  .feed-num { color: var(--text-muted); width: 28px; text-align: right; padding-right: 14px; font-size: 8px; letter-spacing: 0.05em; }
+  .feed-link { color: var(--purple) !important; text-decoration: none !important; border-bottom: 1px solid rgba(123,79,214,0.4); }
+  .feed-link:hover { color: var(--cream) !important; }
+  tr:target { background: rgba(123,79,214,0.08); outline: 1px solid rgba(123,79,214,0.3); }
   .footer { display: flex; align-items: center; justify-content: space-between;
     padding: 14px 28px; background: rgba(193,18,31,0.04); }
   .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
-  .footer-left span { color: var(--gold); }
+  .footer-left span { color: var(--pink); }
   .footer-right { display: flex; align-items: center; gap: 18px; }
   .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
     color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
-  .footer-tag.active { border-color: rgba(193,18,31,0.4); color: var(--red); }
+  .footer-tag.active { border-color: rgba(123,79,214,0.5); color: var(--purple); }
   .scanline { position: absolute; inset: 0;
     background: repeating-linear-gradient(0deg, transparent, transparent 2px,
       rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
   .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--red); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+    color: var(--pink); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
   .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
   .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
-    color: var(--gold); font-weight: 500; }
+    color: var(--tangerine); font-weight: 500; }
   .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--red); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+    color: var(--pink); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
   .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
   .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
-    color: var(--gold); font-weight: 500; }
+    color: var(--tangerine); font-weight: 500; }
   .synopsis-section { padding: 28px 40px; border-bottom: 1px solid var(--wire);
-    background: rgba(193,18,31,0.03); }
+    background: rgba(123,79,214,0.03); }
   .synopsis-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--red); margin-bottom: 6px; font-weight: 500; }
+    color: var(--purple); margin-bottom: 6px; font-weight: 500; }
   .synopsis-byline { font-size: 8px; color: var(--text-muted); letter-spacing: 0.08em;
     margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wire); }
   .synopsis-body { column-count: 2; column-gap: 36px; }
@@ -1102,11 +1226,11 @@ class RedHoodAggregator:
     margin-bottom: 14px; letter-spacing: 0.02em; text-align: justify; }
   .synopsis-para:first-child::first-letter { font-family: "Playfair Display", serif;
     font-size: 2.8em; font-weight: 900; float: left; line-height: 0.8;
-    margin: 4px 8px 0 0; color: var(--red); }
+    margin: 4px 8px 0 0; color: var(--purple); }
   @media (max-width: 600px) { .synopsis-body { column-count: 1; } }
   .trading-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
   .trading-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--red); margin-bottom: 14px; font-weight: 500; }
+    color: var(--tangerine); margin-bottom: 14px; font-weight: 500; }
   .trading-grid { display: flex; gap: 14px; flex-wrap: wrap; }
   .tc-card { flex: 1; min-width: 180px; background: rgba(255,255,255,0.03);
     border: 1px solid var(--wire); padding: 14px 16px; }
@@ -1118,7 +1242,7 @@ class RedHoodAggregator:
     padding: 3px 8px; border: 1px solid; }
   .rec-in  { color: #4CAF50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.07); }
   .rec-out { color: var(--red); border-color: rgba(193,18,31,0.4); background: rgba(193,18,31,0.07); }
-  .rec-neutral { color: var(--gold); border-color: rgba(184,151,90,0.4); background: rgba(184,151,90,0.07); }
+  .rec-neutral { color: var(--tangerine); border-color: rgba(244,123,58,0.4); background: rgba(244,123,58,0.07); }
   .tc-price { font-size: 15px; font-weight: 500; color: var(--cream);
     margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   .tc-trend { font-size: 9px; letter-spacing: 0.05em; }
@@ -1126,10 +1250,29 @@ class RedHoodAggregator:
     padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
   .tc-lbl { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); }
   .tc-val { font-size: 8.5px; color: var(--cream); text-align: right; }
-  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--gold);
-    border: 1px solid rgba(184,151,90,0.3); padding: 1px 4px; margin-left: 4px; }
+  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--tangerine);
+    border: 1px solid rgba(244,123,58,0.35); padding: 1px 4px; margin-left: 4px; }
   .tc-ts { font-size: 7px; color: var(--text-muted); margin-top: 8px;
     letter-spacing: 0.05em; text-align: right; }
+  .regime-panel { padding: 22px 28px; border-bottom: 1px solid var(--wire);
+    background: rgba(0,229,160,0.015); }
+  .regime-panel-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: #00e5a0; margin-bottom: 12px; font-weight: 500; }
+  .regime-badge-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    flex-wrap: wrap; }
+  .regime-badge { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.2em; padding: 5px 14px; border: 1px solid; }
+  .regime-desc { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; }
+  .regime-warn { font-size: 8px; color: #ff9a3c; letter-spacing: 0.1em;
+    border: 1px solid rgba(255,154,60,0.4); padding: 3px 8px; background: rgba(255,154,60,0.07); }
+  .regime-metrics { display: flex; gap: 0; border: 1px solid var(--wire); }
+  .rm { flex: 1; padding: 10px 14px; border-right: 1px solid var(--wire); }
+  .rm:last-child { border-right: none; }
+  .rm-lbl { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .rm-val { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .rm-sub { font-size: 7.5px; color: var(--text-muted); letter-spacing: 0.05em; }
 </style>
 </head>
 <body>
@@ -1185,10 +1328,12 @@ class RedHoodAggregator:
 
   %%SYNOPSIS%%
 
+  %%REGIME_PANEL%%
+
   <div class="links-section">
     <div class="links-header">Raw Signal Links &mdash; %%FEED_COUNT%% feeds &middot; %%RUN_TIME%%</div>
     <table class="links-table">
-      <thead><tr><th>Timestamp</th><th>Account</th><th>Link</th></tr></thead>
+      <thead><tr><th>#</th><th>Timestamp</th><th>Account</th><th>Link</th></tr></thead>
       <tbody>%%LINK_ROWS%%</tbody>
     </table>
   </div>
@@ -1258,9 +1403,32 @@ class RedHoodAggregator:
         finally:
             conn.close()
 
-    def _print_summary(self, narratives: List[Narrative]):
-        """Print formatted summary of narratives"""
-        
+    def _print_summary(self, narratives: List[Narrative], trading_data: list = None):
+        """Print formatted summary of narratives and trading signals"""
+
+        if trading_data:
+            print("\n" + "=" * 60)
+            print("📊 POSITIONAL SIGNALS")
+            print("=" * 60)
+            for s in trading_data:
+                sym  = s.get('Symbol', '—')
+                price = s.get('Price', 0)
+                rec  = str(s.get('Recommendation', 'NEUTRAL')).upper()
+                trend = s.get('Trend', '—')
+                rsi  = s.get('RSI', 0)
+                mom  = s.get('Momentum', 0) or 0
+                pos  = s.get('PositionSize', 0) or 0
+                ma20 = s.get('MA20', 0) or 0
+                ma50 = s.get('MA50', 0) or 0
+                entr = s.get('EntropyStatus', '—')
+                ts   = s.get('Timestamp', '—')
+                rec_icon = '🟢 IN' if rec == 'IN' else '🔴 OUT' if rec == 'OUT' else '🟡 NEUTRAL'
+                trend_icon = '↑' if trend == 'UP' else '↓'
+                price_fmt = f"${price:,.0f}" if price > 1000 else f"${price:,.2f}"
+                print(f"\n  {sym}  {price_fmt}  |  {rec_icon}  |  Trend {trend_icon}  |  RSI {rsi:.1f}  |  Mom {mom:+.2f}%")
+                print(f"  MA20 {ma20:,.2f}  MA50 {ma50:,.2f}  |  Entropy {entr}  |  Position ${pos:,.0f}  |  As of {ts}")
+            print()
+
         print("\n" + "=" * 60)
         print("📋 DAILY BRIEF - TOP NARRATIVES")
         print("=" * 60 + "\n")
@@ -1312,6 +1480,13 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Auto-detect latest_trading.json if --trading-json not provided
+    if not args.trading_json:
+        default_trading = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                       'data', 'latest_trading.json')
+        if os.path.exists(default_trading):
+            args.trading_json = default_trading
 
     # Override API key if provided
     if args.api_key:
