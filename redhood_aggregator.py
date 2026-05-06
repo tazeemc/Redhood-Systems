@@ -34,6 +34,12 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from accounts_db import get_active_handles, init_db
 from models import DB_PATH, init_schema
+from ticker_extraction import (
+    extract_tickers,
+    entropy_band as _entropy_band,
+    conviction_size as _conviction_size,
+    catalyst_count as _catalyst_count,
+)
 
 try:
     from redhood_regime_detector import RegimeDetector, Regime
@@ -1375,17 +1381,26 @@ class RedHoodAggregator:
                      feed.metadata.get('nitter_instance'))
                 )
 
+            ticker_rows_total = 0
+            now_iso = datetime.utcnow().isoformat()
             for narrative in narratives:
+                catalysts_json = json.dumps(narrative.catalysts)
+                cat_count = _catalyst_count(catalysts_json)
+                conv_size = _conviction_size(narrative.conviction_adjustment)
+                ent_band  = _entropy_band(narrative.entropy_risk)
+
                 conn.execute(
                     """INSERT OR IGNORE INTO narratives
                        (id, run_id, title, entropy_risk, hypothesis, rationale, catalysts, created_at,
-                        bear_case, disconfirming_signals, conviction_adjustment)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        bear_case, disconfirming_signals, conviction_adjustment,
+                        catalyst_count, conviction_size, entropy_band)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (narrative.id, run_id, narrative.title, narrative.entropy_risk,
                      narrative.hypothesis, narrative.rationale,
-                     json.dumps(narrative.catalysts), narrative.date.isoformat(),
+                     catalysts_json, narrative.date.isoformat(),
                      narrative.bear_case, json.dumps(narrative.disconfirming_signals),
-                     narrative.conviction_adjustment)
+                     narrative.conviction_adjustment,
+                     cat_count, conv_size, ent_band)
                 )
                 for feed_id in narrative.supporting_feeds:
                     conn.execute(
@@ -1393,8 +1408,25 @@ class RedHoodAggregator:
                         (narrative.id, feed_id)
                     )
 
+                # --- Ticker bridge + dim_ticker auto-seed (audit gaps G1, G2) ---
+                ticker_rows = extract_tickers(narrative.hypothesis or "")
+                for row in ticker_rows:
+                    conn.execute(
+                        """INSERT OR IGNORE INTO tickers (ticker, first_seen_at)
+                           VALUES (?, ?)""",
+                        (row["ticker"], now_iso)
+                    )
+                    conn.execute(
+                        """INSERT OR IGNORE INTO narrative_tickers
+                               (narrative_id, ticker, side, extracted_pattern)
+                           VALUES (?, ?, ?, ?)""",
+                        (narrative.id, row["ticker"], row["side"], row["pattern"])
+                    )
+                ticker_rows_total += len(ticker_rows)
+
             conn.commit()
-            print(f"🗄️  DB: run #{run_id} saved — {len(all_feeds)} feeds, {len(narratives)} narratives")
+            print(f"🗄️  DB: run #{run_id} saved — {len(all_feeds)} feeds, "
+                  f"{len(narratives)} narratives, {ticker_rows_total} ticker mentions")
             return run_id
         except Exception as e:
             conn.rollback()
