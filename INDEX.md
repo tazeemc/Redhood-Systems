@@ -1,4 +1,4 @@
-# RedHood Insights - Portfolio Package
+# RedHood Systems - Portfolio Package
 ## Everything You Need for PM Job Applications
 
 **Created:** February 15, 2026
@@ -48,7 +48,7 @@ A complete, interview-ready portfolio project showcasing:
 ### PRODUCT MANAGEMENT ARTIFACTS
 
 #### 1. Product Requirements Document (PRD)
-**File:** `PRD_RedHood_Insights.md`
+**File:** `PRD_RedHood_Systems.md`
 **What it is:** Comprehensive PRD with user stories, acceptance criteria, roadmap
 **Use it for:**
 - "Show me an example of a PRD you've written"
@@ -156,7 +156,7 @@ A complete, interview-ready portfolio project showcasing:
 
 **Resume bullet point:**
 ```
-• Built RedHood Insights, an AI-powered market intelligence platform
+• Built RedHood Systems, an AI-powered market intelligence platform
   that aggregates X/Twitter and Substack feeds, extracts narratives via
   Claude AI, generates styled HTML briefings, and persists all data to
   SQLite — reducing trader research time by 83% (validated with 50 surveys)

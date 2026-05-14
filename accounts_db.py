@@ -1,5 +1,5 @@
 """
-RedHood Insights - Twitter Accounts Database
+RedHood Systems - Twitter Accounts Database
 =============================================
 SQLite store for managing tracked X/Twitter accounts.
 

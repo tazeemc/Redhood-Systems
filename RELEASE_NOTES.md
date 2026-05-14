@@ -1,4 +1,4 @@
-# Release Notes — RedHood Insights
+# Release Notes — RedHood Systems
 
 ---
 

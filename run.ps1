@@ -1,4 +1,4 @@
-# RedHood Insights - PowerShell runner (with Trading System Analysis)
+# RedHood Systems - PowerShell runner (with Trading System Analysis)
 # Usage:
 #   .\run.ps1                          # last 5 minutes (default), default symbols
 #   .\run.ps1 -Hours 1                 # last 1 hour
@@ -238,7 +238,7 @@ if (-not $SkipTrading) {
 }
 
 # ============================================================================
-# REDHOOD INSIGHTS - Feed Aggregator
+# REDHOOD SYSTEMS - Feed Aggregator
 # ============================================================================
 
 if (-not $SkipRedHood) {
@@ -263,7 +263,7 @@ if (-not $SkipRedHood) {
         exit 1
     }
 
-    Write-Host "`nRunning RedHood Insights (last $Hours hours)..." -ForegroundColor Cyan
+    Write-Host "`nRunning RedHood Systems (last $Hours hours)..." -ForegroundColor Cyan
     $env:PYTHONIOENCODING = "utf-8"
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 

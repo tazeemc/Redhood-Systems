@@ -1,4 +1,4 @@
-# RedHood Insights - Python Dependencies
+# RedHood Systems - Python Dependencies
 # Install with: pip install -r requirements.txt --break-system-packages
 
 # Core dependencies

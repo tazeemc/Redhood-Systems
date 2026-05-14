@@ -1,5 +1,5 @@
 """
-RedHood Insights - Feed Aggregator & AI Analysis Tool
+RedHood Systems - Feed Aggregator & AI Analysis Tool
 ======================================================
 
 A production-ready prototype for aggregating market intelligence from multiple sources
@@ -503,7 +503,7 @@ class GitHubPagesPublisher:
         self._headers = {
             "Authorization": f"token {token}",
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "RedHood-Insights",
+            "User-Agent": "RedHood-Systems",
         }
 
     def _get_sha(self, path: str):
@@ -614,7 +614,7 @@ class RedHoodAggregator:
         """
         
         print("=" * 60)
-        print("🔥 REDHOOD INSIGHTS - Feed Aggregator")
+        print("🔥 REDHOOD SYSTEMS - Feed Aggregator")
         print("=" * 60)
         print(f"📅 Fetching feeds from last {hours_back} hours...\n")
         
@@ -1491,7 +1491,7 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description='RedHood Insights - AI-Powered Market Intelligence'
+        description='RedHood Systems - AI-Powered Market Intelligence'
     )
     parser.add_argument(
         '--hours',
