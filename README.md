@@ -1,4 +1,4 @@
-# RedHood Insights
+# RedHood Systems
 ## AI-Powered Market Intelligence Dashboard
 
 > **Portfolio Project by Tazeem Chowdhury**
@@ -14,7 +14,7 @@
 
 **Problem:** Retail traders spend 2-4 hours daily monitoring 20+ information sources (X/Twitter, Substack) to identify market opportunities. This creates information overload and missed signals.
 
-**Solution:** RedHood Insights aggregates multi-source feeds and uses Claude AI to extract the top 3 market narratives with entropy risk scoring (quantified uncertainty) and trade hypotheses. Every run generates a styled **RedHood Reads** HTML report and persists all data to SQLite.
+**Solution:** RedHood Systems aggregates multi-source feeds and uses Claude AI to extract the top 3 market narratives with entropy risk scoring (quantified uncertainty) and trade hypotheses. Every run generates a styled **RedHood Reads** HTML report and persists all data to SQLite.
 
 **Impact:** Reduces research time by 80% (from 180 min → 30 min) while improving signal quality through systematic AI analysis.
 
@@ -159,7 +159,7 @@ Redhood-Systems/
 ├── run.ps1                    # PowerShell runner: trading analysis + aggregator
 ├── redhood.db                 # SQLite database (runs, feeds, narratives)
 ├── .env                       # ANTHROPIC_API_KEY (not committed)
-├── PRD_RedHood_Insights.md    # Product Requirements Document
+├── PRD_RedHood_Systems.md    # Product Requirements Document
 ├── Market_Research_Analysis.md# Competitive analysis & market sizing
 ├── CASE_STUDY.md              # Portfolio case study
 ├── README.md                  # This file
@@ -176,7 +176,7 @@ Redhood-Systems/
 This repository contains key documents demonstrating PM skills:
 
 ### 1. Product Requirements Document (PRD)
-- **File:** `PRD_RedHood_Insights.md`
+- **File:** `PRD_RedHood_Systems.md`
 - **Contents:** Problem statement, user personas, feature specs, success metrics, roadmap
 - **Demonstrates:** Strategic thinking, user research, technical specification
 
@@ -301,7 +301,7 @@ Product Manager | Business Analyst | Financial Markets Analyst
 
 **Why I Built This:**
 
-As a trader and market analyst, I was spending 3+ hours daily across Twitter, Substack, and financial feeds hunting for signals and synthesizing fragmented data. RedHood Insights automates the entire research pipeline — from feed aggregation to AI-extracted narratives to styled HTML briefings — demonstrating full-stack product thinking and technical execution.
+As a trader and market analyst, I was spending 3+ hours daily across Twitter, Substack, and financial feeds hunting for signals and synthesizing fragmented data. RedHood Systems automates the entire research pipeline — from feed aggregation to AI-extracted narratives to styled HTML briefings — demonstrating full-stack product thinking and technical execution.
 
 ---
 

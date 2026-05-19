@@ -21,7 +21,7 @@ A complete, working portfolio project:
 
 **Resume bullet point (copy-paste ready):**
 ```
-• Built RedHood Insights, an AI-powered market intelligence pipeline that
+• Built RedHood Systems, an AI-powered market intelligence pipeline that
   aggregates X/Twitter and Substack feeds, extracts top narratives via
   Claude AI, generates styled HTML briefings, and persists all data to
   SQLite — reducing trader research time by 83% (180 min → 30 min daily)
@@ -134,7 +134,7 @@ python accounts_db.py --remove SomeHandle
 | `redhood.db` | SQLite database (created automatically on first run) |
 | `CASE_STUDY.md` | Portfolio writeup for job applications |
 | `README.md` | Technical overview |
-| `PRD_RedHood_Insights.md` | Product spec — shows PM thinking |
+| `PRD_RedHood_Systems.md` | Product spec — shows PM thinking |
 | `Market_Research_Analysis.md` | Business strategy — shows market acumen |
 
 ---
@@ -145,7 +145,7 @@ python accounts_db.py --remove SomeHandle
 
 1. **Problem (30s):** "As a trader, I was spending 3+ hours daily aggregating market intelligence from Twitter, Substack, and newsletters. I validated this was a widespread pain point."
 
-2. **Solution (30s):** "I built RedHood Insights — an AI-powered pipeline that aggregates feeds, uses Claude to extract top narratives with entropy risk scoring, generates styled HTML briefings, and persists everything to SQLite."
+2. **Solution (30s):** "I built RedHood Systems — an AI-powered pipeline that aggregates feeds, uses Claude to extract top narratives with entropy risk scoring, generates styled HTML briefings, and persists everything to SQLite."
 
 3. **Process (60s):** "I followed a full PM cycle: user research → PRD → prototype → validation. The interesting challenge was the Nitter RSS integration for Twitter (no API key needed) and prompt engineering to get consistent JSON from Claude."
 

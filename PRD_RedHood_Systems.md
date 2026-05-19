@@ -1,4 +1,4 @@
-# Product Requirements Document: RedHood Insights
+# Product Requirements Document: RedHood Systems
 ## AI-Powered Market Intelligence Dashboard
 
 **Document Owner:** Tazeem Chowdhury
@@ -14,7 +14,7 @@
 Retail traders and small fund analysts spend 2-4 hours daily monitoring 20+ information sources (X/Twitter, Substack newsletters, financial news) to identify market narratives and trading opportunities. This creates information overload, analysis paralysis, and missed opportunities due to signal fragmentation.
 
 **Solution:**
-RedHood Insights is an AI-powered feed aggregator that consolidates multi-source market intelligence, extracts actionable narratives using LLM analysis, scores opportunities based on "entropy risk" (market uncertainty/volatility metrics), generates styled HTML briefings, and persists all data to SQLite. The product reduces research time by 80% while improving signal quality through systematic narrative extraction.
+RedHood Systems is an AI-powered feed aggregator that consolidates multi-source market intelligence, extracts actionable narratives using LLM analysis, scores opportunities based on "entropy risk" (market uncertainty/volatility metrics), generates styled HTML briefings, and persists all data to SQLite. The product reduces research time by 80% while improving signal quality through systematic narrative extraction.
 
 **Success Metrics (90-day targets):**
 - **Time saved:** 2.5 hours → 30 minutes per user daily (83% reduction)

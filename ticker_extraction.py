@@ -1,5 +1,5 @@
 """
-RedHood Insights - Ticker Extraction
+RedHood Systems - Ticker Extraction
 =====================================
 Extracts ticker symbols (and Long/Short/Hedge/Pair side) from a narrative's
 free-text hypothesis. Closes audit gaps G1 (no ticker dimension) and G2 (no

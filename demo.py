@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-RedHood Insights - Demo Script
+RedHood Systems - Demo Script
 ================================
 
-This script demonstrates the full capabilities of RedHood Insights
+This script demonstrates the full capabilities of RedHood Systems
 with sample data (no API keys required for demo mode).
 
 Run with: python demo.py
@@ -111,7 +111,7 @@ DEMO_NARRATIVES = [
 def print_banner():
     """Print formatted banner"""
     print("\n" + "=" * 70)
-    print("🔥 REDHOOD INSIGHTS - DEMO MODE")
+    print("🔥 REDHOOD SYSTEMS - DEMO MODE")
     print("=" * 70)
     print("This demo shows how RedHood processes feeds into actionable insights")
     print("No API keys required - using sample data\n")
@@ -246,7 +246,7 @@ def main():
     print("2. Set environment variable: export ANTHROPIC_API_KEY='your-key'")
     print("3. Run: python redhood_aggregator.py\n")
     print("Questions? Email: ctazeem@gmail.com")
-    print("Portfolio: See PRD_RedHood_Insights.md for full documentation\n")
+    print("Portfolio: See PRD_RedHood_Systems.md for full documentation\n")
 
 if __name__ == '__main__':
     main()

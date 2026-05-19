@@ -1,5 +1,5 @@
 # Market Research & Competitive Analysis
-## RedHood Insights - AI-Powered Market Intelligence Dashboard
+## RedHood Systems - AI-Powered Market Intelligence Dashboard
 
 **Research Date:** February 15, 2026  
 **Analyst:** Tazeem Chowdhury  
@@ -10,7 +10,7 @@
 ## 📊 Executive Summary
 
 **Market Opportunity:**  
-The retail trading intelligence market is growing rapidly with 15M+ active retail traders in the US alone. Current solutions are either too expensive (Bloomberg Terminal at $24K/year), too noisy (social platforms), or non-existent (manual aggregation). RedHood Insights targets the underserved segment of serious retail traders who need institutional-quality insights at consumer prices.
+The retail trading intelligence market is growing rapidly with 15M+ active retail traders in the US alone. Current solutions are either too expensive (Bloomberg Terminal at $24K/year), too noisy (social platforms), or non-existent (manual aggregation). RedHood Systems targets the underserved segment of serious retail traders who need institutional-quality insights at consumer prices.
 
 **Key Findings:**
 - **TAM:** $7.5B (15M traders × $500/year average spend on tools)
@@ -606,7 +606,7 @@ The retail trading intelligence market is growing rapidly with 15M+ active retai
 | Seeking Alpha Premium | $20 | Stock analysis | 5 |
 | TradingView Pro+ | $60 | Advanced charts | 7 |
 | Koyfin | Free | Charting | 6 (free tier limited) |
-| **RedHood Insights** | **$49** | AI aggregation + journal | **9** |
+| **RedHood Systems** | **$49** | AI aggregation + journal | **9** |
 
 **Pricing Strategy:**
 - Positioned below TradingView Pro+ ($60)

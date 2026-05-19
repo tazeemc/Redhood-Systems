@@ -1,5 +1,5 @@
 """
-RedHood Insights - Data Models
+RedHood Systems - Data Models
 ================================
 SQLite schema definitions for all persistent entities.
 

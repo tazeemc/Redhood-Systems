@@ -1,4 +1,4 @@
-# Portfolio Case Study: RedHood Insights
+# Portfolio Case Study: RedHood Systems
 ## Building an AI-Powered Market Intelligence Platform from Scratch
 
 **Author:** Tazeem Chowdhury
@@ -69,7 +69,7 @@ Before building anything, I validated the problem with 50 traders (survey + inte
 
 **For** serious retail traders
 **Who** follow 10+ information sources but lack time to synthesize them
-**RedHood Insights is** an AI-powered aggregation pipeline
+**RedHood Systems is** an AI-powered aggregation pipeline
 **That** extracts top market narratives, scores entropy risk, and delivers a styled briefing every run
 **Unlike** Bloomberg Terminal (too expensive) or manual scrolling (too time-consuming)
 **Our product** delivers institutional-quality insights at consumer prices using LLM-native architecture
