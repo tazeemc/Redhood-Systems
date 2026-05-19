@@ -26,7 +26,9 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 function Get-MarketData {
     param([string]$symbol)
     try {
-        $url = "https://query1.finance.yahoo.com/v8/finance/chart/$symbol"
+        # 6 months of daily candles -> meaningful MA50/RSI/entropy samples
+        # (default endpoint returns a thin intraday window that inflates entropy)
+        $url = "https://query1.finance.yahoo.com/v8/finance/chart/$symbol`?range=6mo&interval=1d"
         $response = Invoke-RestMethod -Uri $url -ErrorAction Stop
         if ($response.chart.result -and $response.chart.result[0]) {
             return $response.chart.result[0]
@@ -90,10 +92,17 @@ function Calculate-Temperature {
 }
 
 function Calculate-Entropy {
-    param([array]$returns, [int]$bins = 50)
+    param([array]$returns, [int]$bins = 0)
     if ($returns.Count -eq 0) { return 0 }
     $validReturns = $returns | Where-Object { $_ -ne $null }
     if ($validReturns.Count -eq 0) { return 0 }
+    # Bin count scaled to sample size (square-root rule), clamped to [5,50].
+    # Fixed 50 bins over a thin sample spreads mass thin and inflates entropy,
+    # which previously forced a spurious OUT on short windows.
+    if ($bins -le 0) {
+        $bins = [Math]::Floor([Math]::Sqrt($validReturns.Count))
+        $bins = [Math]::Min(50, [Math]::Max(5, $bins))
+    }
     $hist = @{}
     $min  = ($validReturns | Measure-Object -Minimum).Minimum
     $max  = ($validReturns | Measure-Object -Maximum).Maximum
@@ -109,7 +118,13 @@ function Calculate-Entropy {
         $prob     = $count / $total
         $entropy -= $prob * [Math]::Log($prob + 1e-10)
     }
-    return $entropy
+    # Normalise to [0,1] by max possible entropy (ln of bin count) so the
+    # value is a sample-size-independent "disorder ratio": ~0 = ordered /
+    # trending, ~1 = uniform / maximally disordered. Thresholds downstream
+    # are calibrated against this 0-1 scale, not the raw nat value.
+    $maxEntropy = [Math]::Log($bins)
+    if ($maxEntropy -le 0) { return 0 }
+    return $entropy / $maxEntropy
 }
 
 function Calculate-PositionSize {
@@ -129,13 +144,49 @@ function Calculate-PositionSize {
 function Get-MarketRecommendation {
     param(
         [double]$temperature, [double]$entropy, [double]$baseTemp,
-        [bool]$trendUp, [double]$momentum, [double]$rsi
+        [bool]$trendUp, [double]$momentum, [double]$rsi,
+        [double]$price, [double]$ma20, [double]$ma50
     )
-    if ($temperature -gt ($baseTemp * 1.5) -or $entropy -gt 0.8) { return "OUT" }
-    if ($temperature -lt ($baseTemp * 0.75) -and $entropy -lt 0.3) {
-        if ($trendUp -and $momentum -gt 0 -and $rsi -gt 30 -and $rsi -lt 70) { return "IN" }
+
+    # --- Entropy / volatility-regime signal -------------------------------
+    # Disorder + vol gate. Says nothing about price level.
+    # Entropy is a normalised 0-1 disorder ratio (see Calculate-Entropy):
+    # >0.85 = highly disordered (avoid), <0.55 = orderly/trending (favourable).
+    if ($temperature -gt ($baseTemp * 1.5) -or $entropy -gt 0.85) {
+        $entropySignal = "OUT"
+    } elseif ($temperature -lt ($baseTemp * 0.75) -and $entropy -lt 0.55) {
+        $entropySignal = "IN"
+    } else {
+        $entropySignal = "NEUTRAL"
     }
-    return "NEUTRAL"
+
+    # --- Price / technical-entry signal -----------------------------------
+    # Looks at trend structure, momentum, RSI and where price sits vs MAs.
+    if ($rsi -gt 70 -or ($ma50 -gt 0 -and $price -lt $ma50)) {
+        # Overbought (poor entry) or below long-term trend (broken structure)
+        $priceSignal = "OUT"
+    } elseif ($trendUp -and $momentum -gt 0 -and $rsi -ge 35 -and $rsi -le 70 `
+              -and ($ma20 -le 0 -or $price -le ($ma20 * 1.03))) {
+        # Uptrend, positive momentum, healthy RSI, not extended above MA20
+        $priceSignal = "IN"
+    } else {
+        $priceSignal = "NEUTRAL"
+    }
+
+    # --- Combined view ----------------------------------------------------
+    if ($entropySignal -eq "OUT" -or $priceSignal -eq "OUT") {
+        $overall = "OUT"
+    } elseif ($priceSignal -eq "IN" -and $entropySignal -ne "OUT") {
+        $overall = "IN"
+    } else {
+        $overall = "NEUTRAL"
+    }
+
+    return @{
+        Overall       = $overall
+        EntropySignal = $entropySignal
+        PriceSignal   = $priceSignal
+    }
 }
 
 function Analyze-Symbol {
@@ -163,7 +214,7 @@ function Analyze-Symbol {
     $entropy       = Calculate-Entropy       -returns $returns
     $trendUp       = $mas.ShortMA -gt $mas.LongMA
     $positionSize  = Calculate-PositionSize  -equity $initialEquity -temperature $temperature -entropy $entropy -heat 0 -momentum $momentum
-    $recommendation = Get-MarketRecommendation -temperature $temperature -entropy $entropy -baseTemp $baseTemp -trendUp $trendUp -momentum $momentum -rsi $rsi
+    $rec = Get-MarketRecommendation -temperature $temperature -entropy $entropy -baseTemp $baseTemp -trendUp $trendUp -momentum $momentum -rsi $rsi -price $validPrices[-1] -ma20 $mas.ShortMA -ma50 $mas.LongMA
     return @{
         Symbol       = $symbol
         Price        = $validPrices[-1]
@@ -171,11 +222,13 @@ function Analyze-Symbol {
         Entropy      = $entropy
         PositionSize = $positionSize
         TempStatus   = if ($temperature -gt ($baseTemp * 1.5)) {"HIGH"} elseif ($temperature -lt ($baseTemp * 0.75)) {"LOW"} else {"MEDIUM"}
-        EntropyStatus = if ($entropy -gt 0.8) {"HIGH"} elseif ($entropy -lt 0.3) {"LOW"} else {"MEDIUM"}
+        EntropyStatus = if ($entropy -gt 0.85) {"HIGH"} elseif ($entropy -lt 0.55) {"LOW"} else {"MEDIUM"}
         Trend        = if ($trendUp) {"UP"} else {"DOWN"}
         Momentum     = $momentum
         RSI          = $rsi
-        Recommendation = $recommendation
+        Recommendation = $rec.Overall
+        EntropySignal  = $rec.EntropySignal
+        PriceSignal    = $rec.PriceSignal
         MA20         = $mas.ShortMA
         MA50         = $mas.LongMA
         DataPoints   = $validPrices.Count
@@ -205,6 +258,8 @@ if (-not $SkipTrading) {
                 Symbol       = $_.Symbol
                 Price        = if ($_.Price -gt 1000) { $_.Price.ToString("C0") } else { $_.Price.ToString("C2") }
                 Recommendation = $_.Recommendation
+                EntropySig   = $_.EntropySignal
+                PriceSig     = $_.PriceSignal
                 Trend        = $_.Trend
                 Momentum     = "{0:N2}%" -f $_.Momentum
                 RSI          = "{0:N1}"  -f $_.RSI
@@ -220,8 +275,11 @@ if (-not $SkipTrading) {
         Write-Host "`n=== RECOMMENDATION SUMMARY ===" -ForegroundColor Green
         foreach ($result in $tradingResults) {
             $color = if ($result.Recommendation -eq "IN") { "Green" } elseif ($result.Recommendation -eq "OUT") { "Red" } else { "Yellow" }
-            Write-Host "$($result.Symbol): $($result.Recommendation)" -ForegroundColor $color
+            Write-Host "$($result.Symbol): $($result.Recommendation)  (Entropy: $($result.EntropySignal) | Price: $($result.PriceSignal))" -ForegroundColor $color
         }
+
+        $dataDir = Join-Path $ScriptDir "data"
+        if (-not (Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir -Force | Out-Null }
 
         $timestamp  = Get-Date -Format "yyyyMMdd_HHmmss"
         $jsonOutput = $tradingResults | ConvertTo-Json -Depth 3

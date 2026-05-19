@@ -900,6 +900,8 @@ class RedHoodAggregator:
                 sym    = H.escape(str(s.get('Symbol', '—')))
                 price  = H.escape(str(s.get('Price', '—')))
                 rec    = str(s.get('Recommendation', 'NEUTRAL')).upper()
+                ent_sig = str(s.get('EntropySignal', 'NEUTRAL')).upper()
+                prc_sig = str(s.get('PriceSignal', 'NEUTRAL')).upper()
                 trend  = str(s.get('Trend', '—')).upper()
                 mom    = s.get('Momentum', 0) or 0
                 rsi    = s.get('RSI', 0) or 0
@@ -931,6 +933,10 @@ class RedHoodAggregator:
                     f'<div class="tc-price">{price_fmt}'
                     f'<span class="tc-trend {trend_css(trend)}">'
                     f'{trend_arrow(trend)} {trend}</span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">Entropy Signal</span>'
+                    f'<span class="tc-val"><span class="tc-rec {rec_css(ent_sig)}">{ent_sig}</span></span></div>'
+                    f'<div class="tc-row"><span class="tc-lbl">Price Signal</span>'
+                    f'<span class="tc-val"><span class="tc-rec {rec_css(prc_sig)}">{prc_sig}</span></span></div>'
                     f'<div class="tc-row"><span class="tc-lbl">Momentum</span>'
                     f'<span class="tc-val {mom_css}">{mom_sign}{mom:.2f}%</span></div>'
                     f'<div class="tc-row"><span class="tc-lbl">RSI</span>'
@@ -1446,6 +1452,8 @@ class RedHoodAggregator:
                 sym  = s.get('Symbol', '—')
                 price = s.get('Price', 0)
                 rec  = str(s.get('Recommendation', 'NEUTRAL')).upper()
+                ent_sig = str(s.get('EntropySignal', 'NEUTRAL')).upper()
+                prc_sig = str(s.get('PriceSignal', 'NEUTRAL')).upper()
                 trend = s.get('Trend', '—')
                 rsi  = s.get('RSI', 0)
                 mom  = s.get('Momentum', 0) or 0
@@ -1458,6 +1466,7 @@ class RedHoodAggregator:
                 trend_icon = '↑' if trend == 'UP' else '↓'
                 price_fmt = f"${price:,.0f}" if price > 1000 else f"${price:,.2f}"
                 print(f"\n  {sym}  {price_fmt}  |  {rec_icon}  |  Trend {trend_icon}  |  RSI {rsi:.1f}  |  Mom {mom:+.2f}%")
+                print(f"  Entropy signal: {ent_sig}  |  Price signal: {prc_sig}")
                 print(f"  MA20 {ma20:,.2f}  MA50 {ma50:,.2f}  |  Entropy {entr}  |  Position ${pos:,.0f}  |  As of {ts}")
             print()
 
