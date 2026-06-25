@@ -113,18 +113,43 @@ CREATE TABLE IF NOT EXISTS narrative_feeds (
 SCHEMA_STAR = """
 -- -----------------------------------------------------------------------
 -- narrative_tickers  (bridge — closes audit gap G1 + G2)
---   One row per (narrative, ticker, side). Built by ticker_extraction.py
---   from the free-text hypothesis. weight_in_hypothesis is optional and
---   only populated when conviction is split across multiple symbols.
+--   One row per (narrative, ticker, side). Two producers write here:
+--     * ticker_extraction.py (via the aggregator / backfill) populates
+--       weight_in_hypothesis + extracted_pattern for the full star schema.
+--     * score_narratives.py (via redhood_grader) populates is_long_equity
+--       + extracted_at for the long-only P&L ledger.
+--   Columns from the producer that did not write a given row stay NULL.
+--   is_long_equity defaults to 0 so star-schema rows from ticker_extraction
+--   (which include Short/Hedge/Pair sides) are excluded from the long-only
+--   P&L ledger; only score_narratives.py sets it to 1 for grader-vetted
+--   long equities. Both paths share one bridge table.
 -- -----------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS narrative_tickers (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     narrative_id          TEXT    NOT NULL REFERENCES narratives(id) ON DELETE CASCADE,
     ticker                TEXT    NOT NULL,
-    side                  TEXT    NOT NULL,   -- Long | Short | Hedge | Pair
-    weight_in_hypothesis  REAL,
-    extracted_pattern     TEXT,
+    side                  TEXT    NOT NULL,   -- Long | Short | Hedge | Pair | long | pair_long
+    weight_in_hypothesis  REAL,               -- set by ticker_extraction.py
+    extracted_pattern     TEXT,               -- set by ticker_extraction.py
+    is_long_equity        INTEGER NOT NULL DEFAULT 0,  -- set to 1 by score_narratives.py: passes the $2,500 long-only filter
+    extracted_at          TEXT,               -- set by score_narratives.py (ISO-8601 UTC)
     UNIQUE (narrative_id, ticker, side)
+);
+
+-- -----------------------------------------------------------------------
+-- narrative_grades  (fact)
+--   0–20 quality grades produced by redhood_grader.grade(), one row per
+--   narrative. Written by score_narratives.py.
+-- -----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS narrative_grades (
+    narrative_id    TEXT    PRIMARY KEY REFERENCES narratives(id) ON DELETE CASCADE,
+    specificity     INTEGER NOT NULL,                 -- 0-5
+    catalyst_score  INTEGER NOT NULL,                 -- 0-5 (named so PBI doesn't collide with catalysts text)
+    risk_score      INTEGER NOT NULL,                 -- 0-5
+    cohesion        INTEGER NOT NULL,                 -- 0-5
+    total_score     INTEGER NOT NULL,                 -- 0-20
+    letter_grade    TEXT    NOT NULL,                 -- A / A- / B / C / D / F
+    graded_at       TEXT    NOT NULL                  -- ISO-8601 UTC
 );
 
 -- -----------------------------------------------------------------------
@@ -145,17 +170,25 @@ CREATE TABLE IF NOT EXISTS tickers (
 
 -- -----------------------------------------------------------------------
 -- prices  (fact — closes audit gap G3)
+--   Daily close-price cache. Keyed on (ticker, price_date) — the column
+--   name every reader/writer already uses (redhood_pnl.py,
+--   powerbi/export_to_powerbi.py). OHLC/volume are populated by the star
+--   schema path; fetched_at/source are set by redhood_pnl.py's yfinance
+--   cache. No FK on ticker so the P&L cache can fetch prices before a
+--   symbol is seeded into the tickers dimension.
 -- -----------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS prices (
-    ticker     TEXT    NOT NULL REFERENCES tickers(ticker) ON DELETE CASCADE,
-    date       TEXT    NOT NULL,        -- ISO date (YYYY-MM-DD)
+    ticker     TEXT    NOT NULL,
+    price_date TEXT    NOT NULL,        -- ISO date (YYYY-MM-DD), trading day
     open       REAL,
     high       REAL,
     low        REAL,
     close      REAL,
     adj_close  REAL,
     volume     INTEGER,
-    PRIMARY KEY (ticker, date)
+    fetched_at TEXT,                    -- ISO-8601 UTC (set by redhood_pnl.py)
+    source     TEXT    DEFAULT 'yfinance',
+    PRIMARY KEY (ticker, price_date)
 );
 
 -- -----------------------------------------------------------------------
@@ -208,7 +241,8 @@ CREATE INDEX IF NOT EXISTS idx_narratives_band          ON narratives(entropy_ba
 CREATE INDEX IF NOT EXISTS idx_narrative_tickers_nid    ON narrative_tickers(narrative_id);
 CREATE INDEX IF NOT EXISTS idx_narrative_tickers_ticker ON narrative_tickers(ticker);
 CREATE INDEX IF NOT EXISTS idx_narrative_tickers_side   ON narrative_tickers(side);
-CREATE INDEX IF NOT EXISTS idx_prices_date              ON prices(date);
+CREATE INDEX IF NOT EXISTS idx_narrative_grades_letter  ON narrative_grades(letter_grade);
+CREATE INDEX IF NOT EXISTS idx_prices_date              ON prices(price_date);
 CREATE INDEX IF NOT EXISTS idx_earnings_report_date     ON earnings(report_date);
 """
 
@@ -277,6 +311,8 @@ SELECT
     nt.side,
     nt.weight_in_hypothesis,
     nt.extracted_pattern,
+    nt.is_long_equity,
+    nt.extracted_at,
     n.run_id,
     DATE(n.created_at)     AS created_date,
     n.entropy_band,
@@ -315,8 +351,25 @@ FROM date_dim;
 
 DROP VIEW IF EXISTS fact_prices;
 CREATE VIEW fact_prices AS
-SELECT ticker, date, open, high, low, close, adj_close, volume
+SELECT ticker, price_date AS date, open, high, low, close, adj_close, volume
 FROM prices;
+
+DROP VIEW IF EXISTS fact_narrative_grades;
+CREATE VIEW fact_narrative_grades AS
+SELECT
+    g.narrative_id,
+    g.specificity,
+    g.catalyst_score,
+    g.risk_score,
+    g.cohesion,
+    g.total_score,
+    g.letter_grade,
+    g.graded_at,
+    n.run_id,
+    DATE(n.created_at)     AS created_date,
+    n.entropy_band
+FROM narrative_grades g
+JOIN narratives n ON n.id = g.narrative_id;
 
 DROP VIEW IF EXISTS fact_earnings;
 CREATE VIEW fact_earnings AS
