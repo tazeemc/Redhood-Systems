@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHood Reads — 2026-06-25 00:10</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
+    --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
+    --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
+    --purple: #7B4FD6; --pink: #E8517A; --tangerine: #F47B3A;
+  }
+  body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6; }
+  .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
+    border: 1px solid rgba(123,79,214,0.3); z-index: 1; overflow: hidden;
+    box-shadow: 0 0 40px rgba(123,79,214,0.06), 0 0 80px rgba(232,81,122,0.03); }
+  .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
+    height: 200px; background: linear-gradient(135deg, var(--purple), var(--pink));
+    transform: rotate(45deg); opacity: 0.1; }
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px; border-bottom: 1px solid rgba(123,79,214,0.15);
+    background: rgba(123,79,214,0.04); }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--pink);
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,81,122,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(232,81,122,0); }
+  }
+  .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); font-weight: 500; }
+  .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
+    background: var(--mid); padding: 7px 0; }
+  .ticker-inner { display: flex; gap: 0; animation: ticker 28s linear infinite; white-space: nowrap; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
+    font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
+  .tick-sym { color: var(--tangerine); font-weight: 500; }
+  .tick-val { color: var(--cream); }
+  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
+  .up { color: #4CAF50; } .down { color: var(--red); }
+  .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
+  .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .issue-num { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); }
+  .issue-rule { flex: 1; height: 1px; background: linear-gradient(to right, var(--wire), transparent); }
+  .masthead { font-family: "Playfair Display", serif; font-weight: 900;
+    font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
+    color: var(--cream); margin-bottom: 6px; }
+  .masthead .red-accent { color: var(--red); font-style: italic; }
+  .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--tangerine); margin-bottom: 28px; }
+  .headline-block { max-width: 620px; }
+  .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
+    line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
+  .deck { font-size: 10.5px; line-height: 1.7; color: var(--text-muted);
+    letter-spacing: 0.03em; max-width: 540px; }
+  .corner-deco { position: absolute; top: 44px; right: 40px; text-align: right; }
+  .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
+    text-transform: uppercase; }
+  .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
+    font-weight: 900; color: rgba(123,79,214,0.15); line-height: 1; letter-spacing: -0.04em; }
+  .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--wire); }
+  .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
+  .grid-col:last-child { border-right: none; }
+  .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 10px; font-weight: 500; }
+  .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
+    line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
+  .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
+  .bar { flex: 1; background: var(--wire); border-radius: 1px; }
+  .bar.hi { background: rgba(244,123,58,0.55); }
+  .bar.lo { background: rgba(193,18,31,0.5); }
+  .bar.mid-hi { background: rgba(232,81,122,0.45); }
+  .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--wire); }
+  .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
+  .metric:last-child { border-right: none; }
+  .metric-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .metric-val { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
+  .metric-delta.up { color: #4CAF50; }
+  .metric-delta.dn { color: var(--red); }
+  .metric-delta.neutral { color: var(--tangerine); }
+  .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
+    display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
+  .thought-rule { background: linear-gradient(to bottom, var(--purple), var(--pink), transparent);
+    height: 100%; min-height: 60px; }
+  .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 8px; font-weight: 500; }
+  .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
+    line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
+  .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 14px; font-weight: 500; }
+  .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
+  .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
+    border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
+  .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top; }
+  .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
+  .author { color: var(--tangerine); white-space: nowrap; width: 140px; }
+  .links-table a { color: var(--pink); text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; color: var(--cream); }
+  .feed-num { color: var(--text-muted); width: 28px; text-align: right; padding-right: 14px; font-size: 8px; letter-spacing: 0.05em; }
+  .feed-link { color: var(--purple) !important; text-decoration: none !important; border-bottom: 1px solid rgba(123,79,214,0.4); }
+  .feed-link:hover { color: var(--cream) !important; }
+  tr:target { background: rgba(123,79,214,0.08); outline: 1px solid rgba(123,79,214,0.3); }
+  .embeds-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  /* ---- SIGINT signal cards (tactical trade-reference look) ---- */
+  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+    gap: 14px; align-items: stretch; }
+  .tweet-embed { min-width: 0; display: flex; }
+  .tweet-embed:target .tw-card { outline: 1px solid rgba(184,151,90,0.55); outline-offset: 2px; }
+  .tw-card { position: relative; display: flex; flex-direction: column; width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+    border: 1px solid var(--wire); border-left: 2px solid var(--tangerine);
+    padding: 12px 14px; font-size: 10px; line-height: 1.65;
+    color: rgba(245,240,232,0.78); transition: border-color .15s, transform .15s; }
+  .tw-card::before, .tw-card::after { content: ""; position: absolute; width: 7px; height: 7px;
+    border-color: rgba(244,123,58,0.5); pointer-events: none; }
+  .tw-card::before { top: 4px; right: 4px; border-top: 1px solid; border-right: 1px solid; }
+  .tw-card::after  { bottom: 4px; left: 4px; border-bottom: 1px solid; border-left: 1px solid; }
+  .tw-card:hover { border-left-color: var(--cream); transform: translateY(-1px); }
+  .tw-card-cited { border-left: 2px solid var(--gold);
+    background: linear-gradient(180deg, rgba(184,151,90,0.10), rgba(184,151,90,0.02));
+    box-shadow: inset 0 0 0 1px rgba(184,151,90,0.15); }
+  .tw-card-cited::before, .tw-card-cited::after { border-color: rgba(184,151,90,0.7); }
+  .tw-head { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 8px; margin-bottom: 7px; }
+  .tw-handle { color: var(--tangerine); font-weight: 500; letter-spacing: 0.05em; }
+  .tw-meta { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .tw-cited { font-size: 7px; letter-spacing: 0.18em; color: var(--gold); font-weight: 600;
+    border: 1px solid rgba(184,151,90,0.45); padding: 1px 5px; background: rgba(184,151,90,0.08); }
+  .tw-ts { color: var(--text-muted); font-size: 8px; letter-spacing: 0.04em; }
+  .tw-body { color: rgba(245,240,232,0.82); flex: 1; }
+  .tw-link { display: inline-block; margin-top: 10px; font-size: 8px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--pink); text-decoration: none;
+    border-top: 1px solid var(--wire); padding-top: 7px; }
+  .tw-link:hover { color: var(--cream); }
+  .footer { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: rgba(193,18,31,0.04); }
+  .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .footer-left span { color: var(--pink); }
+  .footer-right { display: flex; align-items: center; gap: 18px; }
+  .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
+  .footer-tag.active { border-color: rgba(123,79,214,0.5); color: var(--purple); }
+  .scanline { position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
+  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .synopsis-section { padding: 28px 40px; border-bottom: 1px solid var(--wire);
+    background: rgba(123,79,214,0.03); }
+  .synopsis-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 6px; font-weight: 500; }
+  .synopsis-byline { font-size: 8px; color: var(--text-muted); letter-spacing: 0.08em;
+    margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wire); }
+  .synopsis-body { column-count: 2; column-gap: 36px; }
+  .synopsis-para { font-size: 10px; line-height: 1.8; color: var(--cream);
+    margin-bottom: 14px; letter-spacing: 0.02em; text-align: justify; }
+  .synopsis-para:first-child::first-letter { font-family: "Playfair Display", serif;
+    font-size: 2.8em; font-weight: 900; float: left; line-height: 0.8;
+    margin: 4px 8px 0 0; color: var(--purple); }
+  @media (max-width: 600px) { .synopsis-body { column-count: 1; } }
+  .trading-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .trading-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--tangerine); margin-bottom: 14px; font-weight: 500; }
+  .trading-grid { display: flex; gap: 14px; flex-wrap: wrap; }
+  .tc-card { flex: 1; min-width: 180px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--wire); padding: 14px 16px; }
+  .tc-header { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; }
+  .tc-sym { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); }
+  .tc-rec { font-size: 8px; letter-spacing: 0.2em; font-weight: 600;
+    padding: 3px 8px; border: 1px solid; }
+  .rec-in  { color: #4CAF50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.07); }
+  .rec-out { color: var(--red); border-color: rgba(193,18,31,0.4); background: rgba(193,18,31,0.07); }
+  .rec-neutral { color: var(--tangerine); border-color: rgba(244,123,58,0.4); background: rgba(244,123,58,0.07); }
+  .tc-price { font-size: 15px; font-weight: 500; color: var(--cream);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .tc-trend { font-size: 9px; letter-spacing: 0.05em; }
+  .tc-row { display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .tc-lbl { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .tc-val { font-size: 8.5px; color: var(--cream); text-align: right; }
+  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--tangerine);
+    border: 1px solid rgba(244,123,58,0.35); padding: 1px 4px; margin-left: 4px; }
+  .tc-ts { font-size: 7px; color: var(--text-muted); margin-top: 8px;
+    letter-spacing: 0.05em; text-align: right; }
+  .regime-panel { padding: 22px 28px; border-bottom: 1px solid var(--wire);
+    background: rgba(0,229,160,0.015); }
+  .regime-panel-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: #00e5a0; margin-bottom: 12px; font-weight: 500; }
+  .regime-badge-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    flex-wrap: wrap; }
+  .regime-badge { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.2em; padding: 5px 14px; border: 1px solid; }
+  .regime-desc { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; }
+  .regime-warn { font-size: 8px; color: #ff9a3c; letter-spacing: 0.1em;
+    border: 1px solid rgba(255,154,60,0.4); padding: 3px 8px; background: rgba(255,154,60,0.07); }
+  .regime-metrics { display: flex; gap: 0; border: 1px solid var(--wire); }
+  .rm { flex: 1; padding: 10px 14px; border-right: 1px solid var(--wire); }
+  .rm:last-child { border-right: none; }
+  .rm-lbl { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .rm-val { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .rm-sub { font-size: 7.5px; color: var(--text-muted); letter-spacing: 0.05em; }
+  /* ---- Tactical framing: reticle corners + classification banner ---- */
+  .reticle { position: absolute; width: 16px; height: 16px; z-index: 3; pointer-events: none;
+    border-color: rgba(244,123,58,0.55); }
+  .reticle.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
+  .reticle.tr { top: 6px; right: 6px; border-top: 1px solid; border-right: 1px solid; }
+  .reticle.bl { bottom: 6px; left: 6px; border-bottom: 1px solid; border-left: 1px solid; }
+  .reticle.br { bottom: 6px; right: 6px; border-bottom: 1px solid; border-right: 1px solid; }
+  .classbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 28px; background: repeating-linear-gradient(45deg,
+      rgba(193,18,31,0.12) 0 10px, rgba(193,18,31,0.04) 10px 20px);
+    border-bottom: 1px solid rgba(193,18,31,0.25);
+    font-size: 7.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+  .classbar .cb-mid { color: rgba(245,240,232,0.55); letter-spacing: 0.2em; }
+  @media (max-width: 600px) { .classbar .cb-mid { display: none; } }
+  .posture-pill { font-size: 7.5px; letter-spacing: 0.18em; font-weight: 600;
+    padding: 2px 8px; border: 1px solid; margin-left: 6px; }
+  #dataAge { color: var(--tangerine); }
+  /* ---- collapsible sections (native <details>) ---- */
+  details.sec { padding: 0; border-bottom: 1px solid var(--wire); }
+  details.sec > summary { list-style: none; cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px 0; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  .sec-summary .links-header { margin-bottom: 0; }
+  .sec-chevron { color: var(--text-muted); font-size: 10px; transition: transform .2s; }
+  details.sec[open] > summary .sec-chevron { transform: rotate(180deg); }
+  details.sec > .tweet-grid, details.sec > .cmdbar { margin: 14px 28px 22px; }
+  details.sec > table.links-table { margin: 8px 28px 20px; width: calc(100% - 56px); }
+  /* ---- command bar (signal filter HUD) ---- */
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--wire); background: rgba(255,255,255,0.02); }
+  .cmd-input { flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--cream); font-family: "IBM Plex Mono", monospace; font-size: 9px;
+    letter-spacing: 0.1em; padding: 6px 9px; }
+  .cmd-input::placeholder { color: var(--text-muted); letter-spacing: 0.18em; }
+  .cmd-input:focus { outline: none; border-color: rgba(244,123,58,0.6); }
+  .cmd-btn, .cmd-select { background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--text-muted); font-family: "IBM Plex Mono", monospace; font-size: 8px;
+    letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 10px; cursor: pointer; }
+  .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
+  .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
+  .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scanline"></div>
+  <div class="reticle tl"></div><div class="reticle tr"></div>
+  <div class="reticle bl"></div><div class="reticle br"></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pulse"></div>
+      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+      <span class="posture-pill" style="color:#f5a623;border-color:#f5a62355;background:#f5a62314">POSTURE&nbsp;&middot;&nbsp;TIGHTENED</span>
+    </div>
+    <span class="topbar-date">Thursday, 25 June 2026 &nbsp;|&nbsp; Week 26 &middot; <span id="dataAge" data-runts="2026-06-25T00:10:58">live</span></span>
+  </div>
+
+  <div class="classbar">
+    <span>// SIGNAL INTELLIGENCE</span>
+    <span class="cb-mid">TRADE REFERENCE &middot; HANDLE WITH DISCRETION</span>
+    <span>NOT FINANCIAL ADVICE //</span>
+  </div>
+
+  <div class="ticker-wrap"><div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$60,763</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,358</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$69.35</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,013</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">18.63</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.402</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4229</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$60,763</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,358</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$69.35</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,013</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">18.63</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.402</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4229</span><span class="tick-chg up">+0.00%</span></span>
+  </div></div>
+
+  <div class="hero">
+    <div class="issue-line">
+      <span class="issue-num">Run &middot; 9.0h window &middot; 2026-06-25 00:10</span>
+      <div class="issue-rule"></div>
+    </div>
+    <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
+    <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
+    <div class="headline-block">
+      <div class="headline">Venezuela Earthquake Triggers Humanitarian Response</div>
+      <div class="deck">Major Venezuelan earthquake with devastating fatalities, emergency declaration, and Maiquetia airport closure threatens regional oil infrastructure and supply continuity from a major OPEC producer. The high-frequency conflicting casualty re…</div>
+    </div>
+    <div class="corner-deco">
+      <div class="vol-label">Day</div>
+      <div class="vol-num">25</div>
+    </div>
+  </div>
+
+  <div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">104</div><div class="metric-delta neutral">9.0h window</div></div>
+<div class="metric"><div class="metric-label">Venezuela Earthquake Trigg…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Base Metals Broad Selloff …</div><div class="metric-val" style="color:#4CAF50">4/10</div><div class="metric-delta up">LOW entropy</div></div>
+<div class="metric"><div class="metric-label">US PCE Inflation Print Pin…</div><div class="metric-val" style="color:#B8975A">6/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Microsoft Xbox Spinoff Spe…</div><div class="metric-val" style="color:#C1121F">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Nuclear Energy Policy Tail…</div><div class="metric-val" style="color:#B8975A">5/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">5</div><div class="metric-delta neutral">Extracted</div></div></div>
+
+  <div class="synopsis-section"><div class="synopsis-label">Market Intelligence Synopsis</div><div class="synopsis-byline">Compiled from 104 signal sources &middot; 2026-06-25 00:10 &middot; AI-assisted analysis</div><div class="synopsis-body"><p class="synopsis-para">Major Venezuelan earthquake with devastating fatalities, emergency declaration, and Maiquetia airport closure threatens regional oil infrastructure and supply continuity from a major OPEC producer. The high-frequency conflicting casualty reports create an information cascade (high entropy) where market repricing of supply risk lags physical reality. In a CHOPPY regime with 0.80x signal multiplier, size conservatively as the event is still developing.</p><p class="synopsis-para">Short copper/aluminium via JJC or long puts on FCX; pair with short SCCO Market participants are closely monitoring indonesia nickel ore quota finalization, china industrial production/pmi data.</p><p class="synopsis-para">However, analysts have flagged material downside risks. Venezuelan crude exports are already crippled by sanctions and chronic underinvestment, so the marginal supply genuinely at risk to global balances is small and largely priced as offline; an earthquake&#x27;s impact on PDVSA&#x27;s primarily Orinoco-belt operations is geographically distinct from a coastal airport closure. Crude markets have repeatedly faded geopolitical supply-fear spikes in a well-supplied, OPEC+ spare-capacity environment, and 1-2 week calls bleed theta fast if the feared disruption doesn&#x27;t materialize physically.</p></div></div>
+
+  <div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 7/10</div><div class="col-title">Venezuela Earthquake Triggers Humanitarian Response</div><div class="col-body">Long USO/Brent crude calls (1-2 week tenor), pair with long XLE micro-position</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Venezuelan crude exports are already crippled by sanctions and chronic underinvestment, so the marginal supply genuinely at risk to global balances is small and largely priced as offline; an earthquak…</div><div class="conviction-tag">Quarter Size — the supply-risk premium is real but thin given sanctioned/offline Venezuelan barrels, and short-tenor options decay punishes a non-event.</div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 4/10</div><div class="col-title">Base Metals Broad Selloff Deepens</div><div class="col-body">Short copper/aluminium via JJC or long puts on FCX; pair with short SCCO</div><div class="sparkline"><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:80%"></div><div class="bar hi" style="height:70%"></div><div class="bar mid-hi" style="height:60%"></div><div class="bar mid-hi" style="height:50%"></div><div class="bar lo" style="height:40%"></div><div class="bar lo" style="height:35%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Shorting a synchronized base-metals selloff after a multi-day waterfall is chasing momentum into a crowded, oversold tape where China stimulus headlines or a surprise Indonesia nickel-quota cut can tr…</div><div class="conviction-tag">Half Size — the trend is coherent but late-stage and reflexively vulnerable to stimulus and supply-side reversals.</div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 6/10</div><div class="col-title">US PCE Inflation Print Pins FX Markets</div><div class="col-body">Long USD straddle via UUP options into PCE; tactical short AUD/USD</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Buying a UUP straddle into a scheduled, well-telegraphed PCE print means paying elevated implied vol that collapses on the event regardless of direction; if PCE lands near consensus, the realized move…</div><div class="conviction-tag">Quarter Size — scheduled-event straddles fight IV crush, and recent in-line inflation prints have failed to generate the vol expansion the thesis needs.</div></div>
+<div class="grid-col"><div class="col-tag">Geopolitical · Risk 8/10</div><div class="col-title">Microsoft Xbox Spinoff Speculation Builds</div><div class="col-body">Long MSFT 1-month call spreads (slightly OTM), defined-risk only</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Xbox/gaming is a small fraction of Microsoft&#x27;s revenue and valuation, so even a confirmed spinoff is unlikely to move a $3T+ mega-cap materially, while management&#x27;s explicit &#x27;no imminent decision&#x27; rem…</div><div class="conviction-tag">Pass — a small division&#x27;s restructuring rumor with no scheduled catalyst won&#x27;t move a mega-cap within a decaying 1-month structure.</div></div>
+<div class="grid-col"><div class="col-tag">Canada / FX · Risk 5/10</div><div class="col-title">Nuclear Energy Policy Tailwind Accelerates</div><div class="col-body">Long nuclear basket: NLR ETF, plus CCJ (uranium) and small position in Westinghouse-linked names</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The DOE loan headline is a known, durable theme largely already reflected in CCJ and nuclear-basket valuations after a strong multi-quarter run, so the marginal catalyst may be &#x27;buy the rumor, sell th…</div><div class="conviction-tag">Half Size — the catalyst is genuine and structural but slow-burning and partly priced, warranting a patient, reduced position.</div></div></div>
+
+  <div class="thought-block">
+    <div class="thought-rule"></div>
+    <div>
+      <div class="thought-label">Top Trade Hypothesis</div>
+      <div class="thought-q">Long USO/Brent crude calls (1-2 week tenor), pair with long XLE micro-position</div>
+      <div class="thought-body">Official Venezuela casualty/damage assessment, PDVSA oil export/infrastructure status report, US aid deployment scale confirmation</div>
+      <div class="thought-bear-label">Bear Case</div>
+      <div class="thought-bear">Venezuelan crude exports are already crippled by sanctions and chronic underinvestment, so the marginal supply genuinely at risk to global balances is small and largely priced as offline; an earthquake&#x27;s impact on PDVSA&#x27;s primarily Orinoco-belt operations is geographically distinct from a coastal airport closure. Crude markets have repeatedly faded geopolitical supply-fear spikes in a well-supplied, OPEC+ spare-capacity environment, and 1-2 week calls bleed theta fast if the feared disruption doesn&#x27;t materialize physically.</div>
+      <div class="thought-conviction">Quarter Size — the supply-risk premium is real but thin given sanctioned/offline Venezuelan barrels, and short-tenor options decay punishes a non-event.</div>
+    </div>
+  </div>
+
+  <div class="trading-section"><div class="trading-label">Quantitative Signal Analysis</div><div class="trading-grid"><div class="tc-card"><div class="tc-header"><span class="tc-sym">NU</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$12.46<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+2.81%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">62.1</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.44 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.808 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$12.39 / $13.35</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-06-25 00:09:47</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">BTC-USD</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$60,751<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-4.42%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">47.6</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.34 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.617 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$63,302.18 / $71,060.20</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-06-25 00:09:48</div></div></div></div>
+
+  <div class="regime-panel"><div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (20-bar)</div><div class="regime-badge-row"><span class="regime-badge" style="color:#f5a623;border-color:#f5a62340;background:#f5a62312">CHOPPY</span><span class="regime-desc">High T &middot; Low S &mdash; reduce size</span><span class="regime-warn">&#9888; REGIME DRIFT</span></div><div class="regime-metrics"><div class="rm"><div class="rm-lbl">Temperature</div><div class="rm-val" style="color:#f5a623">16.8%</div><div class="rm-sub">base 15%</div></div><div class="rm"><div class="rm-lbl">Entropy</div><div class="rm-val">1.943</div><div class="rm-sub">base 2.50</div></div><div class="rm"><div class="rm-lbl">KL Divergence</div><div class="rm-val" style="color:#ff9a3c">0.3542</div><div class="rm-sub">drift detected</div></div><div class="rm"><div class="rm-lbl">Signal Mult</div><div class="rm-val">0.80&times;</div><div class="rm-sub">applied to signals</div></div><div class="rm"><div class="rm-lbl">Heat Budget</div><div class="rm-val">100%</div><div class="rm-sub">remaining</div></div></div></div>
+
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">SIGINT &mdash; Signal Cards &middot; 55 of 104 &middot; 32 narrative-cited + top 55 &middot; 2026-06-25 00:10</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">SORT &middot; RECENT</option>
+        <option value="handle">SORT &middot; HANDLE</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+    </div>
+    <div class="tweet-grid" id="tweetGrid"><div class="tweet-embed" id="feed-1" data-handle="mayhem4markets" data-cited="0" data-ts="2026-06-25T04:09:41" data-search="@mayhem4markets working on building an educational seminar for traders"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@Mayhem4Markets</span><span class="tw-meta"><span class="tw-ts">2026-06-25 04:09</span></span></div><div class="tw-body">working on building an educational seminar for traders</div><a class="tw-link" href="https://x.com/Mayhem4Markets/status/2069996426319348190#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-2" data-handle="unusual_whales" data-cited="1" data-ts="2026-06-25T03:58:00" data-search="@unusual_whales no decision is believed to be imminent, but the possibilities are actively on the table and have not been ruled out by ceo satya nadella or cfo amy hood. read more: unusualwhales.com/news/micro… link microsoft mulls xbox spin-off as margins hit 3% microsoft (msft) is reportedly weighing a spin-off, joint venture, or subsidiary structure for xbox as gaming margins fall to 3% and focus shifts to ai and cloud. unusualwhales.com"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:58</span></span></div><div class="tw-body">No decision is believed to be imminent, but the possibilities are actively on the table and have not been ruled out by CEO Satya Nadella or CFO Amy Hood. Read more: unusualwhales.com/news/micro… Link Microsoft Mulls Xbox Spin-Off as Margins Hit 3% Microsoft (MSFT) is reportedly w…</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069993485374226514#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-3" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:48:04" data-search="@firstsquawk trump describes venezuela quakes as deadly, says death toll is devastating"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:48</span></span></div><div class="tw-body">Trump Describes Venezuela Quakes as Deadly, Says Death Toll Is Devastating</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069990985254477940#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-4" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:47:25" data-search="@firstsquawk trump expresses concern over early reports from venezuela"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:47</span></span></div><div class="tw-body">Trump Expresses Concern Over Early Reports From Venezuela</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069990822431568049#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-5" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:47:16" data-search="@firstsquawk us ready to assist venezuela, trump says"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:47</span></span></div><div class="tw-body">US Ready to Assist Venezuela, Trump Says</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069990787178520799#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-6" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T03:47:09" data-search="@financialjuice trump: two significant quakes in venezuela cause devastating fatalities"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:47</span></span></div><div class="tw-body">Trump: two significant quakes in Venezuela cause devastating fatalities</div><a class="tw-link" href="https://x.com/financialjuice/status/2069990755137896575#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-7" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:47:00" data-search="@firstsquawk trump orders us agencies to prepare for swift response on venezuela situation"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:47</span></span></div><div class="tw-body">Trump Orders US Agencies to Prepare for Swift Response on Venezuela Situation</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069990719524339720#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-8" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T03:46:10" data-search="@financialjuice trump on venezuela: early accounts aren&#x27;t positive"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:46</span></span></div><div class="tw-body">Trump on Venezuela: early accounts aren&#x27;t positive</div><a class="tw-link" href="https://x.com/financialjuice/status/2069990507556593823#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-9" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T03:45:57" data-search="@financialjuice trump on venezuela: i have directed all government agencies to prepare for swift action"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:45</span></span></div><div class="tw-body">Trump on Venezuela: I have directed all government agencies to prepare for swift action</div><a class="tw-link" href="https://x.com/financialjuice/status/2069990452380454939#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-10" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T03:45:48" data-search="@financialjuice trump: u.s. ready and prepared to assist venezuela"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:45</span></span></div><div class="tw-body">Trump: U.S. ready and prepared to assist Venezuela</div><a class="tw-link" href="https://x.com/financialjuice/status/2069990415189582144#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-11" data-handle="mayhem4markets" data-cited="0" data-ts="2026-06-25T03:44:35" data-search="@mayhem4markets neppy (@neppy) maxing out your 401k and ira is crazy to me congrats you&#x27;ll be rich in the nursing home — https://nitter.net/neppy/status/2069727986169876614#m"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@Mayhem4Markets</span><span class="tw-meta"><span class="tw-ts">2026-06-25 03:44</span></span></div><div class="tw-body">neppy (@neppy) maxing out your 401k and IRA is crazy to me congrats you&#x27;ll be rich in the nursing home — https://nitter.net/neppy/status/2069727986169876614#m</div><a class="tw-link" href="https://x.com/Mayhem4Markets/status/2069990110280458570#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-12" data-handle="firstsquawk" data-cited="0" data-ts="2026-06-25T03:43:03" data-search="@firstsquawk japan’s 20-year jgb yield falls 1.5 basis points to 3.55%"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-ts">2026-06-25 03:43</span></span></div><div class="tw-body">Japan’s 20-Year JGB Yield Falls 1.5 Basis Points to 3.55%</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069989725361025341#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-13" data-handle="mayhem4markets" data-cited="0" data-ts="2026-06-25T03:41:03" data-search="@mayhem4markets had a resource utilization issue i needed to investigate on a linux server. at first i threw glm-5.2 at it using droid. it tried a fair amount of troubleshooting, but kept trying to fix the wrong thing. in some cases it even invented parameters or variables that didn&#x27;t exist. after five multi-turn runs, i handed the troubleshooting mission over to deepseek v4 flash in the same droid session. surprisingly it one-shotted the resolution. no hallucinations, more comprehensive debugging and ultimately a fix that stuck. i have to admit, this was not the result i was expecting. obviously it had the benefit (or detriment) of the glm-5.2 context after the hand-off. whether that was constructive or not is up in the air. but this anecdotal experience gave me some degree of further appreciation that the idea of a one size fits all model may not exist. it all depends on the way the model was trained."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@Mayhem4Markets</span><span class="tw-meta"><span class="tw-ts">2026-06-25 03:41</span></span></div><div class="tw-body">Had a resource utilization issue I needed to investigate on a Linux server. At first I threw GLM-5.2 at it using Droid. It tried a fair amount of troubleshooting, but kept trying to fix the wrong thing. In some cases it even invented parameters or variables that didn&#x27;t exist. Aft…</div><a class="tw-link" href="https://x.com/Mayhem4Markets/status/2069989219217346921#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-14" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:32:06" data-search="@firstsquawk indonesia to review all applications for mining quota revisions, ministry says"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:32</span></span></div><div class="tw-body">Indonesia to Review All Applications for Mining Quota Revisions, Ministry Says</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069986968382193668#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-15" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:31:55" data-search="@firstsquawk indonesia calls for ore production to be kept in line with downstream industry needs"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:31</span></span></div><div class="tw-body">Indonesia Calls for Ore Production to Be Kept in Line With Downstream Industry Needs</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069986923473736155#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-16" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:31:36" data-search="@firstsquawk indonesia has not finalised fy26 nickel ore production quota, ministry says"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:31</span></span></div><div class="tw-body">Indonesia Has Not Finalised FY26 Nickel Ore Production Quota, Ministry Says</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069986841793888621#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-17" data-handle="unusual_whales" data-cited="0" data-ts="2026-06-25T03:25:43" data-search="@unusual_whales breaking: unusual whales is having a july 4th sale. get up to 20% off. we have created tools to help you navigate this market. join here: unusualwhales.com/pricing"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-ts">2026-06-25 03:25</span></span></div><div class="tw-body">BREAKING: Unusual Whales is having a July 4th sale. Get up to 20% off. We have created tools to help you navigate this market. Join here: unusualwhales.com/pricing</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069985363582431425#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-18" data-handle="firstsquawk" data-cited="0" data-ts="2026-06-25T03:19:55" data-search="@firstsquawk ukraine’s most potent weapon is the soldiers who refuse to quit-wsj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-ts">2026-06-25 03:19</span></span></div><div class="tw-body">Ukraine’s Most Potent Weapon Is the Soldiers Who Refuse to Quit-WSJ</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069983901058269281#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-19" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:09:06" data-search="@firstsquawk shanghai&#x27;s most active aluminium futures contract falls 3.13% to 22,730 yuan per metric ton, lowest in 2026 shanghai’s most active aluminium futures contract dropped 3.13% to 22,730 yuan per metric ton, marking its lowest level so far in 2026. the decline reflects ongoing weakness in industrial metals, driven by concerns over demand from construction and manufacturing sectors alongside broader risk-off sentiment in commodity markets."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:09</span></span></div><div class="tw-body">SHANGHAI&#x27;S MOST ACTIVE ALUMINIUM FUTURES CONTRACT FALLS 3.13% TO 22,730 YUAN PER METRIC TON, LOWEST IN 2026 Shanghai’s most active aluminium futures contract dropped 3.13% to 22,730 yuan per metric ton, marking its lowest level so far in 2026. The decline reflects ongoing weaknes…</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069981180024463374#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-20" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T03:01:23" data-search="@firstsquawk us assistant secretary of state of public affairs johnson: embassy caracas has reported all u.s. personnel are accounted for after venezuela quake venezuela — the u.s. state department said the embassy in caracas has confirmed that all american personnel are safe and accounted for following the earthquake. officials emphasized ongoing monitoring and coordination with local authorities as aftershocks and damage assessments continue in the affected areas."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 03:01</span></span></div><div class="tw-body">US ASSISTANT SECRETARY OF STATE OF PUBLIC AFFAIRS JOHNSON: EMBASSY CARACAS HAS REPORTED ALL U.S. PERSONNEL ARE ACCOUNTED FOR AFTER VENEZUELA QUAKE Venezuela — The U.S. State Department said the embassy in Caracas has confirmed that all American personnel are safe and accounted fo…</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069979238921580933#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-21" data-handle="financialjuice" data-cited="0" data-ts="2026-06-25T03:01:09" data-search="@financialjuice us assistant secretary of state for public affairs johnson: embassy caracas confirms all us personnel accounted for after venezuela quake"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-06-25 03:01</span></span></div><div class="tw-body">US Assistant Secretary of State for Public Affairs Johnson: Embassy Caracas confirms all US personnel accounted for after Venezuela quake</div><a class="tw-link" href="https://x.com/financialjuice/status/2069979179941077205#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-22" data-handle="unusual_whales" data-cited="1" data-ts="2026-06-25T02:58:00" data-search="@unusual_whales he added: &quot;it&#x27;s very hard to stop.&quot; read more: unusualwhales.com/news/dimon… link dimon calls bull market a ‘little tsunami’ jpmorgan ceo jamie dimon says the bull market is like a ‘little tsunami’ — hard to stop, but with underpriced geopolitical risks building beneath it. unusualwhales.com"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:58</span></span></div><div class="tw-body">He added: &quot;It&#x27;s very hard to stop.&quot; Read more: unusualwhales.com/news/dimon… Link Dimon Calls Bull Market a ‘Little Tsunami’ JPMorgan CEO Jamie Dimon says the bull market is like a ‘little tsunami’ — hard to stop, but with underpriced geopolitical risks building beneath it. unusu…</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069978386009604563#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-23" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T02:53:38" data-search="@firstsquawk us plans search-and-rescue, medical aid shipments to venezuela, under secretary lewin says"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:53</span></span></div><div class="tw-body">US Plans Search-and-Rescue, Medical Aid Shipments to Venezuela, Under Secretary Lewin Says</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069977288767320145#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-24" data-handle="financialjuice" data-cited="0" data-ts="2026-06-25T02:53:18" data-search="@financialjuice u.s. under secretary of state for foreign assistance lewin: u.s. to deploy search and rescue teams, medical and humanitarian aid to venezuela"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:53</span></span></div><div class="tw-body">U.S. under secretary of state for foreign assistance Lewin: U.S. to deploy search and rescue teams, medical and humanitarian aid to Venezuela</div><a class="tw-link" href="https://x.com/financialjuice/status/2069977204633575522#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-25" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T02:51:34" data-search="@firstsquawk australian dollar remains subdued following labor data-fx"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:51</span></span></div><div class="tw-body">Australian Dollar remains subdued following labor data-FX</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069976769655079183#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-26" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T02:49:50" data-search="@firstsquawk singapore dollar consolidates ahead of major u.s. economic data-wsj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:49</span></span></div><div class="tw-body">Singapore Dollar Consolidates Ahead of Major U.S. Economic Data-WSJ</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069976333258822067#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-27" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T02:34:36" data-search="@firstsquawk british pound holds gains above 1.3150, us pce inflation data looms-fx"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:34</span></span></div><div class="tw-body">British Pound holds gains above 1.3150, US PCE inflation data looms-FX</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069972496363987436#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-28" data-handle="unusual_whales" data-cited="0" data-ts="2026-06-25T02:31:00" data-search="@unusual_whales on 7 january 2025, president trump issued an executive order aimed at limiting and preventing certain large defense contractors from conducting stock buybacks, issuing dividends, and awarding executive compensation. read more: unusualwhales.com/news/trump… link trump slams stock buybacks as fake price lifts trump again calls stock buybacks a fake way to lift share prices, targeting defense contractors like lmt, noc, and rtx. here is what traders should watch. unusualwhales.com"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:31</span></span></div><div class="tw-body">On 7 January 2025, President Trump issued an executive order aimed at limiting and preventing certain large defense contractors from conducting stock buybacks, issuing dividends, and awarding executive compensation. Read more: unusualwhales.com/news/trump… Link Trump Slams Stock …</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069971591145181363#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-29" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T02:29:29" data-search="@firstsquawk us engaged with venezuela after earthquake, mobilizing assistance, state department official says"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:29</span></span></div><div class="tw-body">US Engaged With Venezuela After Earthquake, Mobilizing Assistance, State Department Official Says</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069971211212456402#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-30" data-handle="financialjuice" data-cited="0" data-ts="2026-06-25T02:29:29" data-search="@financialjuice state department official: we are coordinating with venezuela authorities after earthquake and deploying aid"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:29</span></span></div><div class="tw-body">State Department official: we are coordinating with Venezuela authorities after earthquake and deploying aid</div><a class="tw-link" href="https://x.com/financialjuice/status/2069971209110880661#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-31" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T02:28:19" data-search="@firstsquawk us state department in touch with venezuela, mobilizing support following quake damage, says landau"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:28</span></span></div><div class="tw-body">US State Department in Touch With Venezuela, Mobilizing Support Following Quake Damage, Says Landau</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069970917770600952#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-32" data-handle="financialjuice" data-cited="0" data-ts="2026-06-25T02:28:09" data-search="@financialjuice u.s. deputy secretary of state landau: coordinating with venezuelan authorities and deploying aid after earthquakes"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:28</span></span></div><div class="tw-body">U.S. deputy secretary of state Landau: coordinating with Venezuelan authorities and deploying aid after earthquakes</div><a class="tw-link" href="https://x.com/financialjuice/status/2069970875118506197#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-33" data-handle="firstsquawk" data-cited="0" data-ts="2026-06-25T02:20:26" data-search="@firstsquawk southbound stock connect flows surge to record us$152b amid hong kong ipo boom-scmp"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:20</span></span></div><div class="tw-body">Southbound Stock Connect flows surge to record US$152b amid Hong Kong IPO boom-SCMP</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069968931746640145#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-34" data-handle="firstsquawk" data-cited="0" data-ts="2026-06-25T02:14:38" data-search="@firstsquawk spot gold falls nearly 1% to $3,962.11/oz gold slipped nearly 1% to $3,962.11 per ounce as investors reduced safe-haven demand amid shifting risk sentiment in global markets. the decline reflects a pullback in bullion prices as traders reassess macroeconomic conditions and adjust positions following recent volatility."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:14</span></span></div><div class="tw-body">SPOT GOLD FALLS NEARLY 1% TO $3,962.11/OZ Gold slipped nearly 1% to $3,962.11 per ounce as investors reduced safe-haven demand amid shifting risk sentiment in global markets. The decline reflects a pullback in bullion prices as traders reassess macroeconomic conditions and adjust…</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069967473764602361#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-35" data-handle="firstsquawk" data-cited="1" data-ts="2026-06-25T02:12:52" data-search="@firstsquawk shanghai&#x27;s most active tin futures contract falls over 3% shanghai’s most active tin futures contract dropped more than 3% amid broad weakness in base metals, reflecting weaker industrial demand expectations and cautious sentiment in the commodities market. the decline adds to pressure across metals trading as investors reassess near-term consumption trends in manufacturing and electronics sectors."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@FirstSquawk</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 02:12</span></span></div><div class="tw-body">SHANGHAI&#x27;S MOST ACTIVE TIN FUTURES CONTRACT FALLS OVER 3% Shanghai’s most active tin futures contract dropped more than 3% amid broad weakness in base metals, reflecting weaker industrial demand expectations and cautious sentiment in the commodities market. The decline adds to pr…</div><a class="tw-link" href="https://x.com/FirstSquawk/status/2069967027381694620#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-36" data-handle="autismcapital" data-cited="0" data-ts="2026-06-25T02:02:37" data-search="@autismcapital ordered a steam machine and got this in the mail instead. should we open it?"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@AutismCapital</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:02</span></span></div><div class="tw-body">Ordered a Steam Machine and got this in the mail instead. Should we open it?</div><a class="tw-link" href="https://x.com/AutismCapital/status/2069964447456883137#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-37" data-handle="financialjuice" data-cited="0" data-ts="2026-06-25T02:01:03" data-search="@financialjuice fuel depot fire in russia&#x27;s krasnodar region caused by falling drone debris: local official, tass reports"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-06-25 02:01</span></span></div><div class="tw-body">Fuel depot fire in Russia&#x27;s Krasnodar region caused by falling drone debris: local official, Tass reports</div><a class="tw-link" href="https://x.com/financialjuice/status/2069964054899073286#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-38" data-handle="unusual_whales" data-cited="1" data-ts="2026-06-25T01:58:00" data-search="@unusual_whales the department of energy is offering these loans to finance long-lead nuclear components, not full construction costs. read more: unusualwhales.com/news/trump… link trump admin&#x27;s $17.5b loan for 10 new westinghouse ap1000 reactors the trump administration announces $17.5 billion in loans to finance 10 new westinghouse ap1000 nuclear reactors, aiming to meet rising energy demands from data centers. unusualwhales.com"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:58</span></span></div><div class="tw-body">The Department of Energy is offering these loans to finance long-lead nuclear components, not full construction costs. Read more: unusualwhales.com/news/trump… Link Trump Admin&#x27;s $17.5B Loan for 10 New Westinghouse AP1000 Reactors The Trump administration announces $17.5 billion …</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069963286368448797#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-39" data-handle="autismcapital" data-cited="0" data-ts="2026-06-25T01:53:56" data-search="@autismcapital it’s interesting how all the discussion around gta has been related around hype, expectations, price, delays, etc. there’s been zero discussion about hyper violence, sex, the killing of police, mocking of races, etc. it’s as if they’ve psyopped the world to forgetting that’s what the game is about. what happened to the classic moral outrage? will that come when the gameplay finally drops? where are the parents saying the game is made by satan? that’s the good stuff."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@AutismCapital</span><span class="tw-meta"><span class="tw-ts">2026-06-25 01:53</span></span></div><div class="tw-body">It’s interesting how all the discussion around GTA has been related around hype, expectations, price, delays, etc. There’s been zero discussion about hyper violence, sex, the killing of police, mocking of races, etc. It’s as if they’ve psyopped the world to forgetting that’s what…</div><a class="tw-link" href="https://x.com/AutismCapital/status/2069962266028785903#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-40" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:47:06" data-search="@financialjuice venezuela&#x27;s maiquetia airport closed due to earthquake damage: rodriguez"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:47</span></span></div><div class="tw-body">Venezuela&#x27;s Maiquetia airport closed due to earthquake damage: Rodriguez</div><a class="tw-link" href="https://x.com/financialjuice/status/2069960544509972873#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-41" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:45:20" data-search="@financialjuice venezuela government to invoke emergency declaration after earthquake: rodriguez"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:45</span></span></div><div class="tw-body">Venezuela government to invoke emergency declaration after earthquake: Rodriguez</div><a class="tw-link" href="https://x.com/financialjuice/status/2069960100152812001#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-42" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:45:12" data-search="@financialjuice venezuela interim leader delcy rodriguez offers sympathies to families of earthquake victims"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:45</span></span></div><div class="tw-body">Venezuela interim leader Delcy Rodriguez offers sympathies to families of earthquake victims</div><a class="tw-link" href="https://x.com/financialjuice/status/2069960065746956719#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-43" data-handle="autismcapital" data-cited="0" data-ts="2026-06-25T01:34:30" data-search="@autismcapital remember smirnoff ices?"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@AutismCapital</span><span class="tw-meta"><span class="tw-ts">2026-06-25 01:34</span></span></div><div class="tw-body">Remember Smirnoff Ices?</div><a class="tw-link" href="https://x.com/AutismCapital/status/2069957371959648618#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-44" data-handle="unusual_whales" data-cited="0" data-ts="2026-06-25T01:31:00" data-search="@unusual_whales after paying a 5.5% placement fee and other costs, amc estimates net proceeds of about $189 million, which will be used for debt redemption and corporate purposes. read more: unusualwhales.com/news/amc-p… link amc prices $200m direct stock offering amc priced a $200m registered direct offering at $2.10/share to redeem 2027 notes. shares dropped roughly 19% premarket on dilution concerns. unusualwhales.com"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-ts">2026-06-25 01:31</span></span></div><div class="tw-body">After paying a 5.5% placement fee and other costs, AMC estimates net proceeds of about $189 million, which will be used for debt redemption and corporate purposes. Read more: unusualwhales.com/news/amc-p… Link AMC Prices $200M Direct Stock Offering AMC priced a $200M registered d…</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069956491763990594#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-45" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:30:55" data-search="@financialjuice australia may jobs rise 40,300 in seasonal adjustment, poll forecast 30,000"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">Australia May Jobs Rise 40,300 in Seasonal Adjustment, Poll Forecast 30,000</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956470016188416#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-46" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:30:47" data-search="@financialjuice australia may full-time jobs rise 5,200 adjusted"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">Australia May Full-Time Jobs Rise 5,200 Adjusted</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956436612771972#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-47" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:30:44" data-search="@financialjuice australia may participation rate rises 66.7%, seasonally adjusted: poll 66.7%"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">Australia may participation rate rises 66.7%, seasonally adjusted: Poll 66.7%</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956423727866356#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-48" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:30:40" data-search="@financialjuice australia may jobless rate 4.4%; seasonally adjusted matches poll"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">Australia May jobless rate 4.4%; seasonally adjusted matches poll</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956410868224339#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-49" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:30:38" data-search="@financialjuice australia may household spending rises 1.3% month-on-month seasonally unadjusted: abs"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">Australia may household spending rises 1.3% month-on-month seasonally unadjusted: ABS</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956398767636706#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-50" data-handle="financialjuice" data-cited="1" data-ts="2026-06-25T01:30:35" data-search="@financialjuice 🔴 australian unemployment rate actual 4.4% (forecast 4.4%, previous 4.5%) $macro"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">🔴 AUSTRALIAN UNEMPLOYMENT RATE ACTUAL 4.4% (FORECAST 4.4%, PREVIOUS 4.5%) $MACRO</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956386105016437#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-51" data-handle="financialjuice" data-cited="0" data-ts="2026-06-25T01:30:32" data-search="@financialjuice 🔴 ⚠️ breaking: australian employment change actual 40.3k (forecast 32.5k, previous -18.6k) $macro"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">🔴 ⚠️ BREAKING: AUSTRALIAN EMPLOYMENT CHANGE ACTUAL 40.3K (FORECAST 32.5K, PREVIOUS -18.6K) $MACRO</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956374444884127#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-52" data-handle="financialjuice" data-cited="0" data-ts="2026-06-25T01:30:29" data-search="@financialjuice australian full time employment chg. actual 5.2k (forecast -, previous -10.7k) $macro"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-06-25 01:30</span></span></div><div class="tw-body">AUSTRALIAN FULL TIME EMPLOYMENT CHG. ACTUAL 5.2K (FORECAST -, PREVIOUS -10.7K) $MACRO</div><a class="tw-link" href="https://x.com/financialjuice/status/2069956362524672339#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-53" data-handle="mayhem4markets" data-cited="0" data-ts="2026-06-25T01:16:35" data-search="@mayhem4markets $baba becomes a buy when @alibaba_qwen starts releasing qwen3.7 models as open-weight."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@Mayhem4Markets</span><span class="tw-meta"><span class="tw-ts">2026-06-25 01:16</span></span></div><div class="tw-body">$BABA becomes a buy when @Alibaba_Qwen starts releasing Qwen3.7 models as open-weight.</div><a class="tw-link" href="https://x.com/Mayhem4Markets/status/2069952865393692828#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-54" data-handle="unusual_whales" data-cited="0" data-ts="2026-06-25T00:58:00" data-search="@unusual_whales nvidia&#x27;s coolant, a recirculated liquid mixture that includes water and propylene glycol similar to automotive antifreeze, can run at 113 degrees fahrenheit. read more: unusualwhales.com/news/nvidi… link nvidia: ai water challenge largely solved nvidia says its warm-water liquid cooling architecture largely solves data center water concerns. here is what it means for nvda and ai infrastructure plays. unusualwhales.com"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-ts">2026-06-25 00:58</span></span></div><div class="tw-body">Nvidia&#x27;s coolant, a recirculated liquid mixture that includes water and propylene glycol similar to automotive antifreeze, can run at 113 degrees Fahrenheit. Read more: unusualwhales.com/news/nvidi… Link Nvidia: AI Water Challenge Largely Solved Nvidia says its warm-water liquid …</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069948186978840991#m" target="_blank">View on X &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-55" data-handle="unusual_whales" data-cited="0" data-ts="2026-06-25T00:31:00" data-search="@unusual_whales the s&amp;p manufacturing flash reading for its purchase managers index came in at 55.7, up narrowly from may and better than the dow jones consensus estimate for 54.8. read more: unusualwhales.com/news/facto… link factory job cuts near 2009 and covid-era highs us factory job cuts ran near 2009 and covid-era highs in june even as the s&amp;p manufacturing pmi hit 55.7, signaling cost pressure and demand worries. unusualwhales.com"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@unusual_whales</span><span class="tw-meta"><span class="tw-ts">2026-06-25 00:31</span></span></div><div class="tw-body">The S&amp;P manufacturing flash reading for its purchase managers index came in at 55.7, up narrowly from May and better than the Dow Jones consensus estimate for 54.8. Read more: unusualwhales.com/news/facto… Link Factory Job Cuts Near 2009 and COVID-Era Highs US factory job cuts ra…</div><a class="tw-link" href="https://x.com/unusual_whales/status/2069941392164409494#m" target="_blank">View on X &rarr;</a></div></div></div>
+  </details>
+
+  <details class="links-section sec"><summary class="sec-summary"><span class="links-header">Additional Signal Links &mdash; 49 more &middot; 2026-06-25 00:10</span><span class="sec-chevron">&#9662;</span></summary><table class="links-table"><thead><tr><th>#</th><th>Timestamp</th><th>Account</th><th>Link</th></tr></thead><tbody><tr id="feed-56"><td class="feed-num">56</td><td class="ts">2026-06-25 00:11</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069936587333304638#m" target="_blank">https://x.com/Mayhem4Markets/status/2069936587333304638#m</a></td></tr><tr id="feed-57"><td class="feed-num">57</td><td class="ts">2026-06-24 23:58</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069933087405101414#m" target="_blank">https://x.com/unusual_whales/status/2069933087405101414#m</a></td></tr><tr id="feed-58"><td class="feed-num">58</td><td class="ts">2026-06-24 23:41</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069929047661195490#m" target="_blank">https://x.com/AutismCapital/status/2069929047661195490#m</a></td></tr><tr id="feed-59"><td class="feed-num">59</td><td class="ts">2026-06-24 23:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069926292737196362#m" target="_blank">https://x.com/unusual_whales/status/2069926292737196362#m</a></td></tr><tr id="feed-60"><td class="feed-num">60</td><td class="ts">2026-06-24 23:26</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069925208794992961#m" target="_blank">https://x.com/AutismCapital/status/2069925208794992961#m</a></td></tr><tr id="feed-61"><td class="feed-num">61</td><td class="ts">2026-06-24 23:22</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069924070020587546#m" target="_blank">https://x.com/AutismCapital/status/2069924070020587546#m</a></td></tr><tr id="feed-62"><td class="feed-num">62</td><td class="ts">2026-06-24 23:15</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069922362045206975#m" target="_blank">https://x.com/Mayhem4Markets/status/2069922362045206975#m</a></td></tr><tr id="feed-63"><td class="feed-num">63</td><td class="ts">2026-06-24 23:02</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/FS_Yoshizawa/status/2069918995361255797#m" target="_blank">https://x.com/FS_Yoshizawa/status/2069918995361255797#m</a></td></tr><tr id="feed-64"><td class="feed-num">64</td><td class="ts">2026-06-24 22:58</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069917987914834384#m" target="_blank">https://x.com/unusual_whales/status/2069917987914834384#m</a></td></tr><tr id="feed-65"><td class="feed-num">65</td><td class="ts">2026-06-24 22:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069911193251467473#m" target="_blank">https://x.com/unusual_whales/status/2069911193251467473#m</a></td></tr><tr id="feed-66"><td class="feed-num">66</td><td class="ts">2026-06-24 21:58</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069902888353030360#m" target="_blank">https://x.com/unusual_whales/status/2069902888353030360#m</a></td></tr><tr id="feed-67"><td class="feed-num">67</td><td class="ts">2026-06-24 21:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069896093811474928#m" target="_blank">https://x.com/unusual_whales/status/2069896093811474928#m</a></td></tr><tr id="feed-68"><td class="feed-num">68</td><td class="ts">2026-06-24 21:24</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2069894332107399606#m" target="_blank">https://x.com/BasedBiohacker/status/2069894332107399606#m</a></td></tr><tr id="feed-69"><td class="feed-num">69</td><td class="ts">2026-06-24 21:03</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069889238439723177#m" target="_blank">https://x.com/AutismCapital/status/2069889238439723177#m</a></td></tr><tr id="feed-70"><td class="feed-num">70</td><td class="ts">2026-06-24 20:58</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069887788842119183#m" target="_blank">https://x.com/unusual_whales/status/2069887788842119183#m</a></td></tr><tr id="feed-71"><td class="feed-num">71</td><td class="ts">2026-06-24 20:50</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069885882065461606#m" target="_blank">https://x.com/AutismCapital/status/2069885882065461606#m</a></td></tr><tr id="feed-72"><td class="feed-num">72</td><td class="ts">2026-06-24 20:31</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069880994212262007#m" target="_blank">https://x.com/unusual_whales/status/2069880994212262007#m</a></td></tr><tr id="feed-73"><td class="feed-num">73</td><td class="ts">2026-06-24 20:28</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/TakeThiamine/status/2069880313967522124#m" target="_blank">https://x.com/TakeThiamine/status/2069880313967522124#m</a></td></tr><tr id="feed-74"><td class="feed-num">74</td><td class="ts">2026-06-24 20:28</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069880301975728590#m" target="_blank">https://x.com/Mayhem4Markets/status/2069880301975728590#m</a></td></tr><tr id="feed-75"><td class="feed-num">75</td><td class="ts">2026-06-24 20:26</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069879964980146479#m" target="_blank">https://x.com/Mayhem4Markets/status/2069879964980146479#m</a></td></tr><tr id="feed-76"><td class="feed-num">76</td><td class="ts">2026-06-24 20:17</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069877705160716770#m" target="_blank">https://x.com/AutismCapital/status/2069877705160716770#m</a></td></tr><tr id="feed-77"><td class="feed-num">77</td><td class="ts">2026-06-24 20:06</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069874918309736785#m" target="_blank">https://x.com/Mayhem4Markets/status/2069874918309736785#m</a></td></tr><tr id="feed-78"><td class="feed-num">78</td><td class="ts">2026-06-24 20:05</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069874575450702076#m" target="_blank">https://x.com/unusual_whales/status/2069874575450702076#m</a></td></tr><tr id="feed-79"><td class="feed-num">79</td><td class="ts">2026-06-24 20:05</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2069874551379333279#m" target="_blank">https://x.com/BasedBiohacker/status/2069874551379333279#m</a></td></tr><tr id="feed-80"><td class="feed-num">80</td><td class="ts">2026-06-24 20:04</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2069874307107533050#m" target="_blank">https://x.com/BasedBiohacker/status/2069874307107533050#m</a></td></tr><tr id="feed-81"><td class="feed-num">81</td><td class="ts">2026-06-24 20:02</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069873860007129591#m" target="_blank">https://x.com/Mayhem4Markets/status/2069873860007129591#m</a></td></tr><tr id="feed-82"><td class="feed-num">82</td><td class="ts">2026-06-24 20:00</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069873277707940237#m" target="_blank">https://x.com/unusual_whales/status/2069873277707940237#m</a></td></tr><tr id="feed-83"><td class="feed-num">83</td><td class="ts">2026-06-24 19:49</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069870452932329748#m" target="_blank">https://x.com/AutismCapital/status/2069870452932329748#m</a></td></tr><tr id="feed-84"><td class="feed-num">84</td><td class="ts">2026-06-24 19:44</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069869239469543578#m" target="_blank">https://x.com/Mayhem4Markets/status/2069869239469543578#m</a></td></tr><tr id="feed-85"><td class="feed-num">85</td><td class="ts">2026-06-24 19:39</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069868020269539507#m" target="_blank">https://x.com/AutismCapital/status/2069868020269539507#m</a></td></tr><tr id="feed-86"><td class="feed-num">86</td><td class="ts">2026-06-24 19:37</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069867404612792810#m" target="_blank">https://x.com/unusual_whales/status/2069867404612792810#m</a></td></tr><tr id="feed-87"><td class="feed-num">87</td><td class="ts">2026-06-24 19:35</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069867087032357288#m" target="_blank">https://x.com/Mayhem4Markets/status/2069867087032357288#m</a></td></tr><tr id="feed-88"><td class="feed-num">88</td><td class="ts">2026-06-24 19:22</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069863658268876842#m" target="_blank">https://x.com/AutismCapital/status/2069863658268876842#m</a></td></tr><tr id="feed-89"><td class="feed-num">89</td><td class="ts">2026-06-24 19:17</td><td class="author">@unusual_whales</td><td><a href="https://x.com/unusual_whales/status/2069862371527365065#m" target="_blank">https://x.com/unusual_whales/status/2069862371527365065#m</a></td></tr><tr id="feed-90"><td class="feed-num">90</td><td class="ts">2026-06-24 18:57</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/PatrickToulme/status/2069857412660801738#m" target="_blank">https://x.com/PatrickToulme/status/2069857412660801738#m</a></td></tr><tr id="feed-91"><td class="feed-num">91</td><td class="ts">2026-06-24 18:39</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069853019005759983#m" target="_blank">https://x.com/AutismCapital/status/2069853019005759983#m</a></td></tr><tr id="feed-92"><td class="feed-num">92</td><td class="ts">2026-06-24 18:35</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069852037702193442#m" target="_blank">https://x.com/AutismCapital/status/2069852037702193442#m</a></td></tr><tr id="feed-93"><td class="feed-num">93</td><td class="ts">2026-06-24 18:29</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069850455556145591#m" target="_blank">https://x.com/AutismCapital/status/2069850455556145591#m</a></td></tr><tr id="feed-94"><td class="feed-num">94</td><td class="ts">2026-06-24 18:19</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069847896288301354#m" target="_blank">https://x.com/AutismCapital/status/2069847896288301354#m</a></td></tr><tr id="feed-95"><td class="feed-num">95</td><td class="ts">2026-06-24 18:09</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069845457883234794#m" target="_blank">https://x.com/Mayhem4Markets/status/2069845457883234794#m</a></td></tr><tr id="feed-96"><td class="feed-num">96</td><td class="ts">2026-06-24 17:54</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2069841483788685647#m" target="_blank">https://x.com/BasedBiohacker/status/2069841483788685647#m</a></td></tr><tr id="feed-97"><td class="feed-num">97</td><td class="ts">2026-06-24 17:44</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069839170852553073#m" target="_blank">https://x.com/AutismCapital/status/2069839170852553073#m</a></td></tr><tr id="feed-98"><td class="feed-num">98</td><td class="ts">2026-06-24 17:43</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2069838748339052606#m" target="_blank">https://x.com/BasedBiohacker/status/2069838748339052606#m</a></td></tr><tr id="feed-99"><td class="feed-num">99</td><td class="ts">2026-06-24 17:39</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069837838808674520#m" target="_blank">https://x.com/AutismCapital/status/2069837838808674520#m</a></td></tr><tr id="feed-100"><td class="feed-num">100</td><td class="ts">2026-06-24 17:27</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069834794897424564#m" target="_blank">https://x.com/AutismCapital/status/2069834794897424564#m</a></td></tr><tr id="feed-101"><td class="feed-num">101</td><td class="ts">2026-06-24 17:23</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069833697642045770#m" target="_blank">https://x.com/Mayhem4Markets/status/2069833697642045770#m</a></td></tr><tr id="feed-102"><td class="feed-num">102</td><td class="ts">2026-06-24 17:16</td><td class="author">@AutismCapital</td><td><a href="https://x.com/AutismCapital/status/2069831926203224343#m" target="_blank">https://x.com/AutismCapital/status/2069831926203224343#m</a></td></tr><tr id="feed-103"><td class="feed-num">103</td><td class="ts">2026-06-24 16:26</td><td class="author">@BasedBiohacker</td><td><a href="https://x.com/BasedBiohacker/status/2069819337876369438#m" target="_blank">https://x.com/BasedBiohacker/status/2069819337876369438#m</a></td></tr><tr id="feed-104"><td class="feed-num">104</td><td class="ts">2026-06-24 15:59</td><td class="author">@Mayhem4Markets</td><td><a href="https://x.com/Mayhem4Markets/status/2069812777099620806#m" target="_blank">https://x.com/Mayhem4Markets/status/2069812777099620806#m</a></td></tr></tbody></table></details>
+
+  <div class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
+    <div class="footer-right">
+      <span class="footer-tag active">AI</span>
+      <span class="footer-tag">MACRO</span>
+      <span class="footer-tag">CRYPTO</span>
+      <span class="footer-tag">SIGNALS</span>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var grid = document.getElementById('tweetGrid');
+  if (grid) {
+    var cards   = Array.prototype.slice.call(grid.querySelectorAll('.tweet-embed'));
+    var search  = document.getElementById('cardSearch');
+    var cited   = document.getElementById('citedToggle');
+    var acct    = document.getElementById('acctFilter');
+    var sortSel = document.getElementById('sortSel');
+    var count   = document.getElementById('cardCount');
+    var citedOnly = false;
+
+    // Populate the account dropdown from the cards present.
+    var seen = {};
+    cards.forEach(function(c){ var h = c.getAttribute('data-handle'); if (h) seen[h] = 1; });
+    Object.keys(seen).sort().forEach(function(h){
+      var o = document.createElement('option'); o.value = h; o.textContent = '@' + h; acct.appendChild(o);
+    });
+
+    function apply(){
+      var q = (search.value || '').toLowerCase().trim();
+      var a = acct.value;
+      var shown = 0;
+      cards.forEach(function(c){
+        var ok = true;
+        if (q && c.getAttribute('data-search').indexOf(q) < 0) ok = false;
+        if (a && c.getAttribute('data-handle') !== a) ok = false;
+        if (citedOnly && c.getAttribute('data-cited') !== '1') ok = false;
+        c.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      count.textContent = shown + ' / ' + cards.length + ' shown';
+    }
+    function sortCards(){
+      var mode = sortSel.value;
+      cards.slice().sort(function(x, y){
+        if (mode === 'handle') return x.getAttribute('data-handle').localeCompare(y.getAttribute('data-handle'));
+        return y.getAttribute('data-ts').localeCompare(x.getAttribute('data-ts'));
+      }).forEach(function(c){ grid.appendChild(c); });
+    }
+
+    search.addEventListener('input', apply);
+    acct.addEventListener('change', apply);
+    cited.addEventListener('click', function(){
+      citedOnly = !citedOnly; cited.classList.toggle('on', citedOnly); apply();
+    });
+    sortSel.addEventListener('change', function(){ sortCards(); apply(); });
+    apply();
+  }
+
+  // Live data-age readout: "T+Xh Ym" since the run timestamp.
+  var age = document.getElementById('dataAge');
+  if (age) {
+    var t0 = new Date(age.getAttribute('data-runts')).getTime();
+    var tick = function(){
+      if (!t0 || isNaN(t0)) { age.textContent = 'live'; return; }
+      var s = Math.max(0, Math.floor((Date.now() - t0) / 1000));
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      age.textContent = 'T+' + (h ? h + 'h ' : '') + m + 'm';
+    };
+    tick(); setInterval(tick, 30000);
+  }
+})();
+</script>
+</body>
+</html>
