@@ -1627,7 +1627,7 @@ class RedHoodAggregator:
                 )
 
             ticker_rows_total = 0
-            now_iso = datetime.utcnow().isoformat()
+            now_iso = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
             for narrative in narratives:
                 catalysts_json = json.dumps(narrative.catalysts)
                 cat_count = _catalyst_count(catalysts_json)

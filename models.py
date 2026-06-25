@@ -394,6 +394,35 @@ NARRATIVES_MIGRATIONS = [
     ('entropy_band',          "TEXT"),
 ]
 
+# Bring older databases up to the reconciled superset schema. CREATE TABLE
+# IF NOT EXISTS never alters an existing table, so DBs built before the star
+# schema keep their old columns — these additive ALTERs close the gap. The
+# `id` PRIMARY KEY column can't be added via ALTER, but inserts name their
+# columns explicitly so its absence is harmless.
+NARRATIVE_TICKERS_MIGRATIONS = [
+    ('weight_in_hypothesis', "REAL"),                       # ticker_extraction.py
+    ('extracted_pattern',    "TEXT"),                       # ticker_extraction.py
+    ('is_long_equity',       "INTEGER NOT NULL DEFAULT 0"), # score_narratives.py
+    ('extracted_at',         "TEXT"),                       # score_narratives.py
+]
+
+PRICES_MIGRATIONS = [
+    ('open',       "REAL"),
+    ('high',       "REAL"),
+    ('low',        "REAL"),
+    ('adj_close',  "REAL"),
+    ('volume',     "INTEGER"),
+    ('fetched_at', "TEXT"),
+    ('source',     "TEXT DEFAULT 'yfinance'"),
+]
+
+# (table, migrations) pairs applied in order before indexes/views are built.
+COLUMN_MIGRATIONS = [
+    ('narratives',        NARRATIVES_MIGRATIONS),
+    ('narrative_tickers', NARRATIVE_TICKERS_MIGRATIONS),
+    ('prices',            PRICES_MIGRATIONS),
+]
+
 
 def init_schema(db_path: str = DB_PATH):
     """Apply the full schema to the database (idempotent)."""
@@ -403,11 +432,12 @@ def init_schema(db_path: str = DB_PATH):
         conn.executescript(SCHEMA_STAR)
 
         # Run column migrations BEFORE creating indexes/views that reference them.
-        for col, definition in NARRATIVES_MIGRATIONS:
-            try:
-                conn.execute(f"ALTER TABLE narratives ADD COLUMN {col} {definition}")
-            except sqlite3.OperationalError:
-                pass
+        for table, migrations in COLUMN_MIGRATIONS:
+            for col, definition in migrations:
+                try:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {definition}")
+                except sqlite3.OperationalError:
+                    pass
 
         conn.executescript(SCHEMA_INDEXES)
         conn.executescript(SCHEMA_VIEWS)
