@@ -14,7 +14,7 @@ Usage:
 import sqlite3
 import os
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'redhood.db')
 
@@ -50,7 +50,7 @@ def init_db():
     conn.execute(SCHEMA)
     conn.commit()
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     for handle, category, notes in DEFAULT_ACCOUNTS:
         conn.execute(
             """INSERT OR IGNORE INTO twitter_accounts (handle, added_at, category, notes)
@@ -83,7 +83,7 @@ def add_account(handle: str, category: str = None, notes: str = None):
     try:
         conn.execute(
             "INSERT INTO twitter_accounts (handle, added_at, category, notes) VALUES (?, ?, ?, ?)",
-            (handle, datetime.utcnow().isoformat(), category, notes)
+            (handle, datetime.now(timezone.utc).replace(tzinfo=None).isoformat(), category, notes)
         )
         conn.commit()
         print(f"Added @{handle}")

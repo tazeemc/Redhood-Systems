@@ -19,6 +19,9 @@ env/
 # Session context / compressed context files (may contain secrets)
 compressed context*.md
 
+# Claude Code local config and worktrees
+.claude/
+
 # Output data
 data/
 *.json

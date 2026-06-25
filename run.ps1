@@ -1,14 +1,14 @@
 # RedHood Systems - PowerShell runner (with Trading System Analysis)
 # Usage:
-#   .\run.ps1                          # last 5 minutes (default), default symbols
-#   .\run.ps1 -Hours 1                 # last 1 hour
-#   .\run.ps1 -Hours 24                # last 24 hours
+#   .\run.ps1                          # last 45 minutes (default), default symbols
+#   .\run.ps1 -Hours 5                 # last 5 hours
+#   .\run.ps1 -Hours 24                # last 24 hours (full day)
 #   .\run.ps1 -Symbols "NU","AAPL"     # custom symbols
 #   .\run.ps1 -SkipTrading             # skip trading analysis, run RedHood only
 #   .\run.ps1 -SkipRedHood             # skip RedHood, run trading analysis only
 
 param(
-    [double]$Hours          = 0.0833,           # default: 5 minutes
+    [double]$Hours          = 0.75,             # default: 45 minutes  |  common: 5 (5h), 24 (full day)
     [string[]]$Symbols      = @("NU", "BTC-USD"),
     [double]$BaseTemp       = 25.0,
     [double]$MaxHeat        = 80.0,

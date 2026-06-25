@@ -83,7 +83,7 @@ class Config:
     ]
 
     # AI Configuration
-    CLAUDE_MODEL = 'claude-sonnet-4-6'
+    CLAUDE_MODEL = 'claude-opus-4-8'
     MAX_FEEDS_TO_PROCESS = 50  # Limit for cost control
 
     # Output

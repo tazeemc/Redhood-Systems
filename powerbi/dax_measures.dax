@@ -1,0 +1,303 @@
+// ============================================================================
+// RedHood Systems — Power BI DAX Measures
+// ============================================================================
+// Paste each measure into Power BI Desktop via Modeling > New Measure.
+// All measures reference the table names produced by export_to_powerbi.py.
+//
+// Tables:  dim_runs | dim_accounts | fact_narratives | fact_feeds
+//          bridge_narrative_feeds
+// ============================================================================
+
+
+// ── RUNS ─────────────────────────────────────────────────────────────────────
+
+Total Runs = COUNTROWS(dim_runs)
+
+Total Feeds Collected = SUM(dim_runs[feeds_collected])
+
+Total Narratives Extracted = SUM(dim_runs[narratives_extracted])
+
+Avg Feeds Per Run =
+DIVIDE(
+    SUM(dim_runs[feeds_collected]),
+    COUNTROWS(dim_runs),
+    0
+)
+
+Avg Narratives Per Run =
+DIVIDE(
+    SUM(dim_runs[narratives_extracted]),
+    COUNTROWS(dim_runs),
+    0
+)
+
+
+// ── ENTROPY RISK ─────────────────────────────────────────────────────────────
+
+Avg Entropy Risk =
+AVERAGEX(
+    fact_narratives,
+    fact_narratives[entropy_risk]
+)
+
+Max Entropy Risk = MAX(fact_narratives[entropy_risk])
+
+High Risk Narratives =
+CALCULATE(
+    COUNTROWS(fact_narratives),
+    fact_narratives[entropy_risk] >= 7
+)
+
+High Risk % =
+DIVIDE(
+    [High Risk Narratives],
+    COUNTROWS(fact_narratives),
+    0
+)
+
+Low Risk Narratives =
+CALCULATE(
+    COUNTROWS(fact_narratives),
+    fact_narratives[entropy_risk] <= 3
+)
+
+// Weighted entropy score across selected runs
+// Higher = more chaotic market environment in that period
+Entropy Score (Weighted) =
+SUMX(
+    fact_narratives,
+    fact_narratives[entropy_risk] * fact_narratives[supporting_feed_count]
+) /
+SUMX(
+    fact_narratives,
+    IF(fact_narratives[supporting_feed_count] = 0, 1, fact_narratives[supporting_feed_count])
+)
+
+// Rolling 7-day average entropy (use with a date slicer)
+Avg Entropy 7D =
+CALCULATE(
+    AVERAGEX(fact_narratives, fact_narratives[entropy_risk]),
+    DATESINPERIOD(
+        dim_runs[run_date],
+        LASTDATE(dim_runs[run_date]),
+        -7,
+        DAY
+    )
+)
+
+
+// ── CONVICTION SIZING ────────────────────────────────────────────────────────
+
+Full Size Count =
+CALCULATE(
+    COUNTROWS(fact_narratives),
+    SEARCH("Full", fact_narratives[conviction_adjustment], 1, 0) > 0
+)
+
+Half Size Count =
+CALCULATE(
+    COUNTROWS(fact_narratives),
+    SEARCH("Half", fact_narratives[conviction_adjustment], 1, 0) > 0
+)
+
+Quarter Size Count =
+CALCULATE(
+    COUNTROWS(fact_narratives),
+    SEARCH("Quarter", fact_narratives[conviction_adjustment], 1, 0) > 0
+)
+
+Pass Count =
+CALCULATE(
+    COUNTROWS(fact_narratives),
+    SEARCH("Pass", fact_narratives[conviction_adjustment], 1, 0) > 0
+)
+
+// Average conviction size score (4=Full, 3=Half, 2=Quarter, 1=Pass, 0=Unknown)
+Avg Conviction Score =
+AVERAGEX(
+    fact_narratives,
+    fact_narratives[conviction_size]
+)
+
+// % of narratives that are actionable (not Pass)
+Actionable Rate =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(fact_narratives),
+        fact_narratives[conviction_size] > 1
+    ),
+    COUNTROWS(fact_narratives),
+    0
+)
+
+
+// ── FEEDS ────────────────────────────────────────────────────────────────────
+
+Total Feed Items = COUNTROWS(fact_feeds)
+
+Twitter Feed Count =
+CALCULATE(
+    COUNTROWS(fact_feeds),
+    fact_feeds[source] = "twitter"
+)
+
+RSS Feed Count =
+CALCULATE(
+    COUNTROWS(fact_feeds),
+    fact_feeds[source] = "rss"
+)
+
+Twitter % =
+DIVIDE(
+    [Twitter Feed Count],
+    [Total Feed Items],
+    0
+)
+
+Avg Word Count Per Feed =
+AVERAGEX(fact_feeds, fact_feeds[word_count])
+
+// Feeds per unique author/account in selected period
+Feeds Per Author =
+DIVIDE(
+    COUNTROWS(fact_feeds),
+    DISTINCTCOUNT(fact_feeds[author]),
+    0
+)
+
+
+// ── NARRATIVE FEED COVERAGE ──────────────────────────────────────────────────
+
+// Average number of raw feeds backing each narrative
+// (higher = better-evidenced narrative)
+Avg Supporting Feeds =
+AVERAGEX(fact_narratives, fact_narratives[supporting_feed_count])
+
+// Narratives with strong evidence backing (≥3 supporting feeds)
+Well-Evidenced Narratives =
+CALCULATE(
+    COUNTROWS(fact_narratives),
+    fact_narratives[supporting_feed_count] >= 3
+)
+
+Well-Evidenced % =
+DIVIDE([Well-Evidenced Narratives], COUNTROWS(fact_narratives), 0)
+
+
+// ── KPI CARD MEASURES ────────────────────────────────────────────────────────
+
+// For KPI cards on the overview page
+
+Market Pulse Score =
+// Composite: high entropy = chaotic, low conviction = cautious market
+// Returns 0-100 where 100 = maximum clarity/confidence
+VAR EntropyNorm   = DIVIDE(10 - [Avg Entropy Risk], 9, 0)      // 0-1, higher = calmer
+VAR ConvictionNorm = DIVIDE([Avg Conviction Score], 4, 0)        // 0-1, higher = more confident
+RETURN
+    ROUND((EntropyNorm * 0.5 + ConvictionNorm * 0.5) * 100, 1)
+
+// Signal quality: are the narratives well evidenced and actionable?
+Signal Quality Score =
+VAR EvidenceScore  = DIVIDE([Avg Supporting Feeds], 5, 0)       // normalise to ~5 feeds
+VAR ActionableRate = [Actionable Rate]
+RETURN
+    ROUND(MIN((EvidenceScore * 0.4 + ActionableRate * 0.6) * 100, 100), 1)
+
+
+// ── TICKER & P&L MEASURES (added 2026-05 audit) ──────────────────────────────
+// Tables added:  fact_narrative_tickers  |  fact_narrative_grades  |  fact_prices
+// Relationships:
+//   fact_narratives[narrative_id] → fact_narrative_tickers[narrative_id]   (1:many)
+//   fact_narratives[narrative_id] → fact_narrative_grades[narrative_id]    (1:1)
+//   fact_narrative_tickers[ticker] → fact_prices[ticker]                   (many:1, optional)
+
+Ticker Mention Count = COUNTROWS(fact_narrative_tickers)
+
+Long Mentions =
+CALCULATE(
+    [Ticker Mention Count],
+    fact_narrative_tickers[side] IN { "long", "pair_long" }
+)
+
+Long Mentions L30D =
+CALCULATE(
+    [Long Mentions],
+    DATESINPERIOD(
+        dim_runs[run_date],
+        LASTDATE(dim_runs[run_date]),
+        -30,
+        DAY
+    )
+)
+
+Long Mentions L90D =
+CALCULATE(
+    [Long Mentions],
+    DATESINPERIOD(
+        dim_runs[run_date],
+        LASTDATE(dim_runs[run_date]),
+        -90,
+        DAY
+    )
+)
+
+Distinct Tickers = DISTINCTCOUNT(fact_narrative_tickers[ticker])
+
+// Conviction-weighted long score per ticker context.
+// Heavier weight when the underlying narrative is sized "Full" or "Half".
+Conviction Weighted Score =
+SUMX(
+    fact_narrative_tickers,
+    RELATED(fact_narratives[conviction_size]) * 1
+)
+
+// Average grade across the current ticker / narrative context.
+Avg Total Grade = AVERAGE(fact_narrative_grades[total_score])
+
+// % of narratives at grade A or A-
+A-Grade % =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(fact_narrative_grades),
+        fact_narrative_grades[letter_grade] IN { "A", "A-" }
+    ),
+    COUNTROWS(fact_narrative_grades),
+    0
+)
+
+
+// ── P&L MEASURES (require fact_prices populated by redhood_pnl.py) ───────────
+// Standard sizing per ticker; override the constant below if you change defaults.
+Standard Size USD = 2500
+
+// Entry close = first available close on/after the run_date, per ticker.
+// Implementation note: in DAX, the join is via a calculated column on
+// fact_narrative_tickers called `entry_close` rather than a measure — see
+// `Entry Close (calculated column)` in the README.
+
+// Position $ = mention count × standard size
+Total Position $ = [Ticker Mention Count] * [Standard Size USD]
+
+// Cumulative P&L $: needs the calc-column entry_close + last_close to be in
+// fact_narrative_tickers. Once those columns exist, this measure works.
+Cumulative P&L $ =
+SUMX(
+    fact_narrative_tickers,
+    DIVIDE([Standard Size USD], fact_narrative_tickers[entry_close]) *
+    (fact_narrative_tickers[last_close] - fact_narrative_tickers[entry_close])
+)
+
+Avg Return % =
+DIVIDE([Cumulative P&L $], [Total Position $], 0)
+
+// Win rate = % of (narrative, ticker) trades with positive P&L.
+Win Rate =
+VAR Wins =
+    COUNTROWS(
+        FILTER(
+            fact_narrative_tickers,
+            (fact_narrative_tickers[last_close] - fact_narrative_tickers[entry_close]) > 0
+        )
+    )
+RETURN
+    DIVIDE(Wins, COUNTROWS(fact_narrative_tickers), 0)

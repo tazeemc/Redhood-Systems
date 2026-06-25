@@ -17,6 +17,11 @@ telethon>=1.34.0
 numpy>=1.24.0
 matplotlib>=3.7.0
 
+# Optional: For trade-ledger P&L (redhood_pnl.py)
+# Required only if you run scoring with --with-pnl. Ticker grading and
+# the rest of the pipeline work without it.
+yfinance>=0.2.40
+
 # Optional: For web interface
 fastapi>=0.109.0
 uvicorn>=0.27.0
