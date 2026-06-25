@@ -331,7 +331,7 @@ MIT License - feel free to use this code for your own projects.
 ## About the Creator
 
 **Tazeem Chowdhury**
-Product Manager | Business Analyst | Financial Markets Analyst
+Scrum Master | Product Manager | Markets Analyst
 
 - **Background:** Engineering degree with specialization in business analysis, data analytics, and enterprise service delivery. Currently pursuing CBAP and PMP certifications.
 - **Experience:**

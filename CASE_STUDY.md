@@ -2,7 +2,7 @@
 ## Building an AI-Powered Market Intelligence Platform from Scratch
 
 **Author:** Tazeem Chowdhury
-**Role:** Product Manager | Business Analyst | Financial Markets Analyst
+**Role:** Scrum Master | Product Manager | Markets Analyst
 **Timeline:** February 2026 (4 weeks)
 **Status:** MVP Complete
 
