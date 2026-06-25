@@ -120,16 +120,16 @@ def print_feeds():
     """Display sample feeds"""
     print("📊 SAMPLE FEEDS (Last 24 Hours)")
     print("-" * 70)
-    
+
     for i, feed in enumerate(DEMO_FEEDS, 1):
         timestamp = datetime.fromisoformat(feed['timestamp'])
         hours_ago = int((datetime.now() - timestamp).total_seconds() / 3600)
-        
+
         print(f"\n[{i}] {feed['source'].upper()} | {feed['author']} | {hours_ago}h ago")
         print(f"    {feed['content'][:200]}...")
         if len(feed['content']) > 200:
             print("    [truncated]")
-    
+
     print("\n" + "-" * 70)
     print(f"Total feeds: {len(DEMO_FEEDS)}")
     print("\n⏳ Processing with Claude AI...\n")
@@ -139,7 +139,7 @@ def print_narratives():
     print("=" * 70)
     print("📋 DAILY BRIEF - TOP MARKET NARRATIVES")
     print("=" * 70 + "\n")
-    
+
     for i, narrative in enumerate(DEMO_NARRATIVES, 1):
         # Format entropy risk with emoji
         risk = narrative['entropy_risk']
@@ -149,12 +149,12 @@ def print_narratives():
             risk_indicator = "🟡 MEDIUM"
         else:
             risk_indicator = "🔴 HIGH"
-        
+
         print(f"[{i}] {narrative['title']}")
         print(f"    Entropy Risk: {risk_indicator} ({risk}/10)")
         print(f"    💡 Trade Hypothesis: {narrative['hypothesis']}")
         print(f"    📝 Rationale: {narrative['rationale']}")
-        print(f"    📅 Key Catalysts:")
+        print("    📅 Key Catalysts:")
         for catalyst in narrative['catalysts']:
             print(f"       • {catalyst}")
         print(f"    🔬 Physics Analogy: {narrative['physics_analogy']}")
@@ -166,35 +166,35 @@ def print_summary_stats():
     print("=" * 70)
     print("📊 SESSION SUMMARY")
     print("=" * 70)
-    
+
     avg_entropy = sum(n['entropy_risk'] for n in DEMO_NARRATIVES) / len(DEMO_NARRATIVES)
-    
+
     print(f"\nFeeds Processed: {len(DEMO_FEEDS)}")
     print(f"Narratives Extracted: {len(DEMO_NARRATIVES)}")
     print(f"Average Entropy Risk: {avg_entropy:.1f}/10")
-    print(f"Processing Time: <60 seconds (with Claude API)")
-    print(f"\nTime Saved: ~150 minutes (vs. manual aggregation)")
-    print(f"Signal Quality: Systematic > ad-hoc scrolling")
+    print("Processing Time: <60 seconds (with Claude API)")
+    print("\nTime Saved: ~150 minutes (vs. manual aggregation)")
+    print("Signal Quality: Systematic > ad-hoc scrolling")
 
 def print_next_steps():
     """Print recommended next steps"""
     print("\n" + "=" * 70)
     print("🎯 RECOMMENDED ACTIONS")
     print("=" * 70 + "\n")
-    
+
     print("Based on today's analysis, here's your action plan:\n")
-    
+
     print("1. 🟢 HIGH CONVICTION (Low Entropy)")
     print("   → Execute: Long QQQ calls (March 500s)")
     print("   → Size: 2% of portfolio")
     print("   → Stop loss: -5% on position")
     print("   → Monitor: CPI data (Feb 28)\n")
-    
+
     print("2. 🔴 HIGH RISK (High Entropy)")
     print("   → Monitor: Oil/energy sector (do NOT over-size)")
     print("   → If trading: Small size, defined risk (options only)")
     print("   → Wait for: OPEC clarity (Mar 5)\n")
-    
+
     print("3. 🟡 SELECTIVE (Medium Entropy)")
     print("   → Quality over growth: Favor NVDA/MSFT over speculative tech")
     print("   → Watch: Credit spreads (divergence from equities)")
@@ -214,30 +214,30 @@ def save_demo_output():
             "processing_time_seconds": 45
         }
     }
-    
+
     filename = f"demo_output_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    
+
     with open(filename, 'w') as f:
         json.dump(output, f, indent=2)
-    
+
     print(f"💾 Demo output saved to: {filename}\n")
 
 def main():
     """Run the demo"""
     print_banner()
     input("Press Enter to see sample feeds...\n")
-    
+
     print_feeds()
     input("Press Enter to see AI analysis...\n")
-    
+
     print_narratives()
     input("Press Enter to see summary...\n")
-    
+
     print_summary_stats()
     print_next_steps()
-    
+
     save_demo_output()
-    
+
     print("=" * 70)
     print("✅ DEMO COMPLETE")
     print("=" * 70)

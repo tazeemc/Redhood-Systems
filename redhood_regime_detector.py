@@ -23,9 +23,8 @@ Usage:
 
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +88,7 @@ class RegimeDetector:
 
         self._returns:     pd.Series = pd.Series(dtype=float)
         self._current_heat: float    = 0.0
-        self._state:       Optional[RegimeState] = None
+        self._state:       RegimeState | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -104,7 +103,7 @@ class RegimeDetector:
         self._state   = self._compute_state()
         return self._state
 
-    def current_regime(self) -> Optional[RegimeState]:
+    def current_regime(self) -> RegimeState | None:
         return self._state
 
     def set_current_heat(self, heat: float):
@@ -165,7 +164,7 @@ class RegimeDetector:
         - TRANSITION: neutral
         """
         temp_ratio    = self.base_temp / (T + 1e-9)
-        entropy_factor = np.exp(-(S - self.base_entropy) / 2) if S > self.base_entropy else 1.0
+        entropy_factor = np.exp(-(S - self.base_entropy) / 2) if self.base_entropy < S else 1.0
         heat_factor   = 1.0 - (self._current_heat / self.max_heat)
         raw = float(temp_ratio ** 2 * entropy_factor * heat_factor)
         return round(min(max(raw, 0.0), 2.5), 4)   # cap at 2.5×
@@ -175,8 +174,8 @@ class RegimeDetector:
     # ------------------------------------------------------------------
 
     def _classify(self, T: float, S: float) -> Regime:
-        hi_T = T > self.base_temp
-        hi_S = S > self.base_entropy
+        hi_T = self.base_temp < T
+        hi_S = self.base_entropy < S
         if   not hi_T and not hi_S: return Regime.TRENDING
         elif     hi_T and not hi_S: return Regime.CHOPPY
         elif     hi_T and     hi_S: return Regime.CRISIS
@@ -236,7 +235,7 @@ class SignalGate:
     def __init__(self, detector: RegimeDetector):
         self.detector = detector
 
-    def process(self, signals: List[Signal]) -> List[Signal]:
+    def process(self, signals: list[Signal]) -> list[Signal]:
         state   = self.detector.current_regime()
         if state is None:
             return signals   # no data yet — pass through unmodified
