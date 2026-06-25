@@ -70,11 +70,12 @@ _STOPWORDS: Set[str] = {
     # Currencies / fiat
     "US", "USD", "EUR", "GBP", "JPY", "CNY", "CAD", "AUD", "NZD", "CHF",
     "BRL", "MXN", "INR", "RUB", "ZAR", "TRY", "KRW", "SEK", "NOK", "DKK",
-    "PLN", "HKD", "SGD", "TWD",
+    "PLN", "HKD", "SGD", "TWD", "THB",
     # Common acronyms / verbs / connectives
     "ETF", "ETFS", "ETFs", "AI", "AM", "PM", "API", "CEO", "CFO",
     "FOMC", "FED", "ECB", "BOJ", "BOE", "PBOC",
-    "GDP", "CPI", "PMI", "PPI", "EPS", "PE", "QE", "QT", "OTM", "ITM",
+    "GDP", "CPI", "PCE", "PMI", "PPI", "ISM", "NFP", "JOLTS",
+    "EPS", "PE", "QE", "QT", "OTM", "ITM",
     "DOJ", "DOD", "DHS", "FBI", "CIA", "EU", "UK", "UN", "OPEC", "NATO",
     "IPO", "MM", "BB", "AAA", "BBB", "TIPS",
     "OK", "ON", "IT", "IS", "BE", "OR", "AS", "AT", "AN",
