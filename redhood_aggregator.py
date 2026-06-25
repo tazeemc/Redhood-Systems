@@ -26,8 +26,8 @@ import time
 import base64
 import urllib.request
 import urllib.error
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from datetime import datetime, timedelta, timezone
+from typing import Any
 import sqlite3
 import feedparser
 from anthropic import Anthropic
@@ -42,7 +42,7 @@ from ticker_extraction import (
 )
 
 try:
-    from redhood_regime_detector import RegimeDetector, Regime
+    from redhood_regime_detector import RegimeDetector
     _REGIME_AVAILABLE = True
 except ImportError:
     _REGIME_AVAILABLE = False
@@ -55,7 +55,7 @@ load_dotenv()  # loads .env from project root if present
 
 class Config:
     """Centralized configuration for API keys and feed sources"""
-    
+
     # API Keys (set via environment variables)
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
 
@@ -75,17 +75,17 @@ class Config:
         'nitter.privacydev.net',
         'nitter.net',
     ]
-    
+
     SUBSTACK_FEEDS = [
         'https://arbitrageandy.substack.com/feed',
         'https://doomberg.substack.com/feed',
         'https://noahpinion.substack.com/feed'
     ]
-    
+
     # AI Configuration
-    CLAUDE_MODEL = 'claude-sonnet-4-5'
+    CLAUDE_MODEL = 'claude-sonnet-4-6'
     MAX_FEEDS_TO_PROCESS = 50  # Limit for cost control
-    
+
     # Output
     OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
@@ -96,9 +96,9 @@ class Config:
 
 class FeedItem:
     """Represents a single feed item from any source"""
-    
-    def __init__(self, source: str, author: str, content: str, 
-                 timestamp: datetime, url: str = None, metadata: Dict = None):
+
+    def __init__(self, source: str, author: str, content: str,
+                 timestamp: datetime, url: str = None, metadata: dict = None):
         self.id = f"{source}_{author}_{int(timestamp.timestamp())}"
         self.source = source
         self.author = author
@@ -106,8 +106,8 @@ class FeedItem:
         self.timestamp = timestamp
         self.url = url
         self.metadata = metadata or {}
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             'id': self.id,
             'source': self.source,
@@ -117,17 +117,17 @@ class FeedItem:
             'url': self.url,
             'metadata': self.metadata
         }
-    
+
     def __repr__(self):
         return f"FeedItem({self.source}, {self.author}, {self.timestamp})"
 
 
 class Narrative:
     """Represents an AI-extracted market narrative"""
-    
+
     def __init__(self, title: str, entropy_risk: int, hypothesis: str,
-                 rationale: str, catalysts: List[str], supporting_feeds: List[str],
-                 bear_case: str = '', disconfirming_signals: List[str] = None,
+                 rationale: str, catalysts: list[str], supporting_feeds: list[str],
+                 bear_case: str = '', disconfirming_signals: list[str] = None,
                  conviction_adjustment: str = ''):
         self.id = f"narrative_{int(time.time())}_{id(self)}"
         self.date = datetime.now()
@@ -141,7 +141,7 @@ class Narrative:
         self.disconfirming_signals = disconfirming_signals or []
         self.conviction_adjustment = conviction_adjustment
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'id': self.id,
             'date': self.date.isoformat(),
@@ -163,24 +163,24 @@ class Narrative:
 
 class RSSFeedScraper:
     """Scraper for Substack and other RSS feeds"""
-    
+
     @staticmethod
-    def fetch(feed_urls: List[str], hours_back: float = 24) -> List[FeedItem]:
+    def fetch(feed_urls: list[str], hours_back: float = 24) -> list[FeedItem]:
         """Fetch recent posts from RSS feeds"""
         items = []
         cutoff_time = datetime.now() - timedelta(hours=hours_back)
-        
+
         for feed_url in feed_urls:
             try:
                 feed = feedparser.parse(feed_url)
                 source_name = feed.feed.get('title', 'Unknown RSS')
-                
+
                 for entry in feed.entries[:10]:  # Limit to 10 most recent
                     pub_date = datetime(*entry.published_parsed[:6])
-                    
+
                     if pub_date < cutoff_time:
                         continue
-                    
+
                     item = FeedItem(
                         source='rss',
                         author=source_name,
@@ -190,23 +190,23 @@ class RSSFeedScraper:
                         metadata={'feed_url': feed_url}
                     )
                     items.append(item)
-                    
+
             except Exception as e:
                 print(f"Error fetching RSS {feed_url}: {e}")
-        
+
         return items
 
 
 class NitterScraper:
     """Scraper for X/Twitter via Nitter RSS (no API key required)"""
 
-    def __init__(self, instances: List[str]):
+    def __init__(self, instances: list[str]):
         self.instances = instances
 
     def _rss_url(self, instance: str, account: str) -> str:
         return f"https://{instance}/{account}/rss"
 
-    def fetch(self, accounts: List[str], hours_back: float = 24) -> List[FeedItem]:
+    def fetch(self, accounts: list[str], hours_back: float = 24) -> list[FeedItem]:
         """Fetch recent tweets via Nitter RSS, trying each instance per account."""
         items = []
         cutoff_time = datetime.now() - timedelta(hours=hours_back)
@@ -254,12 +254,12 @@ class NitterScraper:
 
 class NarrativeExtractor:
     """Uses Claude AI to extract market narratives from feeds"""
-    
+
     def __init__(self, api_key: str):
         self.client = Anthropic(api_key=api_key)
         self.model = Config.CLAUDE_MODEL
-    
-    def extract_narratives(self, feeds: List[FeedItem], max_feeds: int = 50, regime_context: str = '') -> List[Narrative]:
+
+    def extract_narratives(self, feeds: list[FeedItem], max_feeds: int = 50, regime_context: str = '') -> list[Narrative]:
         """
         Process feeds through Claude to extract top narratives
 
@@ -280,11 +280,11 @@ class NarrativeExtractor:
 
         # Build prompt
         prompt = self._build_extraction_prompt(feeds_text, regime_context)
-        
+
         # Call Claude API
         try:
             print(f"🤖 Analyzing {len(feeds_to_process)} feeds with Claude...")
-            
+
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=4000,
@@ -292,7 +292,7 @@ class NarrativeExtractor:
                     {"role": "user", "content": prompt}
                 ]
             )
-            
+
             # Parse response
             response_text = response.content[0].text
             narratives = self._parse_claude_response(response_text, feeds_to_process)
@@ -301,18 +301,18 @@ class NarrativeExtractor:
 
             # Second pass: adversarial stress-test
             if narratives:
-                print(f"🔴 Running adversarial stress-test...")
+                print("🔴 Running adversarial stress-test...")
                 narratives = self._stress_test_narratives(narratives)
 
             return narratives
-            
+
         except Exception as e:
             print(f"❌ Error calling Claude API: {e}")
             return []
-    
-    def _format_feeds_for_prompt(self, feeds: List[FeedItem]) -> str:
+
+    def _format_feeds_for_prompt(self, feeds: list[FeedItem]) -> str:
         """Format feeds into readable text for Claude"""
-        
+
         formatted = []
         for i, feed in enumerate(feeds, 1):
             formatted.append(
@@ -320,9 +320,9 @@ class NarrativeExtractor:
                 f"{feed.timestamp.strftime('%Y-%m-%d %H:%M')}\n"
                 f"{feed.content[:300]}...\n"
             )
-        
+
         return "\n".join(formatted)
-    
+
     def _build_extraction_prompt(self, feeds_text: str, regime_context: str = '') -> str:
         """Build the prompt for Claude"""
         regime_section = (
@@ -371,7 +371,7 @@ IMPORTANT:
 - Be specific with trade ideas (not just "buy tech")
 - Entropy scoring should reflect information quality/consensus level"""
 
-    def _build_adversarial_prompt(self, narratives: List['Narrative']) -> str:
+    def _build_adversarial_prompt(self, narratives: list['Narrative']) -> str:
         """Build the adversarial stress-test prompt from extracted narratives"""
         narr_text = ''
         for i, n in enumerate(narratives, 1):
@@ -411,13 +411,13 @@ IMPORTANT:
 - Match narrative_title exactly to the titles provided above
 - conviction_adjustment must start with one of: Full Size / Half Size / Quarter Size / Pass"""
 
-    def _stress_test_narratives(self, narratives: List['Narrative']) -> List['Narrative']:
+    def _stress_test_narratives(self, narratives: list['Narrative']) -> list['Narrative']:
         """Second Claude pass: adversarial stress-test of each narrative."""
         prompt = self._build_adversarial_prompt(narratives)
         try:
             response = self.client.messages.create(
                 model=self.model,
-                max_tokens=2000,
+                max_tokens=4000,
                 messages=[{"role": "user", "content": prompt}]
             )
             response_text = response.content[0].text
@@ -439,32 +439,32 @@ IMPORTANT:
                 narrative.disconfirming_signals = st.get('disconfirming_signals', [])
                 narrative.conviction_adjustment = st.get('conviction_adjustment', '')
 
-            print(f"🔴 Adversarial stress-test complete")
+            print("🔴 Adversarial stress-test complete")
         except Exception as e:
             print(f"⚠️  Stress-test pass failed: {e}")
 
         return narratives
 
-    def _parse_claude_response(self, response_text: str, feeds: List[FeedItem]) -> List[Narrative]:
+    def _parse_claude_response(self, response_text: str, feeds: list[FeedItem]) -> list[Narrative]:
         """Parse Claude's JSON response into Narrative objects"""
-        
+
         try:
             # Remove markdown code blocks if present
             if response_text.strip().startswith('```'):
                 response_text = response_text.split('```')[1]
                 if response_text.startswith('json'):
                     response_text = response_text[4:]
-            
+
             data = json.loads(response_text.strip())
             narratives = []
-            
+
             for n in data.get('narratives', []):
                 # Map feed indices to feed IDs
                 supporting_feeds = [
                     feeds[i-1].id for i in n.get('supporting_feed_indices', [])
                     if 0 < i <= len(feeds)
                 ]
-                
+
                 narrative = Narrative(
                     title=n['title'],
                     entropy_risk=n['entropy_risk'],
@@ -474,9 +474,9 @@ IMPORTANT:
                     supporting_feeds=supporting_feeds
                 )
                 narratives.append(narrative)
-            
+
             return narratives
-            
+
         except json.JSONDecodeError as e:
             print(f"❌ Failed to parse Claude response as JSON: {e}")
             print(f"Response was: {response_text[:500]}...")
@@ -523,7 +523,7 @@ class GitHubPagesPublisher:
         """Create or update a file via the GitHub Contents API."""
         url = (f"https://api.github.com/repos/{self.OWNER}/{self.REPO}"
                f"/contents/{path}")
-        body: Dict[str, Any] = {
+        body: dict[str, Any] = {
             "message": message,
             "content": base64.b64encode(content.encode("utf-8")).decode(),
             "branch": self.BRANCH,
@@ -550,7 +550,7 @@ class GitHubPagesPublisher:
         Returns the permanent archive URL.
         """
         filename = os.path.basename(html_path)
-        with open(html_path, "r", encoding="utf-8") as f:
+        with open(html_path, encoding="utf-8") as f:
             html = f.read()
         ts  = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
         msg = f"Auto-publish RedHood Reads {ts}"
@@ -570,7 +570,7 @@ class GitHubPagesPublisher:
 
 class RedHoodAggregator:
     """Main orchestrator for feed aggregation and analysis"""
-    
+
     def __init__(self):
         self.config = Config()
         init_schema()  # ensure all tables exist (runs, feeds, narratives, etc.)
@@ -579,10 +579,10 @@ class RedHoodAggregator:
         # Initialize scrapers
         self.rss_scraper = RSSFeedScraper()
         self.twitter_scraper = NitterScraper(self.config.NITTER_INSTANCES)
-        
+
         # Initialize AI engine
         self.ai_engine = NarrativeExtractor(self.config.ANTHROPIC_API_KEY)
-        
+
         # Ensure output directory exists
         os.makedirs(self.config.OUTPUT_DIR, exist_ok=True)
 
@@ -605,27 +605,27 @@ class RedHoodAggregator:
             print(f"   ⚠️  Regime detection failed: {e}")
             return None
 
-    def run(self, hours_back: float = 24, trading_json: str = None) -> Dict[str, Any]:
+    def run(self, hours_back: float = 24, trading_json: str = None) -> dict[str, Any]:
         """
         Run full aggregation and analysis pipeline
 
         Returns:
             Dictionary with feeds and narratives
         """
-        
+
         print("=" * 60)
         print("🔥 REDHOOD SYSTEMS - Feed Aggregator")
         print("=" * 60)
         print(f"📅 Fetching feeds from last {hours_back} hours...\n")
-        
+
         # Fetch from all sources
         all_feeds = []
-        
+
         print("📰 Fetching RSS feeds...")
         rss_feeds = self.rss_scraper.fetch(self.config.SUBSTACK_FEEDS, hours_back)
         all_feeds.extend(rss_feeds)
         print(f"   ✅ Found {len(rss_feeds)} RSS items\n")
-        
+
         print("🐦 Fetching Twitter feeds...")
         accounts = get_active_handles() or self.config.TWITTER_ACCOUNTS
         print(f"   📋 Active accounts from DB: {', '.join('@' + a for a in accounts)}")
@@ -634,11 +634,11 @@ class RedHoodAggregator:
         print(f"   ✅ Found {len(twitter_feeds)} tweets\n")
 
         print(f"📊 Total feeds collected: {len(all_feeds)}\n")
-        
+
         if not all_feeds:
             print("⚠️  No feeds found. Check your API keys and feed URLs.")
             return {'feeds': [], 'narratives': []}
-        
+
         # Sort by timestamp (most recent first)
         all_feeds.sort(key=lambda x: x.timestamp, reverse=True)
 
@@ -693,7 +693,7 @@ class RedHoodAggregator:
         trading_data_for_print = []
         if trading_json and os.path.exists(trading_json):
             try:
-                with open(trading_json, 'r', encoding='utf-8-sig') as f:
+                with open(trading_json, encoding='utf-8-sig') as f:
                     raw = json.load(f)
                 trading_data_for_print = raw if isinstance(raw, list) else [raw]
             except Exception:
@@ -701,9 +701,9 @@ class RedHoodAggregator:
         self._print_summary(narratives, trading_data_for_print)
 
         return results
-    
-    def _save_results(self, results: Dict[str, Any],
-                      narratives: List[Narrative], hours_back: float,
+
+    def _save_results(self, results: dict[str, Any],
+                      narratives: list[Narrative], hours_back: float,
                       trading_json: str = None, regime_state=None):
         """Save results to JSON and HTML report. Returns (json_path, html_path)."""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -718,7 +718,7 @@ class RedHoodAggregator:
         trading_data = []
         if trading_json and os.path.exists(trading_json):
             try:
-                with open(trading_json, 'r', encoding='utf-8-sig') as f:
+                with open(trading_json, encoding='utf-8-sig') as f:
                     raw = json.load(f)
                 trading_data = raw if isinstance(raw, list) else [raw]
             except Exception as e:
@@ -776,7 +776,7 @@ class RedHoodAggregator:
         tape = '\n    '.join(items)
         return tape + '\n    ' + tape  # duplicate for seamless loop
 
-    def _save_html_report(self, results: Dict[str, Any], narratives: List[Narrative],
+    def _save_html_report(self, results: dict[str, Any], narratives: list[Narrative],
                           filepath: str, timestamp: str, hours_back: float,
                           trading_data: list = None, regime_state=None):
         """Generate styled RedHood Reads HTML report from run data."""
@@ -873,13 +873,75 @@ class RedHoodAggregator:
         thought_conviction = H.escape(top.conviction_adjustment) if top and top.conviction_adjustment else ''
         grid_html = '\n'.join(grid_col(n, i) for i, n in enumerate(narrs))
 
-        link_rows = ''.join(
-            f'<tr id="feed-{i}"><td class="feed-num">{i}</td>'
-            f'<td class="ts">{f["timestamp"][:16].replace("T"," ")}</td>'
-            f'<td class="author">{H.escape(f["author"])}</td>'
-            f'<td><a href="{H.escape(f["url"])}" target="_blank">{H.escape(f["url"])}</a></td></tr>'
-            for i, f in enumerate(twitter_feeds, 1)
-        )
+        # ---- Signal cards: narrative-cited tweets ∪ top-N most recent ----
+        # Self-contained "trade reference" cards — no external X widget, so the
+        # report renders fully offline and identically every time. Tweets cited
+        # as supporting evidence by a narrative are always carded and flagged.
+        import re as _re
+        EMBED_LIMIT = 55
+
+        def _tweet_text(s, limit=280):
+            t = _re.sub(r'<[^>]+>', ' ', s or '')   # strip Nitter HTML
+            t = H.unescape(t)
+            t = _re.sub(r'\s+', ' ', t).strip()
+            return t[:limit] + ('…' if len(t) > limit else '')
+
+        cited_ids = set()
+        for _n in narratives:
+            cited_ids.update(getattr(_n, 'supporting_feeds', None) or [])
+
+        def _tweet_card(i, f):
+            handle = f['author'].lstrip('@')
+            ts     = f['timestamp'][:16].replace('T', ' ')
+            text   = H.escape(_tweet_text(f.get('content', '')))
+            url    = H.escape(f.get('url', ''))
+            cited  = f.get('id') in cited_ids
+            badge  = '<span class="tw-cited">&#9670; CITED</span>' if cited else ''
+            cls    = 'tw-card tw-card-cited' if cited else 'tw-card'
+            # data-* attributes drive the client-side command bar (search/filter/sort)
+            search = H.escape(('@' + handle + ' ' + _tweet_text(f.get('content', ''), 10000)).lower())
+            return (f'<div class="tweet-embed" id="feed-{i}" data-handle="{H.escape(handle.lower())}" '
+                    f'data-cited="{"1" if cited else "0"}" data-ts="{H.escape(f.get("timestamp",""))}" '
+                    f'data-search="{search}"><div class="{cls}">'
+                    f'<div class="tw-head"><span class="tw-handle">@{handle}</span>'
+                    f'<span class="tw-meta">{badge}<span class="tw-ts">{ts}</span></span></div>'
+                    f'<div class="tw-body">{text}</div>'
+                    f'<a class="tw-link" href="{url}" target="_blank">View on X &rarr;</a>'
+                    f'</div></div>')
+
+        # Card a tweet if it's within the top-N recent OR cited by a narrative.
+        embed_cards, rest = [], []
+        for i, f in enumerate(twitter_feeds, 1):
+            if i <= EMBED_LIMIT or f.get('id') in cited_ids:
+                embed_cards.append(_tweet_card(i, f))
+            else:
+                rest.append((i, f))
+        embeds_html = '\n'.join(embed_cards)
+        embed_count = len(embed_cards)
+        cited_count = sum(1 for f in twitter_feeds if f.get('id') in cited_ids)
+
+        # Un-carded tweets stay as a compact links table so synopsis "feed N"
+        # anchors beyond the card set still resolve.
+        if rest:
+            rest_rows = ''.join(
+                f'<tr id="feed-{i}"><td class="feed-num">{i}</td>'
+                f'<td class="ts">{f["timestamp"][:16].replace("T"," ")}</td>'
+                f'<td class="author">{H.escape(f["author"])}</td>'
+                f'<td><a href="{H.escape(f["url"])}" target="_blank">{H.escape(f["url"])}</a></td></tr>'
+                for i, f in rest
+            )
+            links_section_html = (
+                '<details class="links-section sec">'
+                '<summary class="sec-summary">'
+                f'<span class="links-header">Additional Signal Links &mdash; '
+                f'{len(rest)} more &middot; {run_time_short}</span>'
+                '<span class="sec-chevron">&#9662;</span></summary>'
+                '<table class="links-table">'
+                '<thead><tr><th>#</th><th>Timestamp</th><th>Account</th><th>Link</th></tr></thead>'
+                f'<tbody>{rest_rows}</tbody></table></details>'
+            )
+        else:
+            links_section_html = ''
 
         ticker_html = self._fetch_ticker_prices()
 
@@ -965,8 +1027,6 @@ class RedHoodAggregator:
         bbc_paras = []
         if narratives:
             n1 = narratives[0]
-            risk_word = ('significant' if n1.entropy_risk >= 8
-                         else 'notable' if n1.entropy_risk >= 5 else 'moderate')
             lede = (n1.rationale if n1.rationale else n1.hypothesis)
             if lede:
                 bbc_paras.append(H.escape(lede))
@@ -1005,7 +1065,6 @@ class RedHoodAggregator:
             synopsis_html = ''
 
         # Auto-link "feed N" / "feeds N-M" references in synopsis to anchors in the links table
-        import re as _re
         def _linkify_feeds(text):
             def repl(m):
                 word, nums = m.group(1), m.group(2)
@@ -1057,9 +1116,27 @@ class RedHoodAggregator:
                 f'</div></div>'
             )
 
+        # Tactical posture badge derived from the thermodynamic regime, plus an
+        # ISO run-timestamp the client clock uses for the live data-age readout.
+        posture_html = ''
+        if regime_state:
+            _POSTURE = {
+                'TRENDING':   ('WEAPONS FREE', '#00e5a0'),
+                'CHOPPY':     ('TIGHTENED',    '#f5a623'),
+                'CRISIS':     ('WEAPONS HOLD', '#ff4060'),
+                'TRANSITION': ('WATCH',        '#7b8cde'),
+            }
+            plabel, pcolor = _POSTURE.get(regime_state.label.value, ('WATCH', '#c8d4f0'))
+            posture_html = (f'<span class="posture-pill" style="color:{pcolor};'
+                            f'border-color:{pcolor}55;background:{pcolor}14">'
+                            f'POSTURE&nbsp;&middot;&nbsp;{plabel}</span>')
+        run_iso = dt.strftime('%Y-%m-%dT%H:%M:%S')
+
         # Build HTML using string replacement to avoid f-string brace conflicts with CSS
         tpl = self._html_report_template()
         html_out = (tpl
+            .replace('%%POSTURE%%',           posture_html)
+            .replace('%%RUN_ISO%%',           run_iso)
             .replace('%%TOPBAR_DATE%%',       f'{run_date_full} &nbsp;|&nbsp; Week {week_num:02d}')
             .replace('%%ISSUE_NUM%%',         f'Run &middot; {window_label} &middot; {run_time_short}')
             .replace('%%VOL_NUM%%',           str(dt.strftime('%d')))
@@ -1074,7 +1151,10 @@ class RedHoodAggregator:
             .replace('%%TRADING%%',           trading_html)
             .replace('%%SYNOPSIS%%',          synopsis_html)
             .replace('%%REGIME_PANEL%%',      regime_panel_html)
-            .replace('%%LINK_ROWS%%',         link_rows)
+            .replace('%%EMBEDS%%',            embeds_html)
+            .replace('%%EMBED_COUNT%%',       str(embed_count))
+            .replace('%%CITED_COUNT%%',       str(cited_count))
+            .replace('%%LINKS_SECTION%%',     links_section_html)
             .replace('%%FEED_COUNT%%',        str(feed_count))
             .replace('%%RUN_TIME%%',          run_time_short)
             .replace('%%TICKER_HTML%%',       ticker_html)
@@ -1206,6 +1286,38 @@ class RedHoodAggregator:
   .feed-link { color: var(--purple) !important; text-decoration: none !important; border-bottom: 1px solid rgba(123,79,214,0.4); }
   .feed-link:hover { color: var(--cream) !important; }
   tr:target { background: rgba(123,79,214,0.08); outline: 1px solid rgba(123,79,214,0.3); }
+  .embeds-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  /* ---- SIGINT signal cards (tactical trade-reference look) ---- */
+  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+    gap: 14px; align-items: stretch; }
+  .tweet-embed { min-width: 0; display: flex; }
+  .tweet-embed:target .tw-card { outline: 1px solid rgba(184,151,90,0.55); outline-offset: 2px; }
+  .tw-card { position: relative; display: flex; flex-direction: column; width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+    border: 1px solid var(--wire); border-left: 2px solid var(--tangerine);
+    padding: 12px 14px; font-size: 10px; line-height: 1.65;
+    color: rgba(245,240,232,0.78); transition: border-color .15s, transform .15s; }
+  .tw-card::before, .tw-card::after { content: ""; position: absolute; width: 7px; height: 7px;
+    border-color: rgba(244,123,58,0.5); pointer-events: none; }
+  .tw-card::before { top: 4px; right: 4px; border-top: 1px solid; border-right: 1px solid; }
+  .tw-card::after  { bottom: 4px; left: 4px; border-bottom: 1px solid; border-left: 1px solid; }
+  .tw-card:hover { border-left-color: var(--cream); transform: translateY(-1px); }
+  .tw-card-cited { border-left: 2px solid var(--gold);
+    background: linear-gradient(180deg, rgba(184,151,90,0.10), rgba(184,151,90,0.02));
+    box-shadow: inset 0 0 0 1px rgba(184,151,90,0.15); }
+  .tw-card-cited::before, .tw-card-cited::after { border-color: rgba(184,151,90,0.7); }
+  .tw-head { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 8px; margin-bottom: 7px; }
+  .tw-handle { color: var(--tangerine); font-weight: 500; letter-spacing: 0.05em; }
+  .tw-meta { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .tw-cited { font-size: 7px; letter-spacing: 0.18em; color: var(--gold); font-weight: 600;
+    border: 1px solid rgba(184,151,90,0.45); padding: 1px 5px; background: rgba(184,151,90,0.08); }
+  .tw-ts { color: var(--text-muted); font-size: 8px; letter-spacing: 0.04em; }
+  .tw-body { color: rgba(245,240,232,0.82); flex: 1; }
+  .tw-link { display: inline-block; margin-top: 10px; font-size: 8px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--pink); text-decoration: none;
+    border-top: 1px solid var(--wire); padding-top: 7px; }
+  .tw-link:hover { color: var(--cream); }
   .footer { display: flex; align-items: center; justify-content: space-between;
     padding: 14px 28px; background: rgba(193,18,31,0.04); }
   .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
@@ -1285,18 +1397,68 @@ class RedHoodAggregator:
   .rm-val { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
     color: var(--cream); line-height: 1; margin-bottom: 3px; }
   .rm-sub { font-size: 7.5px; color: var(--text-muted); letter-spacing: 0.05em; }
+  /* ---- Tactical framing: reticle corners + classification banner ---- */
+  .reticle { position: absolute; width: 16px; height: 16px; z-index: 3; pointer-events: none;
+    border-color: rgba(244,123,58,0.55); }
+  .reticle.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
+  .reticle.tr { top: 6px; right: 6px; border-top: 1px solid; border-right: 1px solid; }
+  .reticle.bl { bottom: 6px; left: 6px; border-bottom: 1px solid; border-left: 1px solid; }
+  .reticle.br { bottom: 6px; right: 6px; border-bottom: 1px solid; border-right: 1px solid; }
+  .classbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 28px; background: repeating-linear-gradient(45deg,
+      rgba(193,18,31,0.12) 0 10px, rgba(193,18,31,0.04) 10px 20px);
+    border-bottom: 1px solid rgba(193,18,31,0.25);
+    font-size: 7.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+  .classbar .cb-mid { color: rgba(245,240,232,0.55); letter-spacing: 0.2em; }
+  @media (max-width: 600px) { .classbar .cb-mid { display: none; } }
+  .posture-pill { font-size: 7.5px; letter-spacing: 0.18em; font-weight: 600;
+    padding: 2px 8px; border: 1px solid; margin-left: 6px; }
+  #dataAge { color: var(--tangerine); }
+  /* ---- collapsible sections (native <details>) ---- */
+  details.sec { padding: 0; border-bottom: 1px solid var(--wire); }
+  details.sec > summary { list-style: none; cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px 0; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  .sec-summary .links-header { margin-bottom: 0; }
+  .sec-chevron { color: var(--text-muted); font-size: 10px; transition: transform .2s; }
+  details.sec[open] > summary .sec-chevron { transform: rotate(180deg); }
+  details.sec > .tweet-grid, details.sec > .cmdbar { margin: 14px 28px 22px; }
+  details.sec > table.links-table { margin: 8px 28px 20px; width: calc(100% - 56px); }
+  /* ---- command bar (signal filter HUD) ---- */
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--wire); background: rgba(255,255,255,0.02); }
+  .cmd-input { flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--cream); font-family: "IBM Plex Mono", monospace; font-size: 9px;
+    letter-spacing: 0.1em; padding: 6px 9px; }
+  .cmd-input::placeholder { color: var(--text-muted); letter-spacing: 0.18em; }
+  .cmd-input:focus { outline: none; border-color: rgba(244,123,58,0.6); }
+  .cmd-btn, .cmd-select { background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--text-muted); font-family: "IBM Plex Mono", monospace; font-size: 8px;
+    letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 10px; cursor: pointer; }
+  .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
+  .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
+  .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
 </style>
 </head>
 <body>
 <div class="card">
   <div class="scanline"></div>
+  <div class="reticle tl"></div><div class="reticle tr"></div>
+  <div class="reticle bl"></div><div class="reticle br"></div>
 
   <div class="topbar">
     <div class="topbar-left">
       <div class="pulse"></div>
       <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+      %%POSTURE%%
     </div>
-    <span class="topbar-date">%%TOPBAR_DATE%%</span>
+    <span class="topbar-date">%%TOPBAR_DATE%% &middot; <span id="dataAge" data-runts="%%RUN_ISO%%">live</span></span>
+  </div>
+
+  <div class="classbar">
+    <span>// SIGNAL INTELLIGENCE</span>
+    <span class="cb-mid">TRADE REFERENCE &middot; HANDLE WITH DISCRETION</span>
+    <span>NOT FINANCIAL ADVICE //</span>
   </div>
 
   <div class="ticker-wrap"><div class="ticker-inner">
@@ -1322,6 +1484,8 @@ class RedHoodAggregator:
 
   <div class="metrics-strip">%%METRICS%%</div>
 
+  %%SYNOPSIS%%
+
   <div class="grid-section">%%GRID%%</div>
 
   <div class="thought-block">
@@ -1338,17 +1502,27 @@ class RedHoodAggregator:
 
   %%TRADING%%
 
-  %%SYNOPSIS%%
-
   %%REGIME_PANEL%%
 
-  <div class="links-section">
-    <div class="links-header">Raw Signal Links &mdash; %%FEED_COUNT%% feeds &middot; %%RUN_TIME%%</div>
-    <table class="links-table">
-      <thead><tr><th>#</th><th>Timestamp</th><th>Account</th><th>Link</th></tr></thead>
-      <tbody>%%LINK_ROWS%%</tbody>
-    </table>
-  </div>
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">SIGINT &mdash; Signal Cards &middot; %%EMBED_COUNT%% of %%FEED_COUNT%% &middot; %%CITED_COUNT%% narrative-cited + top 55 &middot; %%RUN_TIME%%</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">SORT &middot; RECENT</option>
+        <option value="handle">SORT &middot; HANDLE</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+    </div>
+    <div class="tweet-grid" id="tweetGrid">%%EMBEDS%%</div>
+  </details>
+
+  %%LINKS_SECTION%%
 
   <div class="footer">
     <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
@@ -1360,10 +1534,75 @@ class RedHoodAggregator:
     </div>
   </div>
 </div>
+<script>
+(function(){
+  "use strict";
+  var grid = document.getElementById('tweetGrid');
+  if (grid) {
+    var cards   = Array.prototype.slice.call(grid.querySelectorAll('.tweet-embed'));
+    var search  = document.getElementById('cardSearch');
+    var cited   = document.getElementById('citedToggle');
+    var acct    = document.getElementById('acctFilter');
+    var sortSel = document.getElementById('sortSel');
+    var count   = document.getElementById('cardCount');
+    var citedOnly = false;
+
+    // Populate the account dropdown from the cards present.
+    var seen = {};
+    cards.forEach(function(c){ var h = c.getAttribute('data-handle'); if (h) seen[h] = 1; });
+    Object.keys(seen).sort().forEach(function(h){
+      var o = document.createElement('option'); o.value = h; o.textContent = '@' + h; acct.appendChild(o);
+    });
+
+    function apply(){
+      var q = (search.value || '').toLowerCase().trim();
+      var a = acct.value;
+      var shown = 0;
+      cards.forEach(function(c){
+        var ok = true;
+        if (q && c.getAttribute('data-search').indexOf(q) < 0) ok = false;
+        if (a && c.getAttribute('data-handle') !== a) ok = false;
+        if (citedOnly && c.getAttribute('data-cited') !== '1') ok = false;
+        c.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      count.textContent = shown + ' / ' + cards.length + ' shown';
+    }
+    function sortCards(){
+      var mode = sortSel.value;
+      cards.slice().sort(function(x, y){
+        if (mode === 'handle') return x.getAttribute('data-handle').localeCompare(y.getAttribute('data-handle'));
+        return y.getAttribute('data-ts').localeCompare(x.getAttribute('data-ts'));
+      }).forEach(function(c){ grid.appendChild(c); });
+    }
+
+    search.addEventListener('input', apply);
+    acct.addEventListener('change', apply);
+    cited.addEventListener('click', function(){
+      citedOnly = !citedOnly; cited.classList.toggle('on', citedOnly); apply();
+    });
+    sortSel.addEventListener('change', function(){ sortCards(); apply(); });
+    apply();
+  }
+
+  // Live data-age readout: "T+Xh Ym" since the run timestamp.
+  var age = document.getElementById('dataAge');
+  if (age) {
+    var t0 = new Date(age.getAttribute('data-runts')).getTime();
+    var tick = function(){
+      if (!t0 || isNaN(t0)) { age.textContent = 'live'; return; }
+      var s = Math.max(0, Math.floor((Date.now() - t0) / 1000));
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      age.textContent = 'T+' + (h ? h + 'h ' : '') + m + 'm';
+    };
+    tick(); setInterval(tick, 30000);
+  }
+})();
+</script>
 </body>
 </html>'''
-    
-    def _persist_to_db(self, hours_back: float, all_feeds: List, narratives: List,
+
+    def _persist_to_db(self, hours_back: float, all_feeds: list, narratives: list,
                         json_path: str, html_path: str) -> int:
         """Persist run results into SQLite (runs, feeds, narratives, narrative_feeds)."""
         conn = sqlite3.connect(DB_PATH)
@@ -1371,7 +1610,7 @@ class RedHoodAggregator:
             cursor = conn.execute(
                 """INSERT INTO runs (run_at, hours_back, feeds_collected, narratives_extracted, json_path, html_path)
                    VALUES (?, ?, ?, ?, ?, ?)""",
-                (datetime.utcnow().isoformat(), hours_back,
+                (datetime.now(timezone.utc).replace(tzinfo=None).isoformat(), hours_back,
                  len(all_feeds), len(narratives), json_path, html_path)
             )
             run_id = cursor.lastrowid
@@ -1441,7 +1680,7 @@ class RedHoodAggregator:
         finally:
             conn.close()
 
-    def _print_summary(self, narratives: List[Narrative], trading_data: list = None):
+    def _print_summary(self, narratives: list[Narrative], trading_data: list = None):
         """Print formatted summary of narratives and trading signals"""
 
         if trading_data:
@@ -1473,11 +1712,11 @@ class RedHoodAggregator:
         print("\n" + "=" * 60)
         print("📋 DAILY BRIEF - TOP NARRATIVES")
         print("=" * 60 + "\n")
-        
+
         for i, narrative in enumerate(narratives, 1):
             entropy_level = "🟢 LOW" if narrative.entropy_risk <= 3 else \
                            "🟡 MEDIUM" if narrative.entropy_risk <= 7 else "🔴 HIGH"
-            
+
             print(f"[{i}] {narrative.title}")
             print(f"    Entropy Risk: {entropy_level} ({narrative.entropy_risk}/10)")
             print(f"    💡 Hypothesis: {narrative.hypothesis}")
@@ -1496,9 +1735,9 @@ class RedHoodAggregator:
 
 def main():
     """Command-line interface for the aggregator"""
-    
+
     import argparse
-    
+
     parser = argparse.ArgumentParser(
         description='RedHood Systems - AI-Powered Market Intelligence'
     )
@@ -1544,7 +1783,7 @@ def main():
     # Run aggregator
     aggregator = RedHoodAggregator()
     results = aggregator.run(hours_back=args.hours, trading_json=args.trading_json)
-    
+
     print("\n✅ Pipeline complete!")
     print(f"   Feeds processed: {len(results['feeds'])}")
     print(f"   Narratives extracted: {len(results['narratives'])}")
