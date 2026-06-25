@@ -96,10 +96,10 @@ Before building anything, I validated the problem with 50 traders (survey + inte
 - **Why:** Portfolio-ready output; visualizes narratives in a professional format
 - **How:** `%%TOKEN%%` placeholder system (avoids f-string/CSS brace conflicts); Playfair Display + IBM Plex Mono design
 
-#### 5. SQLite Persistence
-- **What:** All runs, feeds, narratives, and join tables stored in `redhood.db`
-- **Why:** Historical tracking, deduplication, queryable data
-- **How:** `INSERT OR IGNORE` for feed deduplication; unique narrative IDs via `f"narrative_{time}_{id(self)}"`
+#### 5. SQLite Persistence (Star Schema)
+- **What:** All runs, feeds, narratives, tickers, prices, earnings, grades, and bridge/join tables stored in `redhood.db` — a star schema (twitter_accounts, runs, feeds, narratives, narrative_feeds, narrative_tickers, narrative_grades, tickers, prices, earnings, date_dim)
+- **Why:** Historical tracking, deduplication, queryable data, and a clean dimensional model for BI
+- **How:** `INSERT OR IGNORE` for feed deduplication; unique narrative IDs via `f"narrative_{time}_{id(self)}"`; Power BI compatibility views (dim_runs, fact_narratives, fact_narratives_ticker, dim_ticker, dim_date, fact_prices, fact_earnings, fact_narrative_grades) layered on top
 
 #### 6. Account Management CLI
 - **What:** `accounts_db.py` — add, remove, toggle, list tracked X/Twitter accounts
@@ -107,9 +107,34 @@ Before building anything, I validated the problem with 50 traders (survey + inte
 - **How:** SQLite `twitter_accounts` table; `get_active_handles()` called each run
 
 #### 7. Trading System (run.ps1)
-- **What:** Thermodynamic position-sizing model integrated in PowerShell runner
+- **What:** Thermodynamic position-sizing model integrated in PowerShell runner; default feed window is 45 minutes
 - **Why:** Ties RedHood narrative signals to actual sizing recommendations
 - **How:** Yahoo Finance data; temperature/entropy/momentum/RSI calculations; `IN/OUT/NEUTRAL` recommendations
+
+#### 8. Thermodynamic Regime Detection
+- **What:** `redhood_regime_detector.py` — reads market temperature/entropy state and auto-generates signals
+- **Why:** Turns the thermodynamic framing into an automatic signal layer rather than a manual read
+- **How:** Maps the detected regime to a signal multiplier that feeds position sizing
+
+#### 9. Ticker & Side Extraction
+- **What:** `ticker_extraction.py` — pulls tickers and Long/Short/Hedge/Pair sides out of each hypothesis
+- **Why:** Structures free-text narratives into queryable instruments for the star schema and BI
+- **How:** Populates the `narrative_tickers` bridge table (one row per narrative/ticker/side)
+
+#### 10. Hypothesis Grading
+- **What:** `redhood_grader.py` + `score_narratives.py` — grades each hypothesis 0–20 and assigns an A–F letter
+- **Why:** Adds a quality signal to filter and rank narratives objectively
+- **How:** Scores Specificity / Catalyst / Risk Management / Cohesion, sums to a letter grade, and extracts long-side equity/ETF tickers
+
+#### 11. Long-Only P&L Tracking
+- **What:** `redhood_pnl.py` — a $2,500-per-ticker ledger that tracks long-only performance
+- **Why:** Closes the loop on "which signals actually made money"
+- **How:** Pulls prices via yfinance (optional dependency) against grader-vetted long equities
+
+#### 12. Power BI Export Pipeline
+- **What:** `powerbi/` — SQLite → Power BI export
+- **Why:** Turns the star schema into an interactive, shareable BI dashboard
+- **How:** Power Query (M) for ingestion plus DAX measures over the compatibility views
 
 ---
 
@@ -130,7 +155,7 @@ Before building anything, I validated the problem with 50 traders (survey + inte
 
 **Build Approach:**
 - **Language:** Python (fastest for data processing + API calls)
-- **AI:** Anthropic Claude Sonnet 4.6 (best cost/performance for financial analysis)
+- **AI:** Anthropic Claude Opus 4.8 (best cost/performance for financial analysis)
 - **Architecture:** Pipeline (scrape → AI → SQLite + HTML + JSON)
 
 **Technical Challenges & Solutions:**
@@ -289,7 +314,7 @@ Before building anything, I validated the problem with 50 traders (survey + inte
 - Python development (600+ lines production code)
 - Nitter RSS scraping (no API key required)
 - AI prompt engineering (Claude for structured analysis)
-- SQLite schema design (5 tables, indexes, JOIN table)
+- SQLite star-schema design (11 tables + Power BI views, indexes, bridge/JOIN tables)
 - HTML report generation with CSS template system
 - PowerShell trading system with thermodynamic sizing
 
@@ -307,7 +332,7 @@ Before building anything, I validated the problem with 50 traders (survey + inte
 
 **Development:**
 - Python 3.9 (core language)
-- Anthropic Claude API (AI analysis)
+- Anthropic Claude API — Claude Opus 4.8 (AI analysis)
 - feedparser (RSS + Nitter parsing)
 - python-dotenv (environment config)
 - SQLite (persistence)
@@ -351,6 +376,6 @@ Newsletter: [RedHood Reads on Substack](https://substack.com/@redhoodcapital)
 
 **Project Timeline:** February 2026 (4 weeks)
 **Status:** MVP Complete, Live System Running
-**Case Study Version:** 1.1 (Updated February 22, 2026)
+**Case Study Version:** 1.2 (Updated June 24, 2026)
 
 *This case study was prepared for portfolio and job application purposes. All data and metrics are based on actual research and development work.*

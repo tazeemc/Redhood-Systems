@@ -6,9 +6,10 @@
 ## What You Have
 
 A complete, working portfolio project:
-- Working Python aggregator with AI narrative extraction
+- Working Python aggregator with AI narrative extraction (Claude `claude-opus-4-8`)
 - Styled **RedHood Reads** HTML report generated each run
-- SQLite database storing all runs, feeds, and narratives
+- SQLite star-schema database storing runs, feeds, narratives, tickers, grades, and prices
+- Narrative scoring/grading and a long-only P&L leaderboard
 - Account management CLI for tracked X/Twitter handles
 - PowerShell runner with integrated trading system analysis
 - Professional PRD and market research documents
@@ -49,19 +50,25 @@ ANTHROPIC_API_KEY=sk-ant-your-key-here
 
 3. **Install dependencies:**
 ```bash
-pip install anthropic feedparser python-dotenv --break-system-packages
+pip install -r requirements.txt
 ```
+> `yfinance` is an **optional** dependency — only needed for `redhood_pnl.py`
+> or scoring with `--with-pnl`. The rest of the pipeline runs without it.
 
 4. **Run via PowerShell (recommended):**
 ```powershell
-.\run.ps1                          # 5-min window + trading analysis
-.\run.ps1 -Hours 1                 # last 1 hour
-.\run.ps1 -Hours 24 -SkipTrading   # 24h RedHood only
+.\run.ps1                              # 45-min window (default) + trading analysis
+.\run.ps1 -Hours 5                     # last 5 hours
+.\run.ps1 -Symbols "AAPL","MSFT"       # custom symbols
+.\run.ps1 -Hours 24 -SkipTrading       # 24h RedHood only
+.\run.ps1 -SkipRedHood                 # trading analysis only
 ```
 
 5. **Or run Python directly:**
 ```bash
-python redhood_aggregator.py --hours 1
+python redhood_aggregator.py                       # ~10-min window (default)
+python redhood_aggregator.py --hours 1             # last 1 hour
+python redhood_aggregator.py --trading-json PATH   # fold in run.ps1 trading output
 ```
 
 **What it produces:**
@@ -123,15 +130,46 @@ python accounts_db.py --remove SomeHandle
 
 ---
 
+### 4. Score, Grade & Track P&L
+
+Once you have narratives in the database, you can grade them, extract tickers, and track simulated performance.
+
+```bash
+# Grade every narrative -> narrative_tickers + narrative_grades (idempotent)
+python score_narratives.py
+
+# Only score narratives created on/after a date
+python score_narratives.py --since 2026-06-01
+
+# Preview grades without writing to the DB
+python score_narratives.py --dry-run
+
+# Score, then refresh prices and print the P&L leaderboard
+python score_narratives.py --with-pnl
+
+# Long-only P&L leaderboard ($2,500/ticker; needs yfinance)
+python redhood_pnl.py --report
+
+# Demo mode with sample data — no API key required
+python demo.py
+```
+
+> `--with-pnl` and `redhood_pnl.py` require the optional `yfinance` package.
+
+---
+
 ## File Guide
 
 | File | Purpose |
 |------|---------|
 | `redhood_aggregator.py` | Main aggregator — scraping, AI, HTML report, DB persistence |
 | `accounts_db.py` | CLI for managing tracked X/Twitter accounts in SQLite |
+| `score_narratives.py` | Grade narratives + extract tickers into the DB |
+| `redhood_pnl.py` | Long-only P&L leaderboard (optional, needs yfinance) |
+| `demo.py` | Demo mode with sample data — no API key required |
 | `models.py` | SQLite schema definitions + init helpers |
 | `run.ps1` | PowerShell runner: trading analysis + RedHood aggregator |
-| `redhood.db` | SQLite database (created automatically on first run) |
+| `redhood.db` | SQLite star-schema database (created automatically on first run) |
 | `CASE_STUDY.md` | Portfolio writeup for job applications |
 | `README.md` | Technical overview |
 | `PRD_RedHood_Systems.md` | Product spec — shows PM thinking |
@@ -193,7 +231,7 @@ A: For PM roles, showing the PRD and market research is often more valuable than
 A: The `data/` folder. HTML reports open directly in any browser. JSON files can be viewed in any text editor or VS Code.
 
 **Q: What's in the database?**
-A: Open `redhood.db` with any SQLite viewer (DB Browser for SQLite is free). Tables: `runs`, `feeds`, `narratives`, `narrative_feeds`, `twitter_accounts`.
+A: Open `redhood.db` with any SQLite viewer (DB Browser for SQLite is free). It's a star schema storing runs, feeds, and narratives plus extracted tickers, grades, and prices. Key tables: `runs`, `feeds`, `narratives`, `narrative_feeds`, `narrative_tickers`, `narrative_grades`, `tickers`, `prices`, `twitter_accounts`.
 
 ---
 
@@ -203,6 +241,9 @@ A: Open `redhood.db` with any SQLite viewer (DB Browser for SQLite is free). Tab
 - [ ] Set up `.env` and run `python redhood_aggregator.py` successfully
 - [ ] Open `data/redhood_reads_*.html` in a browser — see the styled report
 - [ ] Run `python accounts_db.py --list` to see tracked accounts
+- [ ] Run `python score_narratives.py` to grade narratives and extract tickers
+- [ ] (Optional) Run `python redhood_pnl.py --report` for the P&L leaderboard
+- [ ] No API key? Run `python demo.py` to see the pipeline on sample data
 - [ ] Read and understand `CASE_STUDY.md`
 - [ ] Update resume with bullet point above
 - [ ] Practice 3-minute walkthrough
@@ -210,3 +251,7 @@ A: Open `redhood.db` with any SQLite viewer (DB Browser for SQLite is free). Tab
 ---
 
 **You're ready to showcase this. Good luck!**
+
+---
+
+*Last updated: June 24, 2026*

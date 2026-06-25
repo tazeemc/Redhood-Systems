@@ -2,8 +2,8 @@
 ## AI-Powered Market Intelligence Dashboard
 
 **Document Owner:** Tazeem Chowdhury
-**Last Updated:** February 22, 2026
-**Status:** MVP Complete — v1.1
+**Last Updated:** June 24, 2026
+**Status:** MVP Complete — v1.2
 **Target Launch:** March 15, 2026 (Web Dashboard)
 
 ---
@@ -82,7 +82,7 @@ RedHood Systems is an AI-powered feed aggregator that consolidates multi-source 
 
 ## Product Specification
 
-### MVP Feature Set — Shipped (v1.1)
+### MVP Feature Set — Shipped (v1.2)
 
 #### 1. Feed Aggregation Engine
 - **User Story:** "As a trader, I want to see all relevant posts from my curated sources in one place"
@@ -96,7 +96,7 @@ RedHood Systems is an AI-powered feed aggregator that consolidates multi-source 
 #### 2. AI Narrative Extraction
 - **User Story:** "As a trader, I want AI to identify the top 3 market narratives from 100+ posts"
 - **Shipped:**
-  - Claude claude-sonnet-4-6 integration
+  - Claude claude-opus-4-8 integration
   - Structured JSON output with fallback parser (strips markdown fences)
   - Physics-inspired analogies (entropy, momentum, phase transitions)
   - Processing time: <60 seconds for 50 posts
@@ -130,7 +130,8 @@ Output as JSON only.
 #### 4. SQLite Persistence
 - **User Story:** "As a trader, I want all runs archived so I can track signal history"
 - **Shipped:**
-  - 5 tables: `twitter_accounts`, `runs`, `feeds`, `narratives`, `narrative_feeds`
+  - Star schema: `twitter_accounts`, `runs`, `feeds`, `narratives`, `narrative_feeds`, `narrative_tickers`, `narrative_grades`, `tickers`, `prices`, `earnings`, `date_dim` (plus Power BI views)
+  - `narrative_tickers` bridge captures one row per (narrative, ticker, side) for star-schema joins
   - `INSERT OR IGNORE` for feed deduplication across runs
   - Unique narrative IDs: `f"narrative_{int(time.time())}_{id(self)}"`
   - All outputs (JSON path, HTML path) recorded per run
@@ -148,7 +149,38 @@ Output as JSON only.
   - Thermodynamic position sizing: temperature, entropy, momentum, RSI, heat factor
   - Yahoo Finance market data (MA20, MA50, trend, recommendation: IN/OUT/NEUTRAL)
   - `-SkipTrading` and `-SkipRedHood` flags for selective execution
+  - Default time window is 45 minutes (`-Hours 0.75`); common overrides 5h / 24h
   - Results saved to `data/TradingAnalysis_TIMESTAMP.json`
+
+#### 7. Thermodynamic Regime Detection
+- **User Story:** "As a trader, I want signals automatically gated and sized based on the current market regime"
+- **Shipped:**
+  - `redhood_regime_detector.py`: `RegimeDetector` classifies regime (e.g. TRENDING) from close prices using temperature, entropy, heat budget, and KL divergence
+  - `SignalGate` auto-generates and sizes signals via a per-regime `signal_multiplier`, acting as a pre-filter layer in the aggregation pipeline
+
+#### 8. Ticker / Side Extraction (Star-Schema Bridge)
+- **User Story:** "As a trader, I want each narrative mapped to the specific tickers and long/short sides it implies"
+- **Shipped:**
+  - `ticker_extraction.py`: parses free-text hypotheses into `{ticker, side, pattern}` records (Long/Short/Hedge/Pair), populating the `narrative_tickers` bridge
+  - Closes audit gaps G1 (no ticker dimension) and G2 (no long/short side attribute)
+
+#### 9. Hypothesis Grading (0–20 → A–F)
+- **User Story:** "As a trader, I want each trade hypothesis scored for quality so I can prioritize the strongest ideas"
+- **Shipped:**
+  - `redhood_grader.py`: grades hypotheses 0–20 across four axes (Specificity / Catalyst / Risk Management / Cohesion) → A–F letter grade, plus long-side ticker extraction (pure stdlib)
+  - `score_narratives.py` runs the grader across stored narratives and writes results to the `narrative_grades` table
+
+#### 10. Long-only P&L Tracking
+- **User Story:** "As a trader, I want to see realized/unrealized P&L on the tickers each narrative implied"
+- **Shipped:**
+  - `redhood_pnl.py`: reads `narrative_tickers`, fetches historical close prices via `yfinance`, and computes P&L on a $2,500-per-ticker sizing convention
+  - Entry date = narrative's `run_at` (next trading-day close if weekend/holiday); CLI flags for `--refresh`, `--since`, `--size`, `--report`
+
+#### 11. Power BI Export Pipeline
+- **User Story:** "As an analyst, I want to drive a Power BI dashboard off the RedHood data store"
+- **Shipped:**
+  - `powerbi/` export pipeline: Power Query M scripts + DAX measures over the star-schema views
+  - Integration guide at `docs/POWERBI_INTEGRATION.md`
 
 ---
 
@@ -190,8 +222,17 @@ Output as JSON only.
 ┌──────────────┐   ┌─────────────────────────┐
 │  redhood.db  │   │  data/                  │
 │  (SQLite)    │   │  redhood_reads_*.html   │
-│  5 tables    │   │  redhood_insights_*.json│
-└──────────────┘   └─────────────────────────┘
+│  star schema │   │  redhood_insights_*.json│
+└──────┬───────┘   └─────────────────────────┘
+       │
+       ▼
+┌──────────────────────────────────────────┐
+│  Insights & Export Layer                 │
+│  - redhood_grader / score_narratives     │
+│  - ticker_extraction (narrative_tickers) │
+│  - redhood_pnl (yfinance, $2,500/ticker) │
+│  - powerbi/ (Power Query M + DAX)        │
+└──────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────┐
 │  run.ps1 (PowerShell)                    │
@@ -203,13 +244,21 @@ Output as JSON only.
 
 ### Data Models (Implemented in models.py)
 
-**SQLite Tables:**
+**SQLite Tables (star schema):**
 ```sql
 twitter_accounts (id, handle, added_at, active, category, notes)
 runs             (id, run_at, hours_back, feeds_collected, narratives_extracted, json_path, html_path)
 feeds            (id, run_id, source, author, content, published_at, url, nitter_instance)
 narratives       (id, run_id, title, entropy_risk, hypothesis, rationale, catalysts, created_at)
-narrative_feeds  (narrative_id, feed_id)  -- join table
+narrative_feeds  (narrative_id, feed_id)            -- join table
+narrative_tickers(narrative_id, ticker, side, ...)  -- bridge: one row per (narrative, ticker, side)
+narrative_grades (narrative_id, total, letter_grade, ...)  -- 0-20 score → A-F
+tickers          -- ticker dimension
+prices           -- historical close prices (yfinance)
+earnings         -- earnings calendar
+date_dim         -- calendar dimension
+-- plus Power BI views (dim_runs, fact_narratives, fact_narratives_ticker,
+--   dim_ticker, dim_date, fact_prices, fact_narrative_grades, fact_earnings)
 ```
 
 ---
@@ -292,17 +341,25 @@ narrative_feeds  (narrative_id, feed_id)  -- join table
 - [x] .env support for API key management
 - [x] GitHub repo published
 
-### Phase 2: Enhanced Analysis (March 2026)
+### Phase 2: Insights, Scoring & P&L — Complete (June 2026)
+- [x] Thermodynamic regime detection + auto signal generation (`redhood_regime_detector.py`)
+- [x] Ticker/side extraction into `narrative_tickers` star-schema bridge (`ticker_extraction.py`)
+- [x] Hypothesis grading 0–20 → A–F with long-ticker extraction (`redhood_grader.py`, `score_narratives.py`)
+- [x] Long-only P&L tracking — $2,500/ticker via yfinance (`redhood_pnl.py`)
+- [x] Star-schema SQLite store (11 tables + Power BI views)
+- [x] Power BI export pipeline — Power Query M + DAX (`powerbi/`, `docs/POWERBI_INTEGRATION.md`)
+
+### Phase 2b: Enhanced Analysis (Planned)
 - [ ] Live ticker data in HTML report
 - [ ] Historical backtesting across DB runs
 - [ ] Sentiment trend charts
 - [ ] Alert system for high-entropy events
 
-### Phase 3: Web Dashboard (April 2026)
+### Phase 3: Web Dashboard (Planned)
 - [ ] React frontend
 - [ ] FastAPI backend
 - [ ] User authentication
-- [ ] Trade journal UI
+- [ ] Trade journal UI (P&L tracking shipped in Phase 2 via `redhood_pnl.py`)
 - [ ] Deployed demo (Vercel)
 
 ### Phase 4: Scale (Post-MVP)
@@ -347,13 +404,15 @@ narrative_feeds  (narrative_id, feed_id)  -- join table
 ```
 
 ### Competitive Feature Matrix
-| Feature | Bloomberg | Koyfin | StockTwits | RedHood (v1.1) |
+| Feature | Bloomberg | Koyfin | StockTwits | RedHood (v1.2) |
 |---------|-----------|--------|------------|----------------|
 | Social feeds | No | No | Yes | Yes |
 | AI analysis | No | No | No | Yes |
 | HTML reports | No | No | No | Yes |
-| SQLite persistence | No | No | No | Yes |
-| Trade journal | Yes | No | No | Planned |
+| SQLite persistence | No | No | No | Yes (star schema) |
+| Hypothesis grading (A–F) | No | No | No | Yes |
+| P&L tracking | Yes | No | No | Yes |
+| Power BI export | No | No | No | Yes |
 | Price | $24K/yr | Free | Free | $49/mo |
 
 ### Related Resources
@@ -366,3 +425,4 @@ narrative_feeds  (narrative_id, feed_id)  -- join table
 **Document History:**
 - v1.0 (Feb 15, 2026): Initial PRD
 - v1.1 (Feb 22, 2026): Updated to reflect shipped MVP — SQLite, HTML reports, Nitter RSS, account CLI, trading system
+- v1.2 (Jun 24, 2026): Insights/scoring/P&L release — claude-opus-4-8 model, thermodynamic regime detection, ticker/side extraction (`narrative_tickers`), hypothesis grading (0–20 → A–F), long-only P&L (yfinance), star-schema SQLite, Power BI export; `run.ps1` default window now 45 min

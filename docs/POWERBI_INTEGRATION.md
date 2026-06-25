@@ -18,6 +18,7 @@ naming, surface derived columns, and pre-join FKs that the report needs.
 | `dim_runs`                 | `runs`                             | 1 row / run |
 | `fact_narratives`          | `narratives`                       | 1 row / narrative |
 | `fact_narratives_ticker`   | `narrative_tickers` + `narratives` | many rows / narrative |
+| `fact_narrative_grades`    | `narrative_grades` + `narratives`  | 1 row / narrative |
 | `dim_ticker`               | `tickers`                          | 1 row / symbol |
 | `dim_date`                 | `date_dim`                         | 1 row / day  |
 | `fact_prices`              | `prices`                           | 1 row / (ticker, date) |
@@ -40,6 +41,7 @@ In Power BI Desktop:
 5. Wire relationships:
    - `fact_narratives[run_id]` → `dim_runs[run_id]`
    - `fact_narratives_ticker[narrative_id]` → `fact_narratives[narrative_id]`
+   - `fact_narrative_grades[narrative_id]` → `fact_narratives[narrative_id]` (1:1)
    - `fact_narratives_ticker[ticker]` → `dim_ticker[ticker]`
    - `dim_runs[run_date]` → `dim_date[date]`
    - `fact_narratives[created_date]` → `dim_date[date]` (inactive — turn on

@@ -2,7 +2,7 @@
 ## Everything You Need for PM Job Applications
 
 **Created:** February 15, 2026
-**Updated:** February 22, 2026
+**Updated:** June 24, 2026
 **Status:** MVP Complete
 **Purpose:** Portfolio project demonstrating full PM skillset
 
@@ -92,7 +92,7 @@ A complete, interview-ready portfolio project showcasing:
 **Features:**
 - X/Twitter via Nitter RSS (no API key required)
 - Substack RSS aggregation
-- Claude AI integration with prompt engineering
+- Claude AI integration (`claude-opus-4-8`) with prompt engineering
 - RedHood Reads HTML report generated every run
 - Full SQLite persistence (runs, feeds, narratives, narrative_feeds)
 
@@ -109,38 +109,114 @@ A complete, interview-ready portfolio project showcasing:
 
 #### 5. Database Schema
 **File:** `models.py`
-**What it is:** SQLite schema with 5 tables and init helpers
-**Tables:** twitter_accounts, runs, feeds, narratives, narrative_feeds
+**What it is:** SQLite star schema with init helpers
+**Tables:** twitter_accounts, runs, feeds, narratives, narrative_feeds, narrative_tickers, narrative_grades, tickers, prices, earnings, date_dim (+ Power BI views)
 
 ---
 
 #### 6. PowerShell Runner
 **File:** `run.ps1`
-**What it is:** Combined runner: thermodynamic trading system analysis + RedHood aggregator
+**What it is:** Combined runner: thermodynamic trading system analysis + RedHood aggregator (default lookback window: 45 minutes)
 **To run:** `.\run.ps1` or `.\run.ps1 -Hours 1 -SkipTrading`
 
 ---
 
 #### 7. SQLite Database
 **File:** `redhood.db`
-**What it is:** Live database created on first run — browse with DB Browser for SQLite
-**Contains:** All runs, feeds, narratives, and tracked accounts
+**What it is:** Live star-schema database created on first run — browse with DB Browser for SQLite
+**Contains:** twitter_accounts, runs, feeds, narratives, narrative_feeds, narrative_tickers, narrative_grades, tickers, prices, earnings, date_dim, plus Power BI views
+
+---
+
+### INSIGHTS & SCORING
+
+#### 8. Regime Detector
+**File:** `redhood_regime_detector.py`
+**What it is:** Thermodynamic regime detection (temperature/entropy) with auto signal generation; gates and sizes each signal based on the current market regime
+**Use it for:** Demonstrating the physics-based framework as a pre-filter layer in the signal pipeline
+
+---
+
+#### 9. Ticker Extraction
+**File:** `ticker_extraction.py`
+**What it is:** Extracts ticker symbols and Long/Short/Hedge/Pair sides from a narrative's free-text hypothesis into the `narrative_tickers` bridge table
+
+---
+
+#### 10. Hypothesis Grader
+**File:** `redhood_grader.py`
+**What it is:** Grades a hypothesis 0–20 across four axes (Specificity / Catalyst / Risk Management / Cohesion) → an A–F letter grade, and extracts long-side tickers
+**Notes:** Pure stdlib — no external dependencies
+
+---
+
+#### 11. Score Narratives CLI
+**File:** `score_narratives.py`
+**What it is:** Grades all narratives and writes results to `narrative_tickers` + `narrative_grades` (idempotent; safe to re-run)
+**To run:** `python score_narratives.py` (flags: `--since`, `--dry-run`, `--with-pnl`)
+
+---
+
+#### 12. P&L Tracker
+**File:** `redhood_pnl.py`
+**What it is:** Long-only P&L ledger at $2,500 per ticker, computed from `narrative_tickers` via yfinance
+**Notes:** yfinance is an optional dependency — the script exits cleanly with install instructions if it's missing
+**To run:** `python redhood_pnl.py --report`
+
+---
+
+#### 13. Backfill
+**File:** `backfill.py`
+**What it is:** Backfills `narrative_tickers` from historical narratives and brings an existing `redhood.db` up to the post-audit star schema
+**To run:** `python backfill.py`
+
+---
+
+#### 14. Demo Mode
+**File:** `demo.py`
+**What it is:** Demonstrates the full system with sample data — no API key required
+**To run:** `python demo.py`
+
+---
+
+### POWER BI EXPORT
+
+#### 15. Power BI Pipeline
+**Directory:** `powerbi/`
+**What it is:** Export pipeline for Power BI
+**Contains:**
+- `export_to_powerbi.py` — export script
+- `power_query.m` — Power Query (M) source
+- `dax_measures.dax` — DAX measures
+- `report_layout.md` — report layout spec
 
 ---
 
 ### SUPPORTING DOCUMENTS
 
-#### 8. README
+#### 16. README
 **File:** `README.md`
-**What it is:** Technical documentation & project overview
+**What it is:** Technical documentation & project overview (version 1.2)
 **Use it for:** GitHub repository landing page, quick technical reference
 
 ---
 
-#### 9. Release Notes
+#### 17. Release Notes
 **File:** `RELEASE_NOTES.md`
 **What it is:** Version history and feature changelog
 **Use it for:** Demonstrating disciplined release management
+
+---
+
+#### 18. Power BI Integration Guide
+**File:** `docs/POWERBI_INTEGRATION.md`
+**What it is:** Documentation for the Power BI export and reporting integration
+
+---
+
+#### 19. Audit
+**File:** `AUDIT_2026-05.md`
+**What it is:** May 2026 schema/data audit documenting the move to the star schema and the gaps it closed
 
 ---
 
@@ -233,5 +309,8 @@ A complete, interview-ready portfolio project showcasing:
 
 **v1.0:** February 15, 2026 — Initial MVP (RSS + AI + JSON output)
 **v1.1:** February 22, 2026 — SQLite persistence, account management CLI, RedHood Reads HTML report, trading system integration, Nitter RSS (no Twitter API required)
+**v1.2:** June 24, 2026 — Star-schema database, thermodynamic regime detection, hypothesis grading + ticker extraction, narrative scoring CLI, long-only P&L tracking, Power BI export pipeline, and the `claude-opus-4-8` model
+
+**Install:** `pip install -r requirements.txt`
 
 *All artifacts are production-ready and can be used immediately in job applications.*

@@ -2,6 +2,46 @@
 
 ---
 
+## v1.2 — June 24, 2026
+
+### Summary
+Analytics release adding hypothesis grading, long-only P&L tracking, and a star-schema data model with a full Power BI export pipeline. The Claude model is upgraded to `claude-opus-4-8`.
+
+### New Features
+
+**Hypothesis Grading (`redhood_grader.py`, `score_narratives.py`)**
+- Scores each narrative 0–20 across four dimensions: Specificity, Catalyst, Risk Management, Cohesion
+- Maps the score to an A–F letter grade
+- Extracts long-side tickers from narratives
+- Writes results to a new `narrative_grades` table
+
+**Long-Only P&L Tracking (`redhood_pnl.py`)**
+- $2,500-per-ticker ledger over extracted tickers
+- Prices pulled via yfinance (optional dependency)
+
+**Star-Schema Data Model (`ticker_extraction.py`, `backfill.py`, `models.py`)**
+- Ticker/side extraction into a `narrative_tickers` bridge table
+- `models.py` reconciled into a star schema: `narrative_tickers`, `narrative_grades`, `tickers`, `prices`, `earnings`, `date_dim`
+- Power BI compatibility views
+
+**Thermodynamic Regime Detection (`redhood_regime_detector.py`)**
+- Detects market regime and auto-generates signals
+
+**Power BI Export Pipeline (`powerbi/`)**
+- `export_to_powerbi.py`, `power_query.m`, `dax_measures.dax`, `report_layout.md`
+- Integration guide at `docs/POWERBI_INTEGRATION.md`
+
+### Changes
+- Bumped the Claude model to `claude-opus-4-8` (from `claude-sonnet-4-6`)
+- `run.ps1` default feed window changed from 5 to 45 minutes
+
+### Dependencies
+```
+yfinance (optional)
+```
+
+---
+
 ## v1.1 — February 22, 2026
 
 ### Summary

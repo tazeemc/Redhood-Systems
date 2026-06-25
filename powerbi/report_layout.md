@@ -3,7 +3,7 @@
 ## Setup checklist
 
 1. Run `python powerbi/export_to_powerbi.py` to generate `powerbi/data/*.csv`
-2. Open Power BI Desktop → Get Data → Text/CSV → import all 5 files
+2. Open Power BI Desktop → Get Data → Text/CSV → import all 8 files (5 base + 3 audit additions: `fact_narrative_tickers`, `fact_narrative_grades`, `fact_prices`)
 3. Open Transform Data, apply the M scripts in `power_query.m` per table
 4. Close & Apply
 5. Create a DateTable (formula in `power_query.m`) and mark it as Date Table
