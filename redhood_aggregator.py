@@ -648,7 +648,7 @@ class GitHubPagesPublisher:
         filename = os.path.basename(html_path)
         with open(html_path, encoding="utf-8") as f:
             html = f.read()
-        ts  = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+        ts  = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         msg = f"Auto-publish RedHood Reads {ts}"
 
         archive_path = f"{self.DOCS_PATH}/{filename}"

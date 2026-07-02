@@ -68,9 +68,15 @@ def score_all(db_path: str = DB_PATH,
                   f"long={g.long_tickers}")
             continue
 
-        # Replace any existing rows for this narrative (idempotent)
+        # Replace any existing rows for this narrative (idempotent).
+        # Only delete grader-owned ticker rows (is_long_equity = 1) — the
+        # star-schema rows written by ticker_extraction.py (Long/Short/Hedge
+        # sides, is_long_equity = 0) share this bridge table and must survive
+        # re-scoring (see the narrative_tickers doc block in models.py).
         conn.execute("DELETE FROM narrative_grades  WHERE narrative_id = ?", (n['id'],))
-        conn.execute("DELETE FROM narrative_tickers WHERE narrative_id = ?", (n['id'],))
+        conn.execute(
+            "DELETE FROM narrative_tickers "
+            "WHERE narrative_id = ? AND is_long_equity = 1", (n['id'],))
 
         conn.execute(
             "INSERT INTO narrative_grades "

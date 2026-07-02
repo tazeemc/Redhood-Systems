@@ -10,8 +10,8 @@ pandas>=2.0.0
 # Optional: For Twitter scraping
 tweepy>=4.14.0
 
-# Optional: For Telegram scraping
-telethon>=1.34.0
+# Note: Telegram scraping needs no extra dependency — public channels are
+# read via the t.me/s/ web preview using the standard library.
 
 # Optional: For data analysis
 numpy>=1.24.0
