@@ -25,3 +25,7 @@ yfinance>=0.2.40
 # Optional: For web interface
 fastapi>=0.109.0
 uvicorn>=0.27.0
+
+# Dev / CI: tests and static analysis (see .github/workflows/ci.yml)
+pytest>=8.0.0
+ruff>=0.4.0

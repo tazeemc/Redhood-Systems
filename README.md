@@ -7,6 +7,7 @@
 ![Status](https://img.shields.io/badge/status-MVP%20Complete-green)
 ![Python](https://img.shields.io/badge/python-3.9+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![CI](https://github.com/tazeemc/Redhood-Systems/actions/workflows/ci.yml/badge.svg)](https://github.com/tazeemc/Redhood-Systems/actions/workflows/ci.yml)
 
 ---
 
@@ -128,6 +129,18 @@ python score_narratives.py --since 2026-03-01 --with-pnl
 python redhood_pnl.py --report
 ```
 
+### Run Tests & Static Analysis
+
+```bash
+pip install pytest ruff
+
+# Unit tests (44 tests — extraction, grading, Telegram scraper, DB schema)
+pytest
+
+# Static analysis (also runs in CI on every push/PR)
+ruff check .
+```
+
 ### Manage Tracked Accounts
 
 ```bash
@@ -195,6 +208,9 @@ Redhood-Systems/
 ├── run.ps1                    # PowerShell runner: trading analysis + aggregator
 ├── redhood.db                 # SQLite database (star schema)
 ├── requirements.txt           # Python dependencies
+├── pyproject.toml             # pytest + ruff configuration
+├── tests/                     # Unit test suite (pytest, network-free)
+├── .github/workflows/ci.yml   # CI: ruff static analysis + pytest matrix
 ├── .env                       # ANTHROPIC_API_KEY (not committed)
 ├── powerbi/                   # Power BI export pipeline
 │   ├── export_to_powerbi.py   #   SQLite → Power BI dataset
