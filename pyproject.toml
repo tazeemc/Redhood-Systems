@@ -1,0 +1,27 @@
+# Tooling configuration for RedHood Systems (tests + static analysis).
+# The project itself is a script collection, not an installable package.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+extend-exclude = ["docs", "powerbi/*.m", "powerbi/*.dax"]
+
+[tool.ruff.lint]
+# Default rule set (pycodestyle errors + pyflakes) plus import hygiene
+# and common bug patterns. Style-only rules are deliberately left out —
+# this codebase favors aligned columns in config literals.
+select = ["E4", "E7", "E9", "F", "B", "PLE"]
+ignore = [
+    "E731",  # lambda assignment — used intentionally for tiny helpers
+]
+
+[tool.ruff.lint.per-file-ignores]
+# These modules use compact one-line `if x: return y` threshold ladders
+# intentionally (grading rubrics, banding helpers)
+"redhood_grader.py" = ["E701"]
+"redhood_regime_detector.py" = ["E701"]
+"powerbi/export_to_powerbi.py" = ["E701"]

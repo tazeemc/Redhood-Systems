@@ -9,7 +9,7 @@
 
 param(
     [double]$Hours          = 0.75,             # default: 45 minutes  |  common: 5 (5h), 24 (full day)
-    [string[]]$Symbols      = @("NU", "BTC-USD", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT"),  # default: NU + BTC + FAANG + WMT
+    [string[]]$Symbols      = @("NU", "BTC-USD", "BLSH", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT"),  # default: NU + BTC + BLSH + FAANG + WMT
     [double]$BaseTemp       = 25.0,
     [double]$MaxHeat        = 80.0,
     [double]$InitialEquity  = 100000.0,

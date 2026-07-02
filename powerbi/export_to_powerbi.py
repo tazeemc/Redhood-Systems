@@ -377,7 +377,7 @@ def export_fact_prices(conn):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    print(f"\nRedHood Systems - Power BI Export")
+    print("\nRedHood Systems - Power BI Export")
     print(f"Database : {DB_PATH}")
     print(f"Output   : {OUT_DIR}\n")
 
@@ -404,108 +404,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-uns r       ON r.id = n.run_id
-        ORDER BY r.run_at, nt.ticker
-    """).fetchall()
-
-    has_prices = _table_exists(conn, 'prices')
-    out = []
-    for r in rows:
-        run_date = (r['run_at'] or '')[:10]
-        entry_close = None
-        entry_date  = None
-        last_close  = None
-        if has_prices:
-            ec = conn.execute(
-                "SELECT price_date, close FROM prices "
-                "WHERE ticker=? AND price_date>=? "
-                "ORDER BY price_date ASC LIMIT 1",
-                (r['ticker'], run_date)
-            ).fetchone()
-            if ec:
-                entry_date  = ec['price_date']
-                entry_close = ec['close']
-            lc = conn.execute(
-                "SELECT close FROM prices WHERE ticker=? "
-                "ORDER BY price_date DESC LIMIT 1",
-                (r['ticker'],)
-            ).fetchone()
-            if lc:
-                last_close = lc['close']
-        out.append({
-            'narrative_id':   r['narrative_id'],
-            'ticker':         r['ticker'],
-            'side':           r['side'],
-            'is_long_equity': r['is_long_equity'],
-            'extracted_at':   r['extracted_at'],
-            'entry_date':     entry_date,
-            'entry_close':    entry_close,
-            'last_close':     last_close,
-        })
-    fields = ['narrative_id', 'ticker', 'side', 'is_long_equity',
-              'extracted_at', 'entry_date', 'entry_close', 'last_close']
-    write_csv('fact_narrative_tickers.csv', out, fields)
-
-
-def export_fact_narrative_grades(conn):
-    if not _table_exists(conn, 'narrative_grades'):
-        print("  -- narrative_grades not present; skipping (run score_narratives.py first)")
-        return
-    rows = conn.execute(
-        "SELECT narrative_id, specificity, catalyst_score, risk_score, "
-        "cohesion, total_score, letter_grade, graded_at "
-        "FROM narrative_grades ORDER BY graded_at DESC"
-    ).fetchall()
-    out = [dict(r) for r in rows]
-    fields = ['narrative_id', 'specificity', 'catalyst_score', 'risk_score',
-              'cohesion', 'total_score', 'letter_grade', 'graded_at']
-    write_csv('fact_narrative_grades.csv', out, fields)
-
-
-def export_fact_prices(conn):
-    if not _table_exists(conn, 'prices'):
-        print("  -- prices not present; skipping (run redhood_pnl.py first)")
-        return
-    rows = conn.execute(
-        "SELECT ticker, price_date, close, fetched_at, source "
-        "FROM prices ORDER BY ticker, price_date"
-    ).fetchall()
-    out = [dict(r) for r in rows]
-    fields = ['ticker', 'price_date', 'close', 'fetched_at', 'source']
-    write_csv('fact_prices.csv', out, fields)
-
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-def main():
-    print(f"\nRedHood Systems - Power BI Export")
-    print(f"Database : {DB_PATH}")
-    print(f"Output   : {OUT_DIR}\n")
-
-    if not os.path.exists(DB_PATH):
-        print(f"ERROR: Database not found at {DB_PATH}")
-        return
-
-    conn = connect()
-
-    export_dim_runs(conn)
-    export_dim_accounts(conn)
-    export_fact_feeds(conn)
-    export_fact_narratives(conn)
-    export_bridge_narrative_feeds(conn)
-
-    # Audit additions (2026-05)
-    export_fact_narrative_tickers(conn)
-    export_fact_narrative_grades(conn)
-    export_fact_prices(conn)
-
-    conn.close()
-    print(f"\nDone. Import the CSV files from {OUT_DIR} into Power BI Desktop.")
-    print("See powerbi/dax_measures.dax and powerbi/power_query.m for formulas.")
-
-
-if __name__ == '__main__':
-    main()
-__main__':
     main()

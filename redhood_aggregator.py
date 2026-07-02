@@ -21,9 +21,11 @@ Dependencies:
 """
 
 import os
+import re
 import json
 import time
 import base64
+import html as _html
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta, timezone
@@ -80,6 +82,12 @@ class Config:
         'https://arbitrageandy.substack.com/feed',
         'https://doomberg.substack.com/feed',
         'https://noahpinion.substack.com/feed'
+    ]
+
+    # Public Telegram channels (scraped via the t.me/s/ web preview — no API key
+    # or bot token required, mirroring the Nitter approach for X/Twitter).
+    TELEGRAM_CHANNELS = [
+        'redhoodtrades',
     ]
 
     # AI Configuration
@@ -244,6 +252,94 @@ class NitterScraper:
 
             if not fetched:
                 print(f"⚠️  Could not fetch @{account} from any Nitter instance")
+
+        return items
+
+
+class TelegramScraper:
+    """Scraper for public Telegram channels via the t.me web preview.
+
+    Public channels expose a read-only HTML preview at ``https://t.me/s/<channel>``
+    that lists recent messages without requiring an API key or bot token — the
+    same "no credentials" philosophy used for X/Twitter via Nitter.
+    """
+
+    _PREVIEW_URL = 'https://t.me/s/{channel}'
+
+    # Each rendered message lives in its own ``tgme_widget_message_wrap`` block.
+    _TEXT_RE = re.compile(
+        r'<div class="tgme_widget_message_text[^"]*"[^>]*>(?P<text>.*?)</div>',
+        re.DOTALL,
+    )
+    _TIME_RE = re.compile(r'<time[^>]*datetime="(?P<dt>[^"]+)"')
+    _POST_RE = re.compile(r'data-post="(?P<post>[^"]+)"')
+
+    @staticmethod
+    def _clean(raw_html: str) -> str:
+        """Strip HTML tags/entities from a message body, preserving line breaks."""
+        text = re.sub(r'<br\s*/?>', '\n', raw_html)
+        text = re.sub(r'<[^>]+>', '', text)
+        text = _html.unescape(text)
+        return re.sub(r'\n{3,}', '\n\n', text).strip()
+
+    def fetch(self, channels: list[str], hours_back: float = 24) -> list[FeedItem]:
+        """Fetch recent posts from public Telegram channels via the web preview."""
+        items = []
+        cutoff_time = datetime.now() - timedelta(hours=hours_back)
+
+        for channel in channels:
+            handle = channel.lstrip('@')
+            url = self._PREVIEW_URL.format(channel=handle)
+            try:
+                req = urllib.request.Request(
+                    url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    page = resp.read().decode('utf-8', errors='replace')
+            except Exception as e:
+                print(f"   ⚠️  Could not fetch Telegram channel @{handle}: {e}")
+                continue
+
+            # Split the page into per-message blocks and parse each independently.
+            blocks = page.split('tgme_widget_message_wrap')[1:]
+            found = 0
+            for block in blocks:
+                text_match = self._TEXT_RE.search(block)
+                time_match = self._TIME_RE.search(block)
+                if not text_match or not time_match:
+                    continue
+
+                content = self._clean(text_match.group('text'))
+                if not content:
+                    continue
+
+                try:
+                    # e.g. "2026-07-01T12:34:56+00:00" — normalize to naive local
+                    # time so timestamps sort alongside the other scrapers' feeds.
+                    pub_date = datetime.fromisoformat(time_match.group('dt'))
+                    if pub_date.tzinfo is not None:
+                        pub_date = pub_date.astimezone().replace(tzinfo=None)
+                except ValueError:
+                    continue
+
+                if pub_date < cutoff_time:
+                    continue
+
+                post_match = self._POST_RE.search(block)
+                link = (f"https://t.me/{post_match.group('post')}"
+                        if post_match else url)
+
+                items.append(FeedItem(
+                    source='telegram',
+                    author=f"@{handle}",
+                    content=content,
+                    timestamp=pub_date,
+                    url=link,
+                    metadata={'channel': handle},
+                ))
+                found += 1
+
+            if found == 0:
+                print(f"   ⚠️  No recent messages parsed for Telegram @{handle}")
 
         return items
 
@@ -579,6 +675,7 @@ class RedHoodAggregator:
         # Initialize scrapers
         self.rss_scraper = RSSFeedScraper()
         self.twitter_scraper = NitterScraper(self.config.NITTER_INSTANCES)
+        self.telegram_scraper = TelegramScraper()
 
         # Initialize AI engine
         self.ai_engine = NarrativeExtractor(self.config.ANTHROPIC_API_KEY)
@@ -632,6 +729,13 @@ class RedHoodAggregator:
         twitter_feeds = self.twitter_scraper.fetch(accounts, hours_back)
         all_feeds.extend(twitter_feeds)
         print(f"   ✅ Found {len(twitter_feeds)} tweets\n")
+
+        print("📢 Fetching Telegram channels...")
+        channels = self.config.TELEGRAM_CHANNELS
+        print(f"   📋 Channels: {', '.join('@' + c for c in channels)}")
+        telegram_feeds = self.telegram_scraper.fetch(channels, hours_back)
+        all_feeds.extend(telegram_feeds)
+        print(f"   ✅ Found {len(telegram_feeds)} Telegram messages\n")
 
         print(f"📊 Total feeds collected: {len(all_feeds)}\n")
 
@@ -737,6 +841,7 @@ class RedHoodAggregator:
         """Fetch live prices from Yahoo Finance and return ticker tape HTML (doubled for loop)."""
         TICKERS = [
             ('BTC/USD',  'BTC-USD',   '{:,.0f}',  '$'),
+            ('$BLSH',    'BLSH',      '{:.2f}',   '$'),
             ('S&P 500',  '^GSPC',     '{:,.0f}',  ''),
             ('WTI',      'CL=F',      '{:.2f}',   '$'),
             ('GOLD',     'GC=F',      '{:,.0f}',  '$'),

@@ -93,8 +93,7 @@ _STOPWORDS: Set[str] = {
     "DC", "LA", "NY", "NYC", "USA", "OEM", "OEMS",
     "POTUS", "FLOTUS", "SCOTUS", "RFK", "JFK", "FDR", "MAGA",
     "AC", "WW", "WWI", "WWII", "WWIII",
-    "OPEX", "CAPEX",
-    "OEM", "DOJ", "DHS", "DOD",
+    "CAPEX",
     "NO",
 }
 # Real symbols that pattern-match a stopword regex; never drop these.
