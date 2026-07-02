@@ -33,7 +33,7 @@
 - **RedHood Reads HTML Report:** Styled editorial card report generated every run
 - **Account Management:** CLI tool to manage tracked X/Twitter accounts
 - **Trading System Analysis:** Thermodynamic position-sizing model via `run.ps1`
-- **Multi-Source Aggregation:** X/Twitter (via Nitter RSS, no API key required) and Substack RSS
+- **Multi-Source Aggregation:** X/Twitter (via Nitter RSS, no API key required), Substack RSS, and public Telegram channels (via the `t.me/s/` web preview, no bot token required — includes [@redhoodtrades](https://t.me/redhoodtrades))
 
 ---
 
@@ -42,7 +42,7 @@
 ```
 ┌─────────────────────────────────┐
 │  Data Sources                   │  Nitter RSS (X/Twitter), Substack RSS,
-└─────────────┬───────────────────┘  Yahoo Finance (market data)
+└─────────────┬───────────────────┘  Telegram (t.me/s/ preview), Yahoo Finance
               │
               ▼
 ┌─────────────────────────────────┐
@@ -151,7 +151,11 @@ python accounts_db.py --toggle FirstSquawk
    📋 Active accounts from DB: @unusual_whales, @FirstSquawk, @AutismCapital...
    ✅ Found 12 tweets
 
-📊 Total feeds collected: 30
+📢 Fetching Telegram channels...
+   📋 Channels: @redhoodtrades
+   ✅ Found 9 Telegram messages
+
+📊 Total feeds collected: 39
 
 🧠 AI Analysis Phase...
 ✅ Extracted 3 narratives
@@ -237,6 +241,7 @@ This repository contains key documents demonstrating PM skills:
 - Python 3.9+
 - Anthropic Claude API (claude-opus-4-8)
 - feedparser (RSS + Nitter RSS parsing)
+- urllib + regex (public Telegram channel scraping via `t.me/s/`)
 - python-dotenv (environment config)
 - yfinance (optional — long-only P&L tracking)
 
@@ -342,6 +347,7 @@ Scrum Master | Product Manager | Markets Analyst
   - Financial markets and cryptocurrency research and analysis
 - **LinkedIn:** [linkedin.com/in/tazeemchowdhury](https://www.linkedin.com/in/tazeemchowdhury/)
 - **Twitter/X:** [@redhoodcapital](https://x.com/redhoodcapital)
+- **Telegram:** [@redhoodtrades](https://t.me/redhoodtrades)
 - **Email:** [ctazeem@gmail.com](mailto:ctazeem@gmail.com)
 - **Substack:** [RedHood Reads](https://substack.com/@redhoodcapital)
 
@@ -356,7 +362,8 @@ As a trader and market analyst, I was spending 3+ hours daily across Twitter, Su
 **AI & APIs:**
 - [Anthropic Claude API](https://docs.anthropic.com/)
 - [Nitter](https://nitter.net/) — Twitter RSS proxy (no API key required)
-- [Yahoo Finance API](https://query1.finance.yahoo.com/) — market data for trading analysis
+- [Telegram web preview](https://t.me/s/redhoodtrades) — public channel scraping (no bot token required)
+- [Yahoo Finance API](https://query1.finance.yahoo.com/) — market data for trading analysis (incl. `$BLSH` / Bullish)
 
 ---
 
@@ -368,8 +375,9 @@ Have questions about the project or want to discuss product opportunities?
 **LinkedIn:** [linkedin.com/in/tazeemchowdhury](https://www.linkedin.com/in/tazeemchowdhury/)
 **Newsletter:** [RedHood Reads on Substack](https://substack.com/@redhoodcapital)
 **Twitter/X:** [@redhoodcapital](https://x.com/redhoodcapital)
+**Telegram:** [@redhoodtrades](https://t.me/redhoodtrades)
 
 ---
 
-**Last Updated:** June 24, 2026
-**Version:** 1.2 (Scoring, P&L & Power BI)
+**Last Updated:** July 2, 2026
+**Version:** 1.3 (Telegram source + $BLSH ticker)
