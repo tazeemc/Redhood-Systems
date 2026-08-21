@@ -28,7 +28,7 @@
 - **Thermodynamic Regime Detection:** Auto signal generation from market temperature/entropy state (`redhood_regime_detector.py`)
 - **Trade Hypothesis Generation:** Specific, actionable trade ideas with entry/exit logic
 - **Hypothesis Grading:** 0–20 quality grade (Specificity / Catalyst / Risk Management / Cohesion) + A–F letter, with long-side ticker extraction (`redhood_grader.py`, `score_narratives.py`)
-- **Long-Only P&L Tracking:** $2,500-per-ticker ledger over extracted tickers via yfinance (`redhood_pnl.py`)
+- **Long-Only P&L Tracking:** $2,500-per-ticker ledger over extracted tickers (`redhood_pnl.py`; yfinance preferred, stdlib Yahoo chart API fallback)
 - **Star-Schema Persistence:** Runs, feeds, narratives, tickers, grades, prices, earnings + Power BI views in `redhood.db`
 - **Power BI Export:** SQLite → Power BI pipeline with Power Query (M), DAX measures, and report layout (`powerbi/`)
 - **RedHood Reads HTML Report:** Styled editorial card report generated every run
@@ -59,7 +59,7 @@
 └─────┬──────┘  └─────────────────┘
       │
       ├──▶ score_narratives.py ──▶ grades + long tickers (redhood_grader.py)
-      ├──▶ redhood_pnl.py ───────▶ long-only P&L ledger (yfinance)
+      ├──▶ redhood_pnl.py ───────▶ long-only P&L ledger (yfinance / chart API)
       └──▶ powerbi/export_to_powerbi.py ──▶ Power BI (Power Query + DAX)
 ```
 
@@ -81,7 +81,7 @@ cd Redhood-Systems
 
 # Install dependencies
 pip install -r requirements.txt
-# (yfinance is optional — only needed for redhood_pnl.py / scoring with --with-pnl)
+# (yfinance is optional — redhood_pnl.py falls back to the stdlib Yahoo chart API)
 
 # Set up environment variables
 echo ANTHROPIC_API_KEY=sk-ant-your-key-here > .env
@@ -125,7 +125,7 @@ python score_narratives.py
 # Score only recent narratives, also refresh prices/P&L
 python score_narratives.py --since 2026-03-01 --with-pnl
 
-# Long-only P&L leaderboard ($2,500/ticker; needs yfinance)
+# Long-only P&L leaderboard ($2,500/ticker; yfinance optional)
 python redhood_pnl.py --report
 ```
 
@@ -200,7 +200,7 @@ Redhood-Systems/
 ├── ticker_extraction.py        # Extract tickers + Long/Short/Hedge sides from hypotheses
 ├── redhood_grader.py           # Hypothesis grader (0–20 / A–F) + long-ticker extraction
 ├── score_narratives.py         # CLI: grade narratives → narrative_tickers + narrative_grades
-├── redhood_pnl.py              # CLI: long-only P&L ledger via yfinance
+├── redhood_pnl.py              # CLI: long-only P&L ledger (yfinance or stdlib fallback)
 ├── backfill.py                 # Backfill narrative_tickers from historical narratives
 ├── accounts_db.py             # CLI: manage tracked X/Twitter accounts in SQLite
 ├── models.py                  # SQLite star schema (tables + Power BI views) + init helpers
@@ -259,7 +259,7 @@ This repository contains key documents demonstrating PM skills:
 - feedparser (RSS + Nitter RSS parsing)
 - urllib + regex (public Telegram channel scraping via `t.me/s/`)
 - python-dotenv (environment config)
-- yfinance (optional — long-only P&L tracking)
+- yfinance (optional — long-only P&L tracking; stdlib chart-API fallback built in)
 
 **Data Storage:**
 - SQLite via `redhood.db` — star schema (twitter_accounts, runs, feeds, narratives, narrative_feeds, narrative_tickers, narrative_grades, tickers, prices, earnings, date_dim) plus Power BI compatibility views (dim_runs, fact_narratives, fact_narratives_ticker, fact_prices, fact_narrative_grades, …)

@@ -1,16 +1,17 @@
 """
 RedHood Insights — Long-only P&L Tracker
 =========================================
-Reads narrative_tickers from redhood.db, fetches historical close prices via
-yfinance, and computes P&L on a standard $2,500 per-ticker sizing convention.
+Reads narrative_tickers from redhood.db, fetches historical close prices, and
+computes P&L on a standard $2,500 per-ticker sizing convention.
 
 Entry date = the run_at date of the narrative the ticker was extracted from.
 If that day is a weekend or holiday, the next trading-day close is used.
 Current price = last close in the cache (or, if --refresh, just-fetched).
 
-Optional dependency: yfinance. If not installed, the script prints
-installation instructions and exits cleanly — the rest of the codebase
-keeps working.
+Price sources (tried in order):
+    1. yfinance (optional dependency) — preferred when installed and working
+    2. Yahoo Finance chart API via stdlib urllib — the same endpoint the
+       aggregator uses for its ticker tape; no extra dependency required
 
 Usage:
     python redhood_pnl.py                # update prices, recompute P&L
@@ -23,22 +24,22 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import sqlite3
 import sys
 import os
+import urllib.request
 from datetime import datetime, timedelta, date, timezone
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'redhood.db')
 DEFAULT_SIZE_USD = 2500.0
 
 
-def _need_yfinance():
+def _yfinance_available() -> bool:
     try:
         import yfinance  # noqa: F401
         return True
     except ImportError:
-        print("ERROR: yfinance is not installed.", file=sys.stderr)
-        print("  Install with: pip install yfinance --break-system-packages", file=sys.stderr)
         return False
 
 
@@ -68,14 +69,13 @@ def _cache_has(conn: sqlite3.Connection, ticker: str, on_or_after: str) -> bool:
     return row[0] is not None
 
 
-def fetch_prices(ticker: str, start: str, end: str | None = None) -> list:
-    """Return list of (date_iso, close) tuples for a ticker via yfinance."""
+def _fetch_prices_yfinance(ticker: str, start: str, end: str) -> list:
+    """Return list of (date_iso, close) tuples via yfinance."""
     import yfinance as yf
-    end = end or (date.today() + timedelta(days=1)).isoformat()
     try:
         df = yf.download(ticker, start=start, end=end, progress=False, auto_adjust=False)
     except Exception as e:
-        print(f"  ! {ticker}: download failed: {e}", file=sys.stderr)
+        print(f"  ! {ticker}: yfinance download failed: {e}", file=sys.stderr)
         return []
     if df.empty:
         return []
@@ -91,22 +91,66 @@ def fetch_prices(ticker: str, start: str, end: str | None = None) -> list:
     return out
 
 
+def _fetch_prices_chart_api(ticker: str, start: str, end: str) -> list:
+    """Return list of (date_iso, close) tuples via the Yahoo chart API.
+
+    Stdlib-only fallback using the same endpoint the aggregator's ticker
+    tape and regime detector already rely on.
+    """
+    try:
+        p1 = int(datetime.fromisoformat(start).replace(tzinfo=timezone.utc).timestamp())
+        p2 = int(datetime.fromisoformat(end).replace(tzinfo=timezone.utc).timestamp())
+        url = (f"https://query1.finance.yahoo.com/v8/finance/chart/"
+               f"{urllib.request.quote(ticker)}"
+               f"?period1={p1}&period2={p2}&interval=1d")
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+        result = data['chart']['result'][0]
+        stamps = result.get('timestamp') or []
+        closes = result['indicators']['quote'][0].get('close') or []
+    except Exception as e:
+        print(f"  ! {ticker}: chart API fetch failed: {e}", file=sys.stderr)
+        return []
+    out = []
+    for ts, close in zip(stamps, closes, strict=False):
+        if close is None:
+            continue
+        d = datetime.fromtimestamp(ts, timezone.utc).strftime('%Y-%m-%d')
+        out.append((d, float(close)))
+    return out
+
+
+def fetch_prices(ticker: str, start: str, end: str | None = None) -> tuple[list, str]:
+    """Return ((date_iso, close) tuples, source_label) for a ticker.
+
+    Prefers yfinance when installed; falls back to the stdlib chart API
+    when yfinance is missing or returns nothing.
+    """
+    end = end or (date.today() + timedelta(days=1)).isoformat()
+    if _yfinance_available():
+        rows = _fetch_prices_yfinance(ticker, start, end)
+        if rows:
+            return rows, 'yfinance'
+    return _fetch_prices_chart_api(ticker, start, end), 'yahoo-chart'
+
+
 def update_cache(conn: sqlite3.Connection, ticker: str, since: str,
                  force: bool = False) -> int:
     """Fetch and upsert price rows for `ticker` since the given date."""
     if not force and _cache_has(conn, ticker, since):
         # Cache extends from `since`; only top up the tail (last 7 days)
         recent = (date.today() - timedelta(days=7)).isoformat()
-        rows = fetch_prices(ticker, recent)
+        rows, source = fetch_prices(ticker, recent)
     else:
-        rows = fetch_prices(ticker, since)
+        rows, source = fetch_prices(ticker, since)
     if not rows:
         return 0
     now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     conn.executemany(
         "INSERT OR REPLACE INTO prices (ticker, price_date, close, fetched_at, source) "
-        "VALUES (?, ?, ?, ?, 'yfinance')",
-        [(ticker, d, c, now) for d, c in rows]
+        "VALUES (?, ?, ?, ?, ?)",
+        [(ticker, d, c, now, source) for d, c in rows]
     )
     conn.commit()
     return len(rows)
@@ -145,8 +189,8 @@ def compute_pnl(db_path: str = DB_PATH,
     Returns list of dicts with: narrative_id, ticker, run_at, entry_date,
     entry_close, current_date, current_close, shares, position, pnl, return_pct.
     """
-    if not _need_yfinance():
-        return []
+    if not _yfinance_available() and verbose:
+        print("yfinance not installed — using stdlib Yahoo chart API fallback.")
 
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
