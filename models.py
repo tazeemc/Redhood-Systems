@@ -225,6 +225,33 @@ CREATE TABLE IF NOT EXISTS date_dim (
     is_weekend   INTEGER NOT NULL,
     is_month_end INTEGER NOT NULL
 );
+
+-- -----------------------------------------------------------------------
+-- watchlist  (dimension)
+--   The merged, normalized symbol universe the pipeline trades/analyzes,
+--   sourced from the user's external watchlists (TradingView, Yahoo
+--   Finance) via watchlist.py. One row per normalized (yfinance-format)
+--   symbol; provenance is kept so a symbol dropped from every source can
+--   be deactivated rather than deleted.
+--     * symbol       - normalized yfinance ticker (AAPL, BTC-USD, EURUSD=X)
+--     * sources       - comma-joined origin list (e.g. "tradingview,yahoo")
+--     * raw_symbols   - comma-joined originals as exported (e.g. "NASDAQ:AAPL")
+--     * section       - TradingView section header the symbol sat under
+--     * asset_class   - best-effort guess (equity | etf | crypto | fx | index)
+--     * active        - 1 while present in some source; 0 once it drops out
+--   watchlist.py --sync upserts this table from the export files; run.ps1
+--   reads active symbols from it via watchlist.py --symbols.
+-- -----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS watchlist (
+    symbol        TEXT    PRIMARY KEY,   -- normalized yfinance ticker
+    sources       TEXT    NOT NULL DEFAULT '',   -- comma-joined: tradingview | yahoo
+    raw_symbols   TEXT,                  -- comma-joined originals as exported
+    section       TEXT,                  -- TradingView section header, if any
+    asset_class   TEXT,                  -- equity | etf | crypto | fx | index | n/a
+    active        INTEGER NOT NULL DEFAULT 1,
+    first_added_at TEXT,                 -- ISO-8601 UTC, first sync that saw it
+    last_synced_at TEXT                  -- ISO-8601 UTC, most recent sync that saw it
+);
 """
 
 
@@ -378,6 +405,19 @@ SELECT
     eps_actual, eps_estimate, revenue_actual, revenue_estimate,
     surprise_pct, time_of_day
 FROM earnings;
+
+DROP VIEW IF EXISTS dim_watchlist;
+CREATE VIEW dim_watchlist AS
+SELECT
+    symbol,
+    sources,
+    raw_symbols,
+    section,
+    asset_class,
+    active,
+    first_added_at,
+    last_synced_at
+FROM watchlist;
 """
 
 

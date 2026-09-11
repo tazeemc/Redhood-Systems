@@ -1,15 +1,21 @@
 # RedHood Systems - PowerShell runner (with Trading System Analysis)
 # Usage:
-#   .\run.ps1                          # last 45 minutes (default), default symbols
+#   .\run.ps1                          # last 45 minutes (default), symbols from watchlist
 #   .\run.ps1 -Hours 5                 # last 5 hours
 #   .\run.ps1 -Hours 24                # last 24 hours (full day)
-#   .\run.ps1 -Symbols "NU","AAPL"     # custom symbols
+#   .\run.ps1 -Symbols "NU","AAPL"     # override: analyze these symbols only (skips watchlist)
 #   .\run.ps1 -SkipTrading             # skip trading analysis, run RedHood only
 #   .\run.ps1 -SkipRedHood             # skip RedHood, run trading analysis only
+#
+# Symbols: when -Symbols is not passed, the list is pulled from your merged
+# TradingView + Yahoo Finance watchlist (watchlist.py, backed by redhood.db).
+# Refresh it with `python watchlist.py --sync` after updating the export files
+# in watchlists/. If the watchlist can't be resolved, falls back to NU + BTC +
+# FAANG + WMT so a run is never left with no symbols.
 
 param(
     [double]$Hours          = 0.75,             # default: 45 minutes  |  common: 5 (5h), 24 (full day)
-    [string[]]$Symbols      = @("NU", "BTC-USD", "BLSH", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT"),  # default: NU + BTC + BLSH + FAANG + WMT
+    [string[]]$Symbols      = @(),               # empty => resolve from the watchlist (see below)
     [double]$BaseTemp       = 25.0,
     [double]$MaxHeat        = 80.0,
     [double]$InitialEquity  = 100000.0,
@@ -18,6 +24,30 @@ param(
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# --- Resolve trading symbols from the watchlist ----------------------------
+# Historical default, used only if the watchlist can't be resolved.
+$FallbackSymbols = @("NU", "BTC-USD", "BLSH", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT")
+
+if ($Symbols.Count -eq 0 -and -not $SkipTrading) {
+    $watchlistScript = Join-Path $ScriptDir "watchlist.py"
+    if (Test-Path $watchlistScript) {
+        try {
+            # watchlist.py --symbols prints active symbols, one per line.
+            $pulled = @(& python $watchlistScript --symbols 2>$null | Where-Object { $_ -and $_.Trim() } | ForEach-Object { $_.Trim() })
+            if ($pulled.Count -gt 0) {
+                $Symbols = $pulled
+                Write-Host "Symbols: loaded $($Symbols.Count) from watchlist (TradingView + Yahoo Finance)" -ForegroundColor DarkGray
+            }
+        } catch {
+            Write-Warning "watchlist.py could not be run ($($_.Exception.Message)); using fallback symbols."
+        }
+    }
+    if ($Symbols.Count -eq 0) {
+        $Symbols = $FallbackSymbols
+        Write-Host "Symbols: watchlist empty/unavailable - using fallback list." -ForegroundColor DarkGray
+    }
+}
 
 # ============================================================================
 # TRADING SYSTEM

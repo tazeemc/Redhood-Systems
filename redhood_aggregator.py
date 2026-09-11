@@ -221,13 +221,28 @@ class NitterScraper:
 
         for account in accounts:
             fetched = False
+            reasons = []
             for instance in self.instances:
                 url = self._rss_url(instance, account)
                 try:
                     feed = feedparser.parse(url)
-                    if feed.bozo and not feed.entries:
+                    if not feed.entries:
+                        # No entries means no fetch, whether the body was
+                        # malformed or a valid-but-empty 200 (which rate-limited
+                        # instances return). Previously only the malformed case
+                        # was caught, so an empty 200 counted as success, ended
+                        # the failover loop and silently dropped the account.
+                        reasons.append(
+                            f"{instance}: no entries "
+                            f"({'malformed' if feed.bozo else 'empty response'})"
+                        )
                         continue
-                    for entry in feed.entries[:20]:
+
+                    # Filter by the requested window rather than truncating to a
+                    # fixed slice: a fixed head-slice applied before the cutoff
+                    # capped busy accounts far short of long -hours windows.
+                    added = 0
+                    for entry in feed.entries:
                         if not entry.get('published_parsed'):
                             continue
                         pub_date = datetime(*entry.published_parsed[:6])
@@ -245,13 +260,24 @@ class NitterScraper:
                             metadata={'nitter_instance': instance}
                         )
                         items.append(item)
+                        added += 1
+
+                    # A real feed with nothing inside the window is a genuine
+                    # fetch; another instance would serve the same tweets.
                     fetched = True
+                    if added:
+                        print(f"   ✅ @{account}: {added} tweets via {instance}")
+                    else:
+                        print(f"   ℹ️  @{account}: fetched via {instance}, "
+                              f"but no tweets in the last {hours_back:g}h")
                     break
                 except Exception as e:
-                    print(f"   Nitter instance {instance} failed for @{account}: {e}")
+                    reasons.append(f"{instance}: {e}")
 
             if not fetched:
                 print(f"⚠️  Could not fetch @{account} from any Nitter instance")
+                for reason in reasons:
+                    print(f"      - {reason}")
 
         return items
 
@@ -348,6 +374,38 @@ class TelegramScraper:
 # AI ANALYSIS ENGINE
 # ============================================================================
 
+def _balance_feeds_by_author(feeds: list, max_feeds: int) -> list:
+    """Select up to `max_feeds` items, round-robin across authors.
+
+    `feeds` is assumed newest-first. Grouping by author and taking one per
+    author per round keeps a single high-frequency account (breaking-news /
+    volatility posters like @Mayhem4Markets, @DeItaone) from crowding out
+    quieter accounts in the newest-N slice Claude actually sees. Every author
+    with content is represented (~max_feeds / author-count each) before any
+    author contributes a further round. Re-sorted newest-first for the prompt.
+    """
+    if max_feeds <= 0 or len(feeds) <= max_feeds:
+        return list(feeds)
+
+    from collections import OrderedDict, deque
+    buckets: "OrderedDict[str, deque]" = OrderedDict()
+    for f in feeds:                       # newest-first preserved within each bucket
+        buckets.setdefault(f.author, deque()).append(f)
+
+    selected: list = []
+    while len(selected) < max_feeds and buckets:
+        for author in list(buckets.keys()):
+            bucket = buckets[author]
+            selected.append(bucket.popleft())
+            if not bucket:
+                del buckets[author]
+            if len(selected) >= max_feeds:
+                break
+
+    selected.sort(key=lambda x: x.timestamp, reverse=True)
+    return selected
+
+
 class NarrativeExtractor:
     """Uses Claude AI to extract market narratives from feeds"""
 
@@ -368,8 +426,17 @@ class NarrativeExtractor:
             List of Narrative objects
         """
 
-        # Limit feeds for cost control
-        feeds_to_process = feeds[:max_feeds]
+        # Cost control: cap the feed set — but balance across authors first so a
+        # single high-frequency account can't dominate the newest-N slice and skew
+        # every narrative toward its (often market-panic) voice. Round-robin gives
+        # each account with content a fair share (~max_feeds / author-count).
+        feeds_to_process = _balance_feeds_by_author(feeds, max_feeds)
+
+        if len(feeds) > len(feeds_to_process):
+            from collections import Counter
+            spread = Counter(f.author for f in feeds_to_process)
+            print(f"   ⚖️  Balanced to {len(feeds_to_process)} feeds across "
+                  f"{len(spread)} authors (max {max(spread.values())}/author)")
 
         # Format feeds for prompt
         feeds_text = self._format_feeds_for_prompt(feeds_to_process)
