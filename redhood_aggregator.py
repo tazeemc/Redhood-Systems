@@ -21,11 +21,9 @@ Dependencies:
 """
 
 import os
-import re
 import json
 import time
 import base64
-import html as _html
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta, timezone
@@ -71,10 +69,11 @@ class Config:
         'financialjuice',
     ]
 
-    # Nitter instances to try in order (free, no API key required)
+    # Nitter instances to try in order (free, no API key required).
+    # nitter.poast.org (domain gone) and nitter.privacydev.net (DNS now points
+    # at disabled.privacydev.net) were removed 2026-10. nitter.net has served
+    # 410 on /rss since ~2026-08-21 but is kept in case RSS comes back.
     NITTER_INSTANCES = [
-        'nitter.poast.org',
-        'nitter.privacydev.net',
         'nitter.net',
     ]
 
@@ -82,12 +81,6 @@ class Config:
         'https://arbitrageandy.substack.com/feed',
         'https://doomberg.substack.com/feed',
         'https://noahpinion.substack.com/feed'
-    ]
-
-    # Public Telegram channels (scraped via the t.me/s/ web preview — no API key
-    # or bot token required, mirroring the Nitter approach for X/Twitter).
-    TELEGRAM_CHANNELS = [
-        'redhoodtrades',
     ]
 
     # AI Configuration
@@ -214,6 +207,24 @@ class NitterScraper:
     def _rss_url(self, instance: str, account: str) -> str:
         return f"https://{instance}/{account}/rss"
 
+    @staticmethod
+    def _describe_empty(feed) -> str:
+        """Explain why a parsed feed has no entries, using what feedparser saw.
+
+        feedparser swallows HTTP and network errors, so without this every
+        failure (410 Gone, dead DNS, bot-check page) looked like "malformed".
+        """
+        status = feed.get('status')
+        if status and status >= 400:
+            return f"HTTP {status}"
+        exc = feed.get('bozo_exception')
+        if isinstance(exc, urllib.error.URLError):
+            return f"unreachable ({exc.reason})"
+        if feed.get('bozo'):
+            return (f"not an RSS feed (HTTP {status or '?'}; "
+                    f"likely a bot-check or error page)")
+        return "empty feed (possibly rate-limited)"
+
     def fetch(self, accounts: list[str], hours_back: float = 24) -> list[FeedItem]:
         """Fetch recent tweets via Nitter RSS, trying each instance per account."""
         items = []
@@ -232,10 +243,7 @@ class NitterScraper:
                         # instances return). Previously only the malformed case
                         # was caught, so an empty 200 counted as success, ended
                         # the failover loop and silently dropped the account.
-                        reasons.append(
-                            f"{instance}: no entries "
-                            f"({'malformed' if feed.bozo else 'empty response'})"
-                        )
+                        reasons.append(f"{instance}: {self._describe_empty(feed)}")
                         continue
 
                     # Filter by the requested window rather than truncating to a
@@ -278,94 +286,6 @@ class NitterScraper:
                 print(f"⚠️  Could not fetch @{account} from any Nitter instance")
                 for reason in reasons:
                     print(f"      - {reason}")
-
-        return items
-
-
-class TelegramScraper:
-    """Scraper for public Telegram channels via the t.me web preview.
-
-    Public channels expose a read-only HTML preview at ``https://t.me/s/<channel>``
-    that lists recent messages without requiring an API key or bot token — the
-    same "no credentials" philosophy used for X/Twitter via Nitter.
-    """
-
-    _PREVIEW_URL = 'https://t.me/s/{channel}'
-
-    # Each rendered message lives in its own ``tgme_widget_message_wrap`` block.
-    _TEXT_RE = re.compile(
-        r'<div class="tgme_widget_message_text[^"]*"[^>]*>(?P<text>.*?)</div>',
-        re.DOTALL,
-    )
-    _TIME_RE = re.compile(r'<time[^>]*datetime="(?P<dt>[^"]+)"')
-    _POST_RE = re.compile(r'data-post="(?P<post>[^"]+)"')
-
-    @staticmethod
-    def _clean(raw_html: str) -> str:
-        """Strip HTML tags/entities from a message body, preserving line breaks."""
-        text = re.sub(r'<br\s*/?>', '\n', raw_html)
-        text = re.sub(r'<[^>]+>', '', text)
-        text = _html.unescape(text)
-        return re.sub(r'\n{3,}', '\n\n', text).strip()
-
-    def fetch(self, channels: list[str], hours_back: float = 24) -> list[FeedItem]:
-        """Fetch recent posts from public Telegram channels via the web preview."""
-        items = []
-        cutoff_time = datetime.now() - timedelta(hours=hours_back)
-
-        for channel in channels:
-            handle = channel.lstrip('@')
-            url = self._PREVIEW_URL.format(channel=handle)
-            try:
-                req = urllib.request.Request(
-                    url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    page = resp.read().decode('utf-8', errors='replace')
-            except Exception as e:
-                print(f"   ⚠️  Could not fetch Telegram channel @{handle}: {e}")
-                continue
-
-            # Split the page into per-message blocks and parse each independently.
-            blocks = page.split('tgme_widget_message_wrap')[1:]
-            found = 0
-            for block in blocks:
-                text_match = self._TEXT_RE.search(block)
-                time_match = self._TIME_RE.search(block)
-                if not text_match or not time_match:
-                    continue
-
-                content = self._clean(text_match.group('text'))
-                if not content:
-                    continue
-
-                try:
-                    # e.g. "2026-07-01T12:34:56+00:00" — normalize to naive local
-                    # time so timestamps sort alongside the other scrapers' feeds.
-                    pub_date = datetime.fromisoformat(time_match.group('dt'))
-                    if pub_date.tzinfo is not None:
-                        pub_date = pub_date.astimezone().replace(tzinfo=None)
-                except ValueError:
-                    continue
-
-                if pub_date < cutoff_time:
-                    continue
-
-                post_match = self._POST_RE.search(block)
-                link = (f"https://t.me/{post_match.group('post')}"
-                        if post_match else url)
-
-                items.append(FeedItem(
-                    source='telegram',
-                    author=f"@{handle}",
-                    content=content,
-                    timestamp=pub_date,
-                    url=link,
-                    metadata={'channel': handle},
-                ))
-                found += 1
-
-            if found == 0:
-                print(f"   ⚠️  No recent messages parsed for Telegram @{handle}")
 
         return items
 
@@ -742,7 +662,6 @@ class RedHoodAggregator:
         # Initialize scrapers
         self.rss_scraper = RSSFeedScraper()
         self.twitter_scraper = NitterScraper(self.config.NITTER_INSTANCES)
-        self.telegram_scraper = TelegramScraper()
 
         # Initialize AI engine
         self.ai_engine = NarrativeExtractor(self.config.ANTHROPIC_API_KEY)
@@ -796,13 +715,6 @@ class RedHoodAggregator:
         twitter_feeds = self.twitter_scraper.fetch(accounts, hours_back)
         all_feeds.extend(twitter_feeds)
         print(f"   ✅ Found {len(twitter_feeds)} tweets\n")
-
-        print("📢 Fetching Telegram channels...")
-        channels = self.config.TELEGRAM_CHANNELS
-        print(f"   📋 Channels: {', '.join('@' + c for c in channels)}")
-        telegram_feeds = self.telegram_scraper.fetch(channels, hours_back)
-        all_feeds.extend(telegram_feeds)
-        print(f"   ✅ Found {len(telegram_feeds)} Telegram messages\n")
 
         print(f"📊 Total feeds collected: {len(all_feeds)}\n")
 
