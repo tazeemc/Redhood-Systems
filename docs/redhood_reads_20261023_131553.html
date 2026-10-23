@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHood Reads — 2026-10-23 13:15</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
+    --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
+    --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
+    --purple: #7B4FD6; --pink: #E8517A; --tangerine: #F47B3A;
+  }
+  body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6; }
+  .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
+    border: 1px solid rgba(123,79,214,0.3); z-index: 1; overflow: hidden;
+    box-shadow: 0 0 40px rgba(123,79,214,0.06), 0 0 80px rgba(232,81,122,0.03); }
+  .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
+    height: 200px; background: linear-gradient(135deg, var(--purple), var(--pink));
+    transform: rotate(45deg); opacity: 0.1; }
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px; border-bottom: 1px solid rgba(123,79,214,0.15);
+    background: rgba(123,79,214,0.04); }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--pink);
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,81,122,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(232,81,122,0); }
+  }
+  .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); font-weight: 500; }
+  .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
+    background: var(--mid); padding: 7px 0; }
+  .ticker-inner { display: flex; gap: 0; animation: ticker 28s linear infinite; white-space: nowrap; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
+    font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
+  .tick-sym { color: var(--tangerine); font-weight: 500; }
+  .tick-val { color: var(--cream); }
+  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
+  .up { color: #4CAF50; } .down { color: var(--red); }
+  .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
+  .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .issue-num { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); }
+  .issue-rule { flex: 1; height: 1px; background: linear-gradient(to right, var(--wire), transparent); }
+  .masthead { font-family: "Playfair Display", serif; font-weight: 900;
+    font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
+    color: var(--cream); margin-bottom: 6px; }
+  .masthead .red-accent { color: var(--red); font-style: italic; }
+  .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--tangerine); margin-bottom: 28px; }
+  .headline-block { max-width: 620px; }
+  .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
+    line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
+  .deck { font-size: 10.5px; line-height: 1.7; color: var(--text-muted);
+    letter-spacing: 0.03em; max-width: 540px; }
+  .corner-deco { position: absolute; top: 44px; right: 40px; text-align: right; }
+  .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
+    text-transform: uppercase; }
+  .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
+    font-weight: 900; color: rgba(123,79,214,0.15); line-height: 1; letter-spacing: -0.04em; }
+  .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--wire); }
+  .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
+  .grid-col:last-child { border-right: none; }
+  .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 10px; font-weight: 500; }
+  .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
+    line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
+  .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
+  .bar { flex: 1; background: var(--wire); border-radius: 1px; }
+  .bar.hi { background: rgba(244,123,58,0.55); }
+  .bar.lo { background: rgba(193,18,31,0.5); }
+  .bar.mid-hi { background: rgba(232,81,122,0.45); }
+  .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--wire); }
+  .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
+  .metric:last-child { border-right: none; }
+  .metric-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .metric-val { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
+  .metric-delta.up { color: #4CAF50; }
+  .metric-delta.dn { color: var(--red); }
+  .metric-delta.neutral { color: var(--tangerine); }
+  .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
+    display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
+  .thought-rule { background: linear-gradient(to bottom, var(--purple), var(--pink), transparent);
+    height: 100%; min-height: 60px; }
+  .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 8px; font-weight: 500; }
+  .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
+    line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
+  .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 14px; font-weight: 500; }
+  .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
+  .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
+    border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
+  .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top; }
+  .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
+  .author { color: var(--tangerine); white-space: nowrap; width: 140px; }
+  .links-table a { color: var(--pink); text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; color: var(--cream); }
+  .feed-num { color: var(--text-muted); width: 28px; text-align: right; padding-right: 14px; font-size: 8px; letter-spacing: 0.05em; }
+  .feed-link { color: var(--purple) !important; text-decoration: none !important; border-bottom: 1px solid rgba(123,79,214,0.4); }
+  .feed-link:hover { color: var(--cream) !important; }
+  tr:target { background: rgba(123,79,214,0.08); outline: 1px solid rgba(123,79,214,0.3); }
+  .embeds-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  /* ---- SIGINT signal cards (tactical trade-reference look) ---- */
+  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+    gap: 14px; align-items: stretch; }
+  .tweet-embed { min-width: 0; display: flex; }
+  .tweet-embed:target .tw-card { outline: 1px solid rgba(184,151,90,0.55); outline-offset: 2px; }
+  .tw-card { position: relative; display: flex; flex-direction: column; width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+    border: 1px solid var(--wire); border-left: 2px solid var(--tangerine);
+    padding: 12px 14px; font-size: 10px; line-height: 1.65;
+    color: rgba(245,240,232,0.78); transition: border-color .15s, transform .15s; }
+  .tw-card::before, .tw-card::after { content: ""; position: absolute; width: 7px; height: 7px;
+    border-color: rgba(244,123,58,0.5); pointer-events: none; }
+  .tw-card::before { top: 4px; right: 4px; border-top: 1px solid; border-right: 1px solid; }
+  .tw-card::after  { bottom: 4px; left: 4px; border-bottom: 1px solid; border-left: 1px solid; }
+  .tw-card:hover { border-left-color: var(--cream); transform: translateY(-1px); }
+  .tw-card-cited { border-left: 2px solid var(--gold);
+    background: linear-gradient(180deg, rgba(184,151,90,0.10), rgba(184,151,90,0.02));
+    box-shadow: inset 0 0 0 1px rgba(184,151,90,0.15); }
+  .tw-card-cited::before, .tw-card-cited::after { border-color: rgba(184,151,90,0.7); }
+  .tw-head { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 8px; margin-bottom: 7px; }
+  .tw-handle { color: var(--tangerine); font-weight: 500; letter-spacing: 0.05em; }
+  .tw-meta { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .tw-cited { font-size: 7px; letter-spacing: 0.18em; color: var(--gold); font-weight: 600;
+    border: 1px solid rgba(184,151,90,0.45); padding: 1px 5px; background: rgba(184,151,90,0.08); }
+  .tw-ts { color: var(--text-muted); font-size: 8px; letter-spacing: 0.04em; }
+  .tw-body { color: rgba(245,240,232,0.82); flex: 1; }
+  .tw-link { display: inline-block; margin-top: 10px; font-size: 8px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--pink); text-decoration: none;
+    border-top: 1px solid var(--wire); padding-top: 7px; }
+  .tw-link:hover { color: var(--cream); }
+  .footer { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: rgba(193,18,31,0.04); }
+  .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .footer-left span { color: var(--pink); }
+  .footer-right { display: flex; align-items: center; gap: 18px; }
+  .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
+  .footer-tag.active { border-color: rgba(123,79,214,0.5); color: var(--purple); }
+  .scanline { position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
+  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .synopsis-section { padding: 28px 40px; border-bottom: 1px solid var(--wire);
+    background: rgba(123,79,214,0.03); }
+  .synopsis-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 6px; font-weight: 500; }
+  .synopsis-byline { font-size: 8px; color: var(--text-muted); letter-spacing: 0.08em;
+    margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wire); }
+  .synopsis-body { column-count: 2; column-gap: 36px; }
+  .synopsis-para { font-size: 10px; line-height: 1.8; color: var(--cream);
+    margin-bottom: 14px; letter-spacing: 0.02em; text-align: justify; }
+  .synopsis-para:first-child::first-letter { font-family: "Playfair Display", serif;
+    font-size: 2.8em; font-weight: 900; float: left; line-height: 0.8;
+    margin: 4px 8px 0 0; color: var(--purple); }
+  @media (max-width: 600px) { .synopsis-body { column-count: 1; } }
+  .trading-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .trading-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--tangerine); margin-bottom: 14px; font-weight: 500; }
+  .trading-grid { display: flex; gap: 14px; flex-wrap: wrap; }
+  .tc-card { flex: 1; min-width: 180px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--wire); padding: 14px 16px; }
+  .tc-header { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; }
+  .tc-sym { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); }
+  .tc-rec { font-size: 8px; letter-spacing: 0.2em; font-weight: 600;
+    padding: 3px 8px; border: 1px solid; }
+  .rec-in  { color: #4CAF50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.07); }
+  .rec-out { color: var(--red); border-color: rgba(193,18,31,0.4); background: rgba(193,18,31,0.07); }
+  .rec-neutral { color: var(--tangerine); border-color: rgba(244,123,58,0.4); background: rgba(244,123,58,0.07); }
+  .tc-price { font-size: 15px; font-weight: 500; color: var(--cream);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .tc-trend { font-size: 9px; letter-spacing: 0.05em; }
+  .tc-row { display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .tc-lbl { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .tc-val { font-size: 8.5px; color: var(--cream); text-align: right; }
+  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--tangerine);
+    border: 1px solid rgba(244,123,58,0.35); padding: 1px 4px; margin-left: 4px; }
+  .tc-ts { font-size: 7px; color: var(--text-muted); margin-top: 8px;
+    letter-spacing: 0.05em; text-align: right; }
+  .regime-panel { padding: 22px 28px; border-bottom: 1px solid var(--wire);
+    background: rgba(0,229,160,0.015); }
+  .regime-panel-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: #00e5a0; margin-bottom: 12px; font-weight: 500; }
+  .regime-badge-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    flex-wrap: wrap; }
+  .regime-badge { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.2em; padding: 5px 14px; border: 1px solid; }
+  .regime-desc { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; }
+  .regime-warn { font-size: 8px; color: #ff9a3c; letter-spacing: 0.1em;
+    border: 1px solid rgba(255,154,60,0.4); padding: 3px 8px; background: rgba(255,154,60,0.07); }
+  .regime-metrics { display: flex; gap: 0; border: 1px solid var(--wire); }
+  .rm { flex: 1; padding: 10px 14px; border-right: 1px solid var(--wire); }
+  .rm:last-child { border-right: none; }
+  .rm-lbl { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .rm-val { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .rm-sub { font-size: 7.5px; color: var(--text-muted); letter-spacing: 0.05em; }
+  /* ---- Tactical framing: reticle corners + classification banner ---- */
+  .reticle { position: absolute; width: 16px; height: 16px; z-index: 3; pointer-events: none;
+    border-color: rgba(244,123,58,0.55); }
+  .reticle.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
+  .reticle.tr { top: 6px; right: 6px; border-top: 1px solid; border-right: 1px solid; }
+  .reticle.bl { bottom: 6px; left: 6px; border-bottom: 1px solid; border-left: 1px solid; }
+  .reticle.br { bottom: 6px; right: 6px; border-bottom: 1px solid; border-right: 1px solid; }
+  .classbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 28px; background: repeating-linear-gradient(45deg,
+      rgba(193,18,31,0.12) 0 10px, rgba(193,18,31,0.04) 10px 20px);
+    border-bottom: 1px solid rgba(193,18,31,0.25);
+    font-size: 7.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+  .classbar .cb-mid { color: rgba(245,240,232,0.55); letter-spacing: 0.2em; }
+  @media (max-width: 600px) { .classbar .cb-mid { display: none; } }
+  .posture-pill { font-size: 7.5px; letter-spacing: 0.18em; font-weight: 600;
+    padding: 2px 8px; border: 1px solid; margin-left: 6px; }
+  #dataAge { color: var(--tangerine); }
+  /* ---- collapsible sections (native <details>) ---- */
+  details.sec { padding: 0; border-bottom: 1px solid var(--wire); }
+  details.sec > summary { list-style: none; cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px 0; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  .sec-summary .links-header { margin-bottom: 0; }
+  .sec-chevron { color: var(--text-muted); font-size: 10px; transition: transform .2s; }
+  details.sec[open] > summary .sec-chevron { transform: rotate(180deg); }
+  details.sec > .tweet-grid, details.sec > .cmdbar { margin: 14px 28px 22px; }
+  details.sec > table.links-table { margin: 8px 28px 20px; width: calc(100% - 56px); }
+  /* ---- command bar (signal filter HUD) ---- */
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--wire); background: rgba(255,255,255,0.02); }
+  .cmd-input { flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--cream); font-family: "IBM Plex Mono", monospace; font-size: 9px;
+    letter-spacing: 0.1em; padding: 6px 9px; }
+  .cmd-input::placeholder { color: var(--text-muted); letter-spacing: 0.18em; }
+  .cmd-input:focus { outline: none; border-color: rgba(244,123,58,0.6); }
+  .cmd-btn, .cmd-select { background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--text-muted); font-family: "IBM Plex Mono", monospace; font-size: 8px;
+    letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 10px; cursor: pointer; }
+  .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
+  .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
+  .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scanline"></div>
+  <div class="reticle tl"></div><div class="reticle tr"></div>
+  <div class="reticle bl"></div><div class="reticle br"></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pulse"></div>
+      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+      <span class="posture-pill" style="color:#00e5a0;border-color:#00e5a055;background:#00e5a014">POSTURE&nbsp;&middot;&nbsp;WEAPONS FREE</span>
+    </div>
+    <span class="topbar-date">Friday, 23 October 2026 &nbsp;|&nbsp; Week 43 &middot; <span id="dataAge" data-runts="2026-10-23T13:15:53">live</span></span>
+  </div>
+
+  <div class="classbar">
+    <span>// SIGNAL INTELLIGENCE</span>
+    <span class="cb-mid">TRADE REFERENCE &middot; HANDLE WITH DISCRETION</span>
+    <span>NOT FINANCIAL ADVICE //</span>
+  </div>
+
+  <div class="ticker-wrap"><div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$81,526</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$29.19</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,663</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$101.06</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,042</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">20.24</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.959</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3977</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$81,526</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$29.19</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,663</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$101.06</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,042</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">20.24</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.959</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3977</span><span class="tick-chg up">+0.00%</span></span>
+  </div></div>
+
+  <div class="hero">
+    <div class="issue-line">
+      <span class="issue-num">Run &middot; 3.0h window &middot; 2026-10-23 13:15</span>
+      <div class="issue-rule"></div>
+    </div>
+    <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
+    <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
+    <div class="headline-block">
+      <div class="headline">AI Capex Fears Drive Tech Selloff</div>
+      <div class="deck">The AI/semi complex is in a high-velocity deleveraging phase (Nasdaq -2.9%, semis -6.7%) as the OpenAI $1.25T valuation collides with stretched-capex anxiety, raising the system&#x27;s temperature despite the broader TRENDING regime. Quantum-bre…</div>
+    </div>
+    <div class="corner-deco">
+      <div class="vol-label">Day</div>
+      <div class="vol-num">23</div>
+    </div>
+  </div>
+
+  <div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">0</div><div class="metric-delta neutral">3.0h window</div></div>
+<div class="metric"><div class="metric-label">AI Capex Fears Drive Tech …</div><div class="metric-val" style="color:#C1121F">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Canadian Consumer Momentum…</div><div class="metric-val" style="color:#4CAF50">3/10</div><div class="metric-delta up">LOW entropy</div></div>
+<div class="metric"><div class="metric-label">Middle East Tensions Repri…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">US-China Trade De-escalati…</div><div class="metric-val" style="color:#B8975A">5/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Financials Cost-Cutting an…</div><div class="metric-val" style="color:#4CAF50">4/10</div><div class="metric-delta up">LOW entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">5</div><div class="metric-delta neutral">Extracted</div></div></div>
+
+  <div class="synopsis-section"><div class="synopsis-label">Market Intelligence Synopsis</div><div class="synopsis-byline">Compiled from 0 signal sources &middot; 2026-10-23 13:15 &middot; AI-assisted analysis</div><div class="synopsis-body"><p class="synopsis-para">The AI/semi complex is in a high-velocity deleveraging phase (Nasdaq -2.9%, semis -6.7%) as the OpenAI $1.25T valuation collides with stretched-capex anxiety, raising the system&#x27;s temperature despite the broader TRENDING regime. Quantum-breakthrough headlines (<a class="feed-link" href="#feed-2">feed 2</a>) add a non-linear repricing vector for crypto beta, compounding downside convexity. The <a class="feed-link" href="#feed-46">feed 46</a> reference to the &#x27;earnings pattern before 2022 bear&#x27; signals a possible phase transition from euphoria to risk-off.</p><p class="synopsis-para">Long CAD vs USD spot, overlay long Canadian consumer-discretionary equities (XRE/XCD proxies); amplify given TRENDING multiplier 2.32x Market participants are closely monitoring canada september final retail sales release, boc rate decision.</p><p class="synopsis-para">However, analysts have flagged material downside risks. This is a crowded, multi-legged short into the single most dip-bought complex of the cycle; a one-day Nasdaq -2.9%/semis -6.7% move is as likely to mark a local capitulation low as the start of a bear phase, and the structure bleeds on three fronts (put spread theta, VIX call roll/contango decay, and speculative &#x27;BTC-quantum&#x27; puts with no clean deliverable) if the bounce comes. The &#x27;2022 analog&#x27; is pattern-matching narrative, not a mechanism, and mega-cap earnings have repeatedly rewarded capex with higher forward numbers rather than punishing it.</p></div></div>
+
+  <div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 8/10</div><div class="col-title">AI Capex Fears Drive Tech Selloff</div><div class="col-body">Short NVDA and SOXX via put spreads, pair with long VIX calls; hedge tail with long BTC-quantum-risk puts</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This is a crowded, multi-legged short into the single most dip-bought complex of the cycle; a one-day Nasdaq -2.9%/semis -6.7% move is as likely to mark a local capitulation low as the start of a bear…</div><div class="conviction-tag">Quarter Size — the deleveraging thesis has real tactical merit but the entropy (8/10), negative carry on every leg, and the speculative quantum/BTC tail make this a small, tightly-stopped tactical short rather than a core position.</div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 3/10</div><div class="col-title">Canadian Consumer Momentum Supports CAD</div><div class="col-body">Long CAD vs USD spot, overlay long Canadian consumer-discretionary equities (XRE/XCD proxies); amplify given TRENDING multiplier 2.32x</div><div class="sparkline"><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:80%"></div><div class="bar hi" style="height:70%"></div><div class="bar mid-hi" style="height:60%"></div><div class="bar mid-hi" style="height:50%"></div><div class="bar lo" style="height:40%"></div><div class="bar lo" style="height:35%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The thesis rests on WTI &#x27;firm above $100,&#x27; which is both historically anomalous and directly contradicts the real forward curve — CAD is far more sensitive to the Fed/BoC rate differential and broad U…</div><div class="conviction-tag">Half Size — the data is clean and corroborated, but the $100 WTI assumption looks stale and the 2.32x amplification into a consensus USD trade is the opposite of risk management, so size down and drop the leverage overlay.</div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 7/10</div><div class="col-title">Middle East Tensions Reprice Oil Higher</div><div class="col-body">Long WTI crude futures with trailing stop, long XLE call spreads, long ENI on Venezuela production optionality</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Geopolitical oil spikes without an actual supply disruption are notoriously fast-fading — missile intercepts mean the barrels are still flowing, and crude has repeatedly round-tripped these risk premi…</div><div class="conviction-tag">Quarter Size — long crude with a trailing stop is defensible as a momentum/tail-hedge, but entropy 7/10 and the fade-prone nature of intercept-driven spikes argue for a small, stop-disciplined position, and I&#x27;d drop the ENI leg as thesis-incoherent.</div></div>
+<div class="grid-col"><div class="col-tag">Geopolitical · Risk 5/10</div><div class="col-title">US-China Trade De-escalation and Space Governance</div><div class="col-body">Long China-exposed shippers and FXI calls, short defensive space/defense volatility hedges</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This trade is built on a proposed suspension of one narrow Section 301 investigation and extrapolates it into a broad &#x27;China risk-on&#x27; thesis via FXI calls — US-China de-escalation headlines are notori…</div><div class="conviction-tag">Pass — the author&#x27;s own framing (mixed signals, &#x27;cautious thaw,&#x27; entropy 5/10) describes a non-trade, and the short-defense-vol leg is actively dangerous against the admitted geopolitical friction.</div></div>
+<div class="grid-col"><div class="col-tag">Canada / FX · Risk 4/10</div><div class="col-title">Financials Cost-Cutting and Credit Normalization</div><div class="col-body">Long AXP on efficiency narrative despite revenue miss; pair against regional-bank credit-quality shorts</div><div class="sparkline"><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:80%"></div><div class="bar hi" style="height:70%"></div><div class="bar mid-hi" style="height:60%"></div><div class="bar mid-hi" style="height:50%"></div><div class="bar lo" style="height:40%"></div><div class="bar lo" style="height:35%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Celebrating a workforce cut and a one-time GBTG sale gain as a bullish &#x27;efficiency&#x27; catalyst inverts the signal — layoffs and a revenue miss are defensive late-cycle behavior, and a $982M non-recurrin…</div><div class="conviction-tag">Half Size — the relative-value structure (quality AXP vs weaker regionals) is sound and low-entropy, but the long leg&#x27;s thesis leans on a one-time gain and defensive cost cuts, so run it smaller and treat the credit-normalization short as the higher-conviction side.</div></div></div>
+
+  <div class="thought-block">
+    <div class="thought-rule"></div>
+    <div>
+      <div class="thought-label">Top Trade Hypothesis</div>
+      <div class="thought-q">Short NVDA and SOXX via put spreads, pair with long VIX calls; hedge tail with long BTC-quantum-risk puts</div>
+      <div class="thought-body">OpenAI $30B funding round confirmation, Mega-cap tech Q3 earnings prints, Any quantum computing breakthrough headline</div>
+      <div class="thought-bear-label">Bear Case</div>
+      <div class="thought-bear">This is a crowded, multi-legged short into the single most dip-bought complex of the cycle; a one-day Nasdaq -2.9%/semis -6.7% move is as likely to mark a local capitulation low as the start of a bear phase, and the structure bleeds on three fronts (put spread theta, VIX call roll/contango decay, and speculative &#x27;BTC-quantum&#x27; puts with no clean deliverable) if the bounce comes. The &#x27;2022 analog&#x27; is pattern-matching narrative, not a mechanism, and mega-cap earnings have repeatedly rewarded capex with higher forward numbers rather than punishing it.</div>
+      <div class="thought-conviction">Quarter Size — the deleveraging thesis has real tactical merit but the entropy (8/10), negative carry on every leg, and the speculative quantum/BTC tail make this a small, tightly-stopped tactical short rather than a core position.</div>
+    </div>
+  </div>
+
+  
+
+  <div class="regime-panel"><div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (20-bar)</div><div class="regime-badge-row"><span class="regime-badge" style="color:#00e5a0;border-color:#00e5a040;background:#00e5a012">TRENDING</span><span class="regime-desc">Low T &middot; Low S &mdash; amplify signals</span><span class="regime-warn">&#9888; REGIME DRIFT</span></div><div class="regime-metrics"><div class="rm"><div class="rm-lbl">Temperature</div><div class="rm-val" style="color:#00e5a0">9.8%</div><div class="rm-sub">base 15%</div></div><div class="rm"><div class="rm-lbl">Entropy</div><div class="rm-val">2.059</div><div class="rm-sub">base 2.50</div></div><div class="rm"><div class="rm-lbl">KL Divergence</div><div class="rm-val" style="color:#ff9a3c">0.5739</div><div class="rm-sub">drift detected</div></div><div class="rm"><div class="rm-lbl">Signal Mult</div><div class="rm-val">2.32&times;</div><div class="rm-sub">applied to signals</div></div><div class="rm"><div class="rm-lbl">Heat Budget</div><div class="rm-val">100%</div><div class="rm-sub">remaining</div></div></div></div>
+
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">SIGINT &mdash; Signal Cards &middot; 0 of 0 &middot; 0 narrative-cited + top 55 &middot; 2026-10-23 13:15</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">SORT &middot; RECENT</option>
+        <option value="handle">SORT &middot; HANDLE</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+    </div>
+    <div class="tweet-grid" id="tweetGrid"></div>
+  </details>
+
+  
+
+  <div class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
+    <div class="footer-right">
+      <span class="footer-tag active">AI</span>
+      <span class="footer-tag">MACRO</span>
+      <span class="footer-tag">CRYPTO</span>
+      <span class="footer-tag">SIGNALS</span>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var grid = document.getElementById('tweetGrid');
+  if (grid) {
+    var cards   = Array.prototype.slice.call(grid.querySelectorAll('.tweet-embed'));
+    var search  = document.getElementById('cardSearch');
+    var cited   = document.getElementById('citedToggle');
+    var acct    = document.getElementById('acctFilter');
+    var sortSel = document.getElementById('sortSel');
+    var count   = document.getElementById('cardCount');
+    var citedOnly = false;
+
+    // Populate the account dropdown from the cards present.
+    var seen = {};
+    cards.forEach(function(c){ var h = c.getAttribute('data-handle'); if (h) seen[h] = 1; });
+    Object.keys(seen).sort().forEach(function(h){
+      var o = document.createElement('option'); o.value = h; o.textContent = '@' + h; acct.appendChild(o);
+    });
+
+    function apply(){
+      var q = (search.value || '').toLowerCase().trim();
+      var a = acct.value;
+      var shown = 0;
+      cards.forEach(function(c){
+        var ok = true;
+        if (q && c.getAttribute('data-search').indexOf(q) < 0) ok = false;
+        if (a && c.getAttribute('data-handle') !== a) ok = false;
+        if (citedOnly && c.getAttribute('data-cited') !== '1') ok = false;
+        c.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      count.textContent = shown + ' / ' + cards.length + ' shown';
+    }
+    function sortCards(){
+      var mode = sortSel.value;
+      cards.slice().sort(function(x, y){
+        if (mode === 'handle') return x.getAttribute('data-handle').localeCompare(y.getAttribute('data-handle'));
+        return y.getAttribute('data-ts').localeCompare(x.getAttribute('data-ts'));
+      }).forEach(function(c){ grid.appendChild(c); });
+    }
+
+    search.addEventListener('input', apply);
+    acct.addEventListener('change', apply);
+    cited.addEventListener('click', function(){
+      citedOnly = !citedOnly; cited.classList.toggle('on', citedOnly); apply();
+    });
+    sortSel.addEventListener('change', function(){ sortCards(); apply(); });
+    apply();
+  }
+
+  // Live data-age readout: "T+Xh Ym" since the run timestamp.
+  var age = document.getElementById('dataAge');
+  if (age) {
+    var t0 = new Date(age.getAttribute('data-runts')).getTime();
+    var tick = function(){
+      if (!t0 || isNaN(t0)) { age.textContent = 'live'; return; }
+      var s = Math.max(0, Math.floor((Date.now() - t0) / 1000));
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      age.textContent = 'T+' + (h ? h + 'h ' : '') + m + 'm';
+    };
+    tick(); setInterval(tick, 30000);
+  }
+})();
+</script>
+</body>
+</html>
