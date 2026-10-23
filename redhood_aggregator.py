@@ -81,7 +81,10 @@ class Config:
     SUBSTACK_FEEDS = [
         'https://arbitrageandy.substack.com/feed',
         'https://doomberg.substack.com/feed',
-        'https://noahpinion.substack.com/feed'
+        'https://noahpinion.substack.com/feed',
+        # unusualwhales.com/news has no feed of its own; it is served from this
+        # Ghost blog, whose links are rewritten to unusualwhales.com/news/<slug>.
+        'https://unusual-whales.ghost.io/rss/',
     ]
 
     # Public Telegram channels (scraped via the t.me/s/ web preview — no API key
@@ -175,8 +178,29 @@ class Narrative:
 class RSSFeedScraper:
     """Scraper for Substack and other RSS feeds"""
 
+    # Feeds whose item links point at a backend host rather than the public site
+    LINK_REWRITES = {
+        'https://unusual-whales.ghost.io/unusual_blog/post/': 'https://unusualwhales.com/news/',
+    }
+
+    @classmethod
+    def _public_link(cls, link: str | None) -> str | None:
+        for prefix, public in cls.LINK_REWRITES.items():
+            if link and link.startswith(prefix):
+                return public + link[len(prefix):]
+        return link
+
     @staticmethod
-    def fetch(feed_urls: list[str], hours_back: float = 24) -> list[FeedItem]:
+    def _content(entry) -> str:
+        """Headline plus summary; news feeds like Unusual Whales put the story in the title."""
+        title = entry.get('title', '').strip()
+        summary = entry.get('summary', '').strip()
+        if title and summary and not summary.startswith(title):
+            return f"{title}\n{summary}"
+        return summary or title
+
+    @classmethod
+    def fetch(cls, feed_urls: list[str], hours_back: float = 24) -> list[FeedItem]:
         """Fetch recent posts from RSS feeds"""
         items = []
         cutoff_time = datetime.now() - timedelta(hours=hours_back)
@@ -195,9 +219,9 @@ class RSSFeedScraper:
                     item = FeedItem(
                         source='rss',
                         author=source_name,
-                        content=entry.get('summary', entry.get('title', '')),
+                        content=cls._content(entry),
                         timestamp=pub_date,
-                        url=entry.get('link'),
+                        url=cls._public_link(entry.get('link')),
                         metadata={'feed_url': feed_url}
                     )
                     items.append(item)
