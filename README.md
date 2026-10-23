@@ -68,7 +68,7 @@
 ## Quick Start
 
 ### Prerequisites
-- Python 3.9+
+- Python 3.9+ (or Docker — see [Run with Docker](#run-with-docker))
 - Anthropic API key ([Get one here](https://console.anthropic.com/))
 - PowerShell 5+ (Windows, for `run.ps1`)
 
@@ -140,6 +140,44 @@ pytest
 # Static analysis (also runs in CI on every push/PR)
 ruff check .
 ```
+
+### Run with Docker
+
+The image (`python:3.12-slim`, non-root) contains code and dependencies only.
+Secrets come from `.env` at runtime, and `redhood.db` + `data/` are bind-mounted
+from the repo checkout, so every run's state persists on the host.
+
+```bash
+# One-time setup
+cp .env.example .env                 # set ANTHROPIC_API_KEY (GITHUB_TOKEN optional)
+mkdir -p data powerbi/data           # create mount targets as your user, not root
+
+# Build (pass your UID/GID if they are not 1000 so mounted files stay writable)
+HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose build
+
+# Run the aggregator — args after the service name are passed to redhood_aggregator.py
+docker compose run --rm redhood --hours 1
+docker compose run --rm redhood --hours 24
+
+# Other entry points share the same image, env and volumes
+docker compose run --rm --entrypoint python redhood score_narratives.py --since 2026-03-01
+docker compose run --rm --entrypoint python redhood redhood_pnl.py --report
+docker compose run --rm --entrypoint python redhood powerbi/export_to_powerbi.py
+
+# Tests inside the image
+docker compose run --rm --entrypoint python redhood -m pytest
+```
+
+Without Compose: `docker build -t redhood-systems .` then
+`docker run --rm --env-file .env -v "$PWD/redhood.db:/app/redhood.db" -v "$PWD/data:/app/data" redhood-systems --hours 1`.
+
+**Scheduled runs** — e.g. hourly via cron on the host (`crontab -e`):
+
+```cron
+0 * * * * cd /path/to/Redhood-Systems && /usr/bin/docker compose run --rm redhood --hours 1 >> data/cron.log 2>&1
+```
+
+Each run is a short-lived container (`--rm`); only `redhood.db` and `data/` carry over.
 
 ### Manage Tracked Accounts
 
@@ -254,7 +292,7 @@ This repository contains key documents demonstrating PM skills:
 ## Technical Stack
 
 **Backend:**
-- Python 3.9+
+- Python 3.9+ (or Docker — see [Run with Docker](#run-with-docker))
 - Anthropic Claude API (claude-opus-4-8)
 - feedparser (RSS + Nitter RSS parsing)
 - urllib + regex (public Telegram channel scraping via `t.me/s/`)
