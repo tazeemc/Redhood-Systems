@@ -87,7 +87,6 @@ class Config:
     # Public Telegram channels (scraped via the t.me/s/ web preview — no API key
     # or bot token required, mirroring the Nitter approach for X/Twitter).
     TELEGRAM_CHANNELS = [
-        'redhoodtrades',
         'marketfeed',     # high-volume macro/markets headline wire
     ]
     # Each t.me/s/ page holds ~20 posts; page back (via ?before=<id>) up to this
