@@ -38,3 +38,19 @@ jobs:
         run: pip install pytest anthropic feedparser python-dotenv
       - name: Run tests
         run: pytest -v
+
+  docker:
+    name: Docker image (build + pytest inside)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t redhood-systems:ci .
+      - name: Run tests in container
+        run: docker run --rm --entrypoint python redhood-systems:ci -m pytest -v
+      - name: Ruff in container
+        run: docker run --rm --entrypoint ruff redhood-systems:ci check .
+      - name: Validate compose file
+        run: |
+          touch .env
+          docker compose config --quiet

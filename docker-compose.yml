@@ -1,0 +1,28 @@
+# RedHood Systems — one-shot pipeline runs.
+#
+#   cp .env.example .env            # fill in ANTHROPIC_API_KEY (+ GITHUB_TOKEN)
+#   docker compose build
+#   docker compose run --rm redhood --hours 1
+#
+# Other entry points reuse the same image/volumes via --entrypoint, e.g.
+#   docker compose run --rm --entrypoint python redhood score_narratives.py
+#   docker compose run --rm --entrypoint python redhood redhood_pnl.py --report
+
+services:
+  redhood:
+    build:
+      context: .
+      args:
+        UID: ${HOST_UID:-1000}
+        GID: ${HOST_GID:-1000}
+    image: redhood-systems:latest
+    env_file: .env
+    volumes:
+      # SQLite database (tracked in git) — persisted on the host.
+      - ./redhood.db:/app/redhood.db
+      # JSON / HTML output.
+      - ./data:/app/data
+      # Power BI CSV exports (powerbi/export_to_powerbi.py).
+      - ./powerbi/data:/app/powerbi/data
+    # Arguments after the service name replace this, e.g. `--hours 24`.
+    command: ["--hours", "1"]
