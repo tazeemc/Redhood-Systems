@@ -483,6 +483,10 @@ class NarrativeExtractor:
             print(f"   ⚖️  Balanced to {len(feeds_to_process)} feeds across "
                   f"{len(spread)} authors (max {max(spread.values())}/author)")
 
+        # Record the [N] index Claude sees so the report's "feed N" anchors match.
+        for i, f in enumerate(feeds_to_process, 1):
+            f.metadata['prompt_index'] = i
+
         # Format feeds for prompt
         feeds_text = self._format_feeds_for_prompt(feeds_to_process)
 
@@ -1005,9 +1009,13 @@ class RedHoodAggregator:
         week_num = dt.isocalendar()[1]
         run_time_short = dt.strftime('%Y-%m-%d %H:%M')
 
-        twitter_feeds = [f for f in results['feeds']
-                         if f['source'] == 'twitter' and f.get('url')]
-        feed_count = len(twitter_feeds)
+        # Feeds Claude saw, numbered by their prompt [N] index so "feed N"
+        # references in the synopsis resolve to the right card/row.
+        signal_feeds = sorted(
+            ((f['metadata']['prompt_index'], f) for f in results['feeds']
+             if f.get('url') and (f.get('metadata') or {}).get('prompt_index')),
+            key=lambda x: x[0])
+        feed_count = len(results['feeds'])
         window_label = (f"{int(hours_back * 60)}m window"
                         if hours_back < 1 else f"{hours_back:.1f}h window")
 
@@ -1118,25 +1126,27 @@ class RedHoodAggregator:
             cls    = 'tw-card tw-card-cited' if cited else 'tw-card'
             # data-* attributes drive the client-side command bar (search/filter/sort)
             search = H.escape(('@' + handle + ' ' + _tweet_text(f.get('content', ''), 10000)).lower())
+            link_label = {'twitter': 'View on X', 'telegram': 'View on Telegram'}.get(
+                f.get('source'), 'Read post')
             return (f'<div class="tweet-embed" id="feed-{i}" data-handle="{H.escape(handle.lower())}" '
                     f'data-cited="{"1" if cited else "0"}" data-ts="{H.escape(f.get("timestamp",""))}" '
                     f'data-search="{search}"><div class="{cls}">'
-                    f'<div class="tw-head"><span class="tw-handle">@{handle}</span>'
+                    f'<div class="tw-head"><span class="tw-handle">{H.escape(f["author"])}</span>'
                     f'<span class="tw-meta">{badge}<span class="tw-ts">{ts}</span></span></div>'
                     f'<div class="tw-body">{text}</div>'
-                    f'<a class="tw-link" href="{url}" target="_blank">View on X &rarr;</a>'
+                    f'<a class="tw-link" href="{url}" target="_blank">{link_label} &rarr;</a>'
                     f'</div></div>')
 
         # Card a tweet if it's within the top-N recent OR cited by a narrative.
         embed_cards, rest = [], []
-        for i, f in enumerate(twitter_feeds, 1):
+        for i, f in signal_feeds:
             if i <= EMBED_LIMIT or f.get('id') in cited_ids:
                 embed_cards.append(_tweet_card(i, f))
             else:
                 rest.append((i, f))
         embeds_html = '\n'.join(embed_cards)
         embed_count = len(embed_cards)
-        cited_count = sum(1 for f in twitter_feeds if f.get('id') in cited_ids)
+        cited_count = sum(1 for _, f in signal_feeds if f.get('id') in cited_ids)
 
         # Un-carded tweets stay as a compact links table so synopsis "feed N"
         # anchors beyond the card set still resolve.
