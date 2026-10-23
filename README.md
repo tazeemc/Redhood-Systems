@@ -34,7 +34,7 @@
 - **RedHood Reads HTML Report:** Styled editorial card report generated every run
 - **Account Management:** CLI tool to manage tracked X/Twitter accounts
 - **Trading System Analysis:** Thermodynamic position-sizing model via `run.ps1`
-- **Multi-Source Aggregation:** X/Twitter (via Nitter RSS, no API key required), Substack RSS, and public Telegram channels (via the `t.me/s/` web preview, no bot token required — includes [@redhoodtrades](https://t.me/redhoodtrades))
+- **Multi-Source Aggregation:** X/Twitter (via Nitter RSS, no API key required), Substack RSS, and public Telegram channels (via the `t.me/s/` web preview, no bot token required, paged back via `?before=` for high-volume channels — includes [@redhoodtrades](https://t.me/redhoodtrades) and [@marketfeed](https://t.me/marketfeed))
 
 ---
 
@@ -134,7 +134,7 @@ python redhood_pnl.py --report
 ```bash
 pip install pytest ruff
 
-# Unit tests (44 tests — extraction, grading, Telegram scraper, DB schema)
+# Unit tests (47 tests — extraction, grading, Telegram scraper, DB schema)
 pytest
 
 # Static analysis (also runs in CI on every push/PR)
@@ -165,7 +165,7 @@ python accounts_db.py --toggle FirstSquawk
    ✅ Found 12 tweets
 
 📢 Fetching Telegram channels...
-   📋 Channels: @redhoodtrades
+   📋 Channels: @redhoodtrades, @marketfeed
    ✅ Found 9 Telegram messages
 
 📊 Total feeds collected: 39

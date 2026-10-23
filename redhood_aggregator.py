@@ -88,7 +88,11 @@ class Config:
     # or bot token required, mirroring the Nitter approach for X/Twitter).
     TELEGRAM_CHANNELS = [
         'redhoodtrades',
+        'marketfeed',     # high-volume macro/markets headline wire
     ]
+    # Each t.me/s/ page holds ~20 posts; page back (via ?before=<id>) up to this
+    # many pages per channel so high-volume channels cover more of the window.
+    TELEGRAM_MAX_PAGES = 5
 
     # AI Configuration
     CLAUDE_MODEL = 'claude-opus-4-8'
@@ -308,66 +312,108 @@ class TelegramScraper:
         text = _html.unescape(text)
         return re.sub(r'\n{3,}', '\n\n', text).strip()
 
-    def fetch(self, channels: list[str], hours_back: float = 24) -> list[FeedItem]:
-        """Fetch recent posts from public Telegram channels via the web preview."""
+    def fetch(self, channels: list[str], hours_back: float = 24,
+              max_pages: int = 1) -> list[FeedItem]:
+        """Fetch recent posts from public Telegram channels via the web preview.
+
+        With ``max_pages > 1``, pages back through older posts (``?before=<id>``)
+        until the cutoff is reached, the channel runs out, or the page limit hits.
+        """
         items = []
         cutoff_time = datetime.now() - timedelta(hours=hours_back)
 
         for channel in channels:
             handle = channel.lstrip('@')
             url = self._PREVIEW_URL.format(channel=handle)
-            try:
-                req = urllib.request.Request(
-                    url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    page = resp.read().decode('utf-8', errors='replace')
-            except Exception as e:
-                print(f"   ⚠️  Could not fetch Telegram channel @{handle}: {e}")
-                continue
-
-            # Split the page into per-message blocks and parse each independently.
-            blocks = page.split('tgme_widget_message_wrap')[1:]
             found = 0
-            for block in blocks:
-                text_match = self._TEXT_RE.search(block)
-                time_match = self._TIME_RE.search(block)
-                if not text_match or not time_match:
-                    continue
-
-                content = self._clean(text_match.group('text'))
-                if not content:
-                    continue
-
-                try:
-                    # e.g. "2026-07-01T12:34:56+00:00" — normalize to naive local
-                    # time so timestamps sort alongside the other scrapers' feeds.
-                    pub_date = datetime.fromisoformat(time_match.group('dt'))
-                    if pub_date.tzinfo is not None:
-                        pub_date = pub_date.astimezone().replace(tzinfo=None)
-                except ValueError:
-                    continue
-
-                if pub_date < cutoff_time:
-                    continue
-
-                post_match = self._POST_RE.search(block)
-                link = (f"https://t.me/{post_match.group('post')}"
-                        if post_match else url)
-
-                items.append(FeedItem(
-                    source='telegram',
-                    author=f"@{handle}",
-                    content=content,
-                    timestamp=pub_date,
-                    url=link,
-                    metadata={'channel': handle},
-                ))
-                found += 1
+            seen_urls = set()
+            before = None   # oldest post id seen so far; None = newest page
+            for _ in range(max(1, max_pages)):
+                page_url = url if before is None else f"{url}?before={before}"
+                page = self._get(page_url, handle)
+                if page is None:
+                    break
+                page_items, oldest_id, reached_cutoff = self._parse_page(
+                    page, handle, url, cutoff_time)
+                page_items = [i for i in page_items if i.url not in seen_urls]
+                seen_urls.update(i.url for i in page_items)
+                items.extend(page_items)
+                found += len(page_items)
+                # Stop when we've passed the cutoff, the page had no posts, or
+                # paging made no progress (Telegram returned the same page).
+                if (reached_cutoff or oldest_id is None
+                        or (before is not None and oldest_id >= before)):
+                    break
+                before = oldest_id
 
             if found == 0:
                 print(f"   ⚠️  No recent messages parsed for Telegram @{handle}")
 
         return items
+
+    @staticmethod
+    def _get(url: str, handle: str):
+        """Download one preview page; returns None (and logs) on failure."""
+        try:
+            req = urllib.request.Request(
+                url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return resp.read().decode('utf-8', errors='replace')
+        except Exception as e:
+            print(f"   ⚠️  Could not fetch Telegram channel @{handle}: {e}")
+            return None
+
+    def _parse_page(self, page: str, handle: str, url: str, cutoff_time: datetime):
+        """Parse one preview page into (items, oldest post id, reached_cutoff)."""
+        items = []
+        oldest_id = None
+        reached_cutoff = False
+
+        # Split the page into per-message blocks and parse each independently.
+        blocks = page.split('tgme_widget_message_wrap')[1:]
+        for block in blocks:
+            post_match = self._POST_RE.search(block)
+            if post_match:
+                post_id = post_match.group('post').rsplit('/', 1)[-1]
+                if post_id.isdigit():
+                    oldest_id = (int(post_id) if oldest_id is None
+                                 else min(oldest_id, int(post_id)))
+
+            text_match = self._TEXT_RE.search(block)
+            time_match = self._TIME_RE.search(block)
+            if not text_match or not time_match:
+                continue
+
+            content = self._clean(text_match.group('text'))
+            if not content:
+                continue
+
+            try:
+                # e.g. "2026-07-01T12:34:56+00:00" — normalize to naive local
+                # time so timestamps sort alongside the other scrapers' feeds.
+                pub_date = datetime.fromisoformat(time_match.group('dt'))
+                if pub_date.tzinfo is not None:
+                    pub_date = pub_date.astimezone().replace(tzinfo=None)
+            except ValueError:
+                continue
+
+            if pub_date < cutoff_time:
+                reached_cutoff = True
+                continue
+
+            link = (f"https://t.me/{post_match.group('post')}"
+                    if post_match else url)
+
+            items.append(FeedItem(
+                source='telegram',
+                author=f"@{handle}",
+                content=content,
+                timestamp=pub_date,
+                url=link,
+                metadata={'channel': handle},
+            ))
+
+        return items, oldest_id, reached_cutoff
 
 
 # ============================================================================
@@ -800,7 +846,8 @@ class RedHoodAggregator:
         print("📢 Fetching Telegram channels...")
         channels = self.config.TELEGRAM_CHANNELS
         print(f"   📋 Channels: {', '.join('@' + c for c in channels)}")
-        telegram_feeds = self.telegram_scraper.fetch(channels, hours_back)
+        telegram_feeds = self.telegram_scraper.fetch(
+            channels, hours_back, max_pages=self.config.TELEGRAM_MAX_PAGES)
         all_feeds.extend(telegram_feeds)
         print(f"   ✅ Found {len(telegram_feeds)} Telegram messages\n")
 

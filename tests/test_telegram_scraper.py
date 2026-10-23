@@ -131,3 +131,51 @@ class TestFetch:
         monkeypatch.setattr(urllib.request, 'urlopen', boom)
         items = TelegramScraper().fetch(['redhoodtrades'], hours_back=24)
         assert items == []
+
+
+class TestPagination:
+    @pytest.fixture
+    def serve_pages(self, monkeypatch):
+        """Serve a different fixture page per URL (newest page + ?before=<id>)."""
+        state = {'pages': {}, 'requested': []}
+
+        def fake_urlopen(req, timeout=None):
+            state['requested'].append(req.full_url)
+            return _FakeResponse(state['pages'].get(req.full_url, _page()).encode('utf-8'))
+
+        monkeypatch.setattr(urllib.request, 'urlopen', fake_urlopen)
+        return state
+
+    def test_pages_back_with_before_param(self, serve_pages):
+        now = datetime.now(timezone.utc)
+        base = 'https://t.me/s/marketfeed'
+        serve_pages['pages'] = {
+            base: _page(_message_block('newer', 'marketfeed/20', now - timedelta(hours=1))),
+            f'{base}?before=20': _page(_message_block('older', 'marketfeed/10', now - timedelta(hours=2))),
+        }
+        items = TelegramScraper().fetch(['marketfeed'], hours_back=24, max_pages=3)
+        assert [i.content for i in items] == ['newer', 'older']
+        # Third page (?before=10) is empty, so paging stops there.
+        assert serve_pages['requested'] == [base, f'{base}?before=20', f'{base}?before=10']
+
+    def test_stops_once_cutoff_reached(self, serve_pages):
+        now = datetime.now(timezone.utc)
+        base = 'https://t.me/s/marketfeed'
+        serve_pages['pages'] = {
+            base: _page(
+                _message_block('stale', 'marketfeed/19', now - timedelta(hours=30)),
+                _message_block('fresh', 'marketfeed/20', now - timedelta(hours=1)),
+            ),
+        }
+        items = TelegramScraper().fetch(['marketfeed'], hours_back=24, max_pages=5)
+        assert [i.content for i in items] == ['fresh']
+        assert serve_pages['requested'] == [base]
+
+    def test_stops_when_page_repeats(self, serve_page):
+        now = datetime.now(timezone.utc)
+        serve_page['page'] = _page(
+            _message_block('msg', 'marketfeed/5', now - timedelta(hours=1)))
+        items = TelegramScraper().fetch(['marketfeed'], hours_back=24, max_pages=5)
+        # Same page returned for ?before=5 makes no progress -> stop, without dupes.
+        assert len(serve_page['requested']) == 2
+        assert [i.content for i in items] == ['msg']
