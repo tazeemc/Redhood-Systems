@@ -1066,11 +1066,12 @@ class RedHoodAggregator:
 
         # Metrics: feeds + 3 narrative entropy scores + narrative count
         metric_blocks = []
-        metric_blocks.append(
-            f'<div class="metric"><div class="metric-label">Feeds Collected</div>'
-            f'<div class="metric-val">{feed_count}</div>'
-            f'<div class="metric-delta neutral">{window_label}</div></div>'
-        )
+        if feed_count:  # a "0 feeds" tile reads as broken; omit it instead
+            metric_blocks.append(
+                f'<div class="metric"><div class="metric-label">Feeds Collected</div>'
+                f'<div class="metric-val">{feed_count}</div>'
+                f'<div class="metric-delta neutral">{window_label}</div></div>'
+            )
         for narr in narrs:
             if narr is None:
                 metric_blocks.append('<div class="metric"><div class="metric-label">—</div></div>')
@@ -1277,8 +1278,9 @@ class RedHoodAggregator:
                 bbc_paras.append(H.escape(narratives[2].hypothesis))
 
         if bbc_paras:
-            byline = (f"Compiled from {feed_count} signal sources "
-                      f"&middot; {run_time_short} &middot; AI-assisted analysis")
+            byline = ' &middot; '.join(
+                ([f"Compiled from {feed_count} signal sources"] if feed_count else [])
+                + [run_time_short, "AI-assisted analysis"])
             paras_html = ''.join(
                 f'<p class="synopsis-para">{p}</p>' for p in bbc_paras
             )

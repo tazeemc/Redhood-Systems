@@ -64,3 +64,16 @@ def test_report_anchors_match_prompt_index_for_telegram(tmp_path, monkeypatch):
         assert f'id="feed-{n}"' in html
     assert 'href="#feed-2"' in html
     assert 'View on Telegram' in html
+
+
+def test_zero_feeds_hides_count(tmp_path, monkeypatch):
+    narr = Narrative('Oil', 7, 'Long crude', 'Driven by supply risk', ['EIA'], [])
+    agg = RedHoodAggregator.__new__(RedHoodAggregator)
+    monkeypatch.setattr(agg, '_fetch_ticker_prices', lambda: '', raising=False)
+    out = tmp_path / 'report.html'
+    agg._save_html_report({'feeds': [], 'narratives': [narr.to_dict()]}, [narr],
+                          str(out), '20261023_131553', 3)
+    html = out.read_text(encoding='utf-8')
+    assert 'Compiled from 0' not in html
+    assert 'Feeds Collected' not in html
+    assert 'AI-assisted analysis' in html
