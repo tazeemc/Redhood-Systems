@@ -34,6 +34,7 @@ import sqlite3
 import feedparser
 from anthropic import Anthropic
 from dotenv import load_dotenv
+import card_history
 from accounts_db import get_active_handles, init_db
 from models import DB_PATH, init_schema
 from ticker_extraction import (
@@ -797,7 +798,41 @@ class GitHubPagesPublisher:
         latest_path = f"{self.DOCS_PATH}/latest.html"
         self._put_file(latest_path, html, f"Update latest {ts}", self._get_sha(latest_path))
 
+        try:
+            self._publish_card_history(html, filename, ts)
+        except Exception as e:  # history is a bonus; never fail the report publish
+            print(f"   ⚠️  [GitHub Pages] Card history update failed: {e}")
+
         return f"{self.BASE_URL}/{filename}"
+
+    def _get_text(self, path: str):
+        """Return a file's raw text (raw media type handles files over 1 MB), or None."""
+        url = (f"https://api.github.com/repos/{self.OWNER}/{self.REPO}"
+               f"/contents/{path}?ref={self.BRANCH}")
+        req = urllib.request.Request(
+            url, headers={**self._headers, "Accept": "application/vnd.github.raw"})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return r.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            raise
+
+    def _publish_card_history(self, html: str, filename: str, ts: str):
+        """Fold this report's signal cards into docs/cards_history.json and re-render docs/cards.html."""
+        cards = card_history.extract_cards(html)
+        if not cards:
+            return
+        json_path = f"{self.DOCS_PATH}/{card_history.HISTORY_JSON}"
+        history = card_history.load(self._get_text(json_path))
+        added = card_history.merge(history, cards, filename, card_history.report_time(filename))
+        self._put_file(json_path, card_history.dump(history),
+                       f"Update card history {ts}", self._get_sha(json_path))
+        page_path = f"{self.DOCS_PATH}/{card_history.HISTORY_HTML}"
+        self._put_file(page_path, card_history.render_page(history),
+                       f"Update card history page {ts}", self._get_sha(page_path))
+        print(f"🗂️  [GitHub Pages] Card history: +{added} new, {len(history['cards'])} total")
 
 
 # ============================================================================
@@ -1692,6 +1727,7 @@ class RedHoodAggregator:
   .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
   .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
   .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
+  .cmd-link { text-decoration: none; }
 </style>
 </head>
 <body>
@@ -1772,6 +1808,7 @@ class RedHoodAggregator:
         <option value="handle">SORT &middot; HANDLE</option>
       </select>
       <span id="cardCount" class="cmd-count"></span>
+      <a class="cmd-btn cmd-link" href="cards.html">HISTORY &rarr;</a>
     </div>
     <div class="tweet-grid" id="tweetGrid">%%EMBEDS%%</div>
   </details>
