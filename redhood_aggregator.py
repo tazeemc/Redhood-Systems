@@ -1774,6 +1774,25 @@ class RedHoodAggregator:
 
   <div class="metrics-strip">%%METRICS%%</div>
 
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">SIGINT &mdash; Signal Cards &middot; %%EMBED_COUNT%% of %%FEED_COUNT%% &middot; %%CITED_COUNT%% narrative-cited + top 55 &middot; %%RUN_TIME%%</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">SORT &middot; RECENT</option>
+        <option value="handle">SORT &middot; HANDLE</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+      <a class="cmd-btn cmd-link" href="cards.html">HISTORY &rarr;</a>
+    </div>
+    <div class="tweet-grid" id="tweetGrid">%%EMBEDS%%</div>
+  </details>
+
   %%SYNOPSIS%%
 
   <div class="grid-section">%%GRID%%</div>
@@ -1793,25 +1812,6 @@ class RedHoodAggregator:
   %%TRADING%%
 
   %%REGIME_PANEL%%
-
-  <details class="embeds-section sec" open>
-    <summary class="sec-summary">
-      <span class="links-header">SIGINT &mdash; Signal Cards &middot; %%EMBED_COUNT%% of %%FEED_COUNT%% &middot; %%CITED_COUNT%% narrative-cited + top 55 &middot; %%RUN_TIME%%</span>
-      <span class="sec-chevron">&#9662;</span>
-    </summary>
-    <div class="cmdbar">
-      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
-      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
-      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
-      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
-        <option value="recent">SORT &middot; RECENT</option>
-        <option value="handle">SORT &middot; HANDLE</option>
-      </select>
-      <span id="cardCount" class="cmd-count"></span>
-      <a class="cmd-btn cmd-link" href="cards.html">HISTORY &rarr;</a>
-    </div>
-    <div class="tweet-grid" id="tweetGrid">%%EMBEDS%%</div>
-  </details>
 
   %%LINKS_SECTION%%
 
