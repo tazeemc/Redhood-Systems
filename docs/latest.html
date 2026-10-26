@@ -3,448 +3,439 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RedHood Reads — 2026-10-23 13:15</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<title>RedHood Reads — 2026-10-26 05:11</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
-    --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
-    --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
-    --purple: #7B4FD6; --pink: #E8517A; --tangerine: #F47B3A;
+    --bg: #f2f3f3; --surface: #ffffff; --surface-alt: #fbfbfb; --sunken: #f2f3f3;
+    --border: #c6c6cd; --border-sub: #e9ebed;
+    --text: #0f141a; --text-sec: #5f6b7a; --text-mut: #8c8c94;
+    --link: #006ce0; --primary: #006ce0;
+    --success: #00802f; --success-bg: #effff1; --success-bd: #b7eac3;
+    --error: #d91515; --error-bg: #fff5f5; --error-bd: #ffcfcf;
+    --warning: #8d6605; --warning-bg: #fffaf0; --warning-bd: #ffe3a0;
+    --info: #006ce0; --info-bg: #f0fbff; --info-bd: #b8e7ff;
+    --nav-bg: #0f141a; --nav-text: #ffffff; --nav-sec: #a4b0bd; --nav-accent: #ff9900;
+    --chart1: #688ae8; --chart2: #8456ce; --chart3: #2ea597;
+    --radius: 16px; --radius-sm: 8px; --radius-xs: 4px;
+    --shadow: 0 1px 1px 0 rgba(0,7,22,.12), 0 1px 8px -2px rgba(0,7,22,.12);
+    --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 32px 16px; overflow-x: hidden; }
-  body::before { content: ""; position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 0; opacity: 0.6; }
-  .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
-    border: 1px solid rgba(123,79,214,0.3); z-index: 1; overflow: hidden;
-    box-shadow: 0 0 40px rgba(123,79,214,0.06), 0 0 80px rgba(232,81,122,0.03); }
-  .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
-    height: 200px; background: linear-gradient(135deg, var(--purple), var(--pink));
-    transform: rotate(45deg); opacity: 0.1; }
-  .topbar { display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 28px; border-bottom: 1px solid rgba(123,79,214,0.15);
-    background: rgba(123,79,214,0.04); }
-  .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--pink);
-    animation: pulse 2s ease-in-out infinite; }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,81,122,0.5); }
-    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(232,81,122,0); }
+  html[data-theme="dark"] {
+    --bg: #0f141a; --surface: #161d26; --surface-alt: #1b232d; --sunken: #0f141a;
+    --border: #414750; --border-sub: #273039;
+    --text: #d1d5db; --text-sec: #a4b0bd; --text-mut: #8c99a8;
+    --link: #42b4ff; --primary: #42b4ff;
+    --success: #5dc689; --success-bg: #11291b; --success-bd: #1f5134;
+    --error: #eb6f6f; --error-bg: #2b1414; --error-bd: #5f2626;
+    --warning: #e0ca57; --warning-bg: #2b2411; --warning-bd: #5c4c16;
+    --info: #42b4ff; --info-bg: #11212e; --info-bd: #1f4a66;
+    --nav-bg: #000716; --nav-text: #e9ebed;
+    --shadow: 0 1px 1px 0 rgba(0,0,0,.4), 0 1px 8px -2px rgba(0,0,0,.5);
   }
-  .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--pink); font-weight: 500; }
-  .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
-  .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
-    background: var(--mid); padding: 7px 0; }
-  .ticker-inner { display: flex; gap: 0; animation: ticker 28s linear infinite; white-space: nowrap; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font);
+    font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: var(--link); }
+  h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
+
+  /* ---- status / severity tokens (theme-aware, replaces inline hex) ---- */
+  .sev-low, .rg-trending-fg { color: var(--success); }
+  .sev-med, .rg-choppy-fg, .sev-warn { color: var(--warning); }
+  .sev-high, .rg-crisis-fg { color: var(--error); }
+  .rg-transition-fg, .rg-neutral-fg { color: var(--info); }
+  .rg-trending { color: var(--success); background: var(--success-bg); border-color: var(--success-bd); }
+  .rg-choppy { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-bd); }
+  .rg-crisis { color: var(--error); background: var(--error-bg); border-color: var(--error-bd); }
+  .rg-transition, .rg-neutral { color: var(--info); background: var(--info-bg); border-color: var(--info-bd); }
+  .po-ok { color: var(--success); background: var(--success-bg); border-color: var(--success-bd); }
+  .po-warn { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-bd); }
+  .po-crit { color: var(--error); background: var(--error-bg); border-color: var(--error-bd); }
+  .po-info { color: var(--info); background: var(--info-bg); border-color: var(--info-bd); }
+
+  /* ---- TopNavigation ---- */
+  .top-nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
+    justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    background: var(--nav-bg); padding: 0 20px; min-height: 56px; }
+  .tn-left { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  .tn-logo { font-size: 16px; font-weight: 700; color: #fff; }
+  .tn-logo .accent { color: var(--nav-accent); }
+  .tn-title { color: var(--nav-sec); font-size: 13px; white-space: nowrap; }
+  .tn-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; }
+  .tn-meta { color: var(--nav-sec); font-size: 12px; }
+  #dataAge { color: var(--nav-accent); font-variant-numeric: tabular-nums; }
+  .tn-btn { background: transparent; color: var(--nav-text); border: 1px solid #414750;
+    border-radius: 20px; padding: 5px 14px; font-family: var(--font); font-size: 12px;
+    font-weight: 600; cursor: pointer; }
+  .tn-btn:hover { background: rgba(255,255,255,0.08); }
+  .posture-pill { font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border: 1px solid; border-radius: var(--radius-xs); white-space: nowrap; }
+
+  /* ---- ticker ---- */
+  .ticker-wrap { overflow: hidden; background: var(--surface);
+    border-bottom: 1px solid var(--border-sub); padding: 8px 0; }
+  .ticker-inner { display: flex; animation: ticker 44s linear infinite; white-space: nowrap; }
   @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
-    font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
-  .tick-sym { color: var(--tangerine); font-weight: 500; }
-  .tick-val { color: var(--cream); }
-  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
-  .up { color: #4CAF50; } .down { color: var(--red); }
-  .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
-  .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-  .issue-num { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); }
-  .issue-rule { flex: 1; height: 1px; background: linear-gradient(to right, var(--wire), transparent); }
-  .masthead { font-family: "Playfair Display", serif; font-weight: 900;
-    font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
-    color: var(--cream); margin-bottom: 6px; }
-  .masthead .red-accent { color: var(--red); font-style: italic; }
-  .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
-    text-transform: uppercase; color: var(--tangerine); margin-bottom: 28px; }
-  .headline-block { max-width: 620px; }
-  .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
-    line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
-  .deck { font-size: 10.5px; line-height: 1.7; color: var(--text-muted);
-    letter-spacing: 0.03em; max-width: 540px; }
-  .corner-deco { position: absolute; top: 44px; right: 40px; text-align: right; }
-  .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
-    text-transform: uppercase; }
-  .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
-    font-weight: 900; color: rgba(123,79,214,0.15); line-height: 1; letter-spacing: -0.04em; }
-  .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
-    border-bottom: 1px solid var(--wire); }
-  .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
-  .grid-col:last-child { border-right: none; }
-  .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--pink); margin-bottom: 10px; font-weight: 500; }
-  .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
-    line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
-  .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
-  .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
-  .bar { flex: 1; background: var(--wire); border-radius: 1px; }
-  .bar.hi { background: rgba(244,123,58,0.55); }
-  .bar.lo { background: rgba(193,18,31,0.5); }
-  .bar.mid-hi { background: rgba(232,81,122,0.45); }
-  .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
-    border-bottom: 1px solid var(--wire); }
-  .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
-  .metric:last-child { border-right: none; }
-  .metric-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 5px; }
-  .metric-val { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 700;
-    color: var(--cream); line-height: 1; margin-bottom: 3px; }
-  .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
-  .metric-delta.up { color: #4CAF50; }
-  .metric-delta.dn { color: var(--red); }
-  .metric-delta.neutral { color: var(--tangerine); }
-  .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
-    display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
-  .thought-rule { background: linear-gradient(to bottom, var(--purple), var(--pink), transparent);
-    height: 100%; min-height: 60px; }
-  .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--purple); margin-bottom: 8px; font-weight: 500; }
-  .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
-    line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
-  .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
-  .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
-  .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--purple); margin-bottom: 14px; font-weight: 500; }
-  .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
-  .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
-    border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
-  .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
-    vertical-align: top; }
-  .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
-  .author { color: var(--tangerine); white-space: nowrap; width: 140px; }
-  .links-table a { color: var(--pink); text-decoration: none; word-break: break-all; }
-  .links-table a:hover { text-decoration: underline; color: var(--cream); }
-  .feed-num { color: var(--text-muted); width: 28px; text-align: right; padding-right: 14px; font-size: 8px; letter-spacing: 0.05em; }
-  .feed-link { color: var(--purple) !important; text-decoration: none !important; border-bottom: 1px solid rgba(123,79,214,0.4); }
-  .feed-link:hover { color: var(--cream) !important; }
-  tr:target { background: rgba(123,79,214,0.08); outline: 1px solid rgba(123,79,214,0.3); }
-  .embeds-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
-  /* ---- SIGINT signal cards (tactical trade-reference look) ---- */
-  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
-    gap: 14px; align-items: stretch; }
-  .tweet-embed { min-width: 0; display: flex; }
-  .tweet-embed:target .tw-card { outline: 1px solid rgba(184,151,90,0.55); outline-offset: 2px; }
-  .tw-card { position: relative; display: flex; flex-direction: column; width: 100%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
-    border: 1px solid var(--wire); border-left: 2px solid var(--tangerine);
-    padding: 12px 14px; font-size: 10px; line-height: 1.65;
-    color: rgba(245,240,232,0.78); transition: border-color .15s, transform .15s; }
-  .tw-card::before, .tw-card::after { content: ""; position: absolute; width: 7px; height: 7px;
-    border-color: rgba(244,123,58,0.5); pointer-events: none; }
-  .tw-card::before { top: 4px; right: 4px; border-top: 1px solid; border-right: 1px solid; }
-  .tw-card::after  { bottom: 4px; left: 4px; border-bottom: 1px solid; border-left: 1px solid; }
-  .tw-card:hover { border-left-color: var(--cream); transform: translateY(-1px); }
-  .tw-card-cited { border-left: 2px solid var(--gold);
-    background: linear-gradient(180deg, rgba(184,151,90,0.10), rgba(184,151,90,0.02));
-    box-shadow: inset 0 0 0 1px rgba(184,151,90,0.15); }
-  .tw-card-cited::before, .tw-card-cited::after { border-color: rgba(184,151,90,0.7); }
-  .tw-head { display: flex; justify-content: space-between; align-items: baseline;
-    gap: 8px; margin-bottom: 7px; }
-  .tw-handle { color: var(--tangerine); font-weight: 500; letter-spacing: 0.05em; }
-  .tw-meta { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
-  .tw-cited { font-size: 7px; letter-spacing: 0.18em; color: var(--gold); font-weight: 600;
-    border: 1px solid rgba(184,151,90,0.45); padding: 1px 5px; background: rgba(184,151,90,0.08); }
-  .tw-ts { color: var(--text-muted); font-size: 8px; letter-spacing: 0.04em; }
-  .tw-body { color: rgba(245,240,232,0.82); flex: 1; }
-  .tw-link { display: inline-block; margin-top: 10px; font-size: 8px; letter-spacing: 0.16em;
-    text-transform: uppercase; color: var(--pink); text-decoration: none;
-    border-top: 1px solid var(--wire); padding-top: 7px; }
-  .tw-link:hover { color: var(--cream); }
-  .footer { display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 28px; background: rgba(193,18,31,0.04); }
-  .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
-  .footer-left span { color: var(--pink); }
-  .footer-right { display: flex; align-items: center; gap: 18px; }
-  .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
-  .footer-tag.active { border-color: rgba(123,79,214,0.5); color: var(--purple); }
-  .scanline { position: absolute; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
-      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
-  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--pink); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
-  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
-  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
-    color: var(--tangerine); font-weight: 500; }
-  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--pink); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
-  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
-  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
-    color: var(--tangerine); font-weight: 500; }
-  .synopsis-section { padding: 28px 40px; border-bottom: 1px solid var(--wire);
-    background: rgba(123,79,214,0.03); }
-  .synopsis-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--purple); margin-bottom: 6px; font-weight: 500; }
-  .synopsis-byline { font-size: 8px; color: var(--text-muted); letter-spacing: 0.08em;
-    margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wire); }
-  .synopsis-body { column-count: 2; column-gap: 36px; }
-  .synopsis-para { font-size: 10px; line-height: 1.8; color: var(--cream);
-    margin-bottom: 14px; letter-spacing: 0.02em; text-align: justify; }
-  .synopsis-para:first-child::first-letter { font-family: "Playfair Display", serif;
-    font-size: 2.8em; font-weight: 900; float: left; line-height: 0.8;
-    margin: 4px 8px 0 0; color: var(--purple); }
-  @media (max-width: 600px) { .synopsis-body { column-count: 1; } }
-  .trading-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
-  .trading-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--tangerine); margin-bottom: 14px; font-weight: 500; }
-  .trading-grid { display: flex; gap: 14px; flex-wrap: wrap; }
-  .tc-card { flex: 1; min-width: 180px; background: rgba(255,255,255,0.03);
-    border: 1px solid var(--wire); padding: 14px 16px; }
-  .tc-header { display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 8px; }
-  .tc-sym { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
-    color: var(--cream); }
-  .tc-rec { font-size: 8px; letter-spacing: 0.2em; font-weight: 600;
-    padding: 3px 8px; border: 1px solid; }
-  .rec-in  { color: #4CAF50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.07); }
-  .rec-out { color: var(--red); border-color: rgba(193,18,31,0.4); background: rgba(193,18,31,0.07); }
-  .rec-neutral { color: var(--tangerine); border-color: rgba(244,123,58,0.4); background: rgba(244,123,58,0.07); }
-  .tc-price { font-size: 15px; font-weight: 500; color: var(--cream);
-    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .tc-trend { font-size: 9px; letter-spacing: 0.05em; }
+  .tick-item { display: inline-flex; align-items: baseline; gap: 6px; padding: 0 20px;
+    font-size: 12px; border-right: 1px solid var(--border-sub); }
+  .tick-sym { color: var(--text-sec); font-weight: 700; }
+  .tick-val { color: var(--text); font-variant-numeric: tabular-nums; }
+  .tick-chg { font-size: 11px; font-variant-numeric: tabular-nums; }
+  .up { color: var(--success); } .down { color: var(--error); }
+
+  /* ---- layout + page header ---- */
+  .content { max-width: 1200px; margin: 0 auto; padding: 24px 20px 40px;
+    display: flex; flex-direction: column; gap: 20px; }
+  .ph-crumb { color: var(--text-sec); font-size: 12px; margin-bottom: 6px; }
+  .ph-title { font-size: 24px; line-height: 1.25; }
+  .ph-desc { color: var(--text-sec); font-size: 14px; margin-top: 6px; max-width: 860px; }
+
+  /* ---- Cloudscape container ---- */
+  .container, .synopsis-section, .trading-section, .regime-panel,
+  .links-section, .embeds-section {
+    background: var(--surface); border: 1px solid var(--border-sub);
+    border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .container-header { padding: 16px 20px; border-bottom: 1px solid var(--border-sub); }
+  .container-header h2 { font-size: 18px; }
+  .ch-desc { display: block; color: var(--text-sec); font-size: 13px; margin-top: 2px; }
+  .container-body { padding: 20px; }
+
+  /* ---- metrics (key-value pairs) ---- */
+  .metrics-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
+  .metric { min-width: 0; }
+  .metric-label { color: var(--text-sec); font-size: 12px; font-weight: 700; margin-bottom: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .metric-val { font-size: 22px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .metric-delta { font-size: 12px; margin-top: 2px; color: var(--text-sec); }
+  .metric-delta.up { color: var(--success); }
+  .metric-delta.dn { color: var(--error); }
+  .metric-delta.neutral { color: var(--text-sec); }
+
+  /* ---- narrative cards ---- */
+  .grid-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 16px; }
+  .grid-col { background: var(--surface-alt); border: 1px solid var(--border-sub);
+    border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; }
+  .col-tag { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--info);
+    background: var(--info-bg); border: 1px solid var(--info-bd);
+    border-radius: var(--radius-xs); padding: 2px 8px; margin-bottom: 10px; }
+  .col-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+  .col-body { font-size: 13px; color: var(--text-sec); }
+  .sparkline { margin-top: 12px; height: 28px; display: flex; align-items: flex-end; gap: 3px; }
+  .bar { flex: 1; border-radius: 2px 2px 0 0; background: var(--border-sub); }
+  .bar.hi { background: var(--chart1); }
+  .bar.mid-hi { background: var(--chart2); }
+  .bar.lo { background: var(--chart3); }
+  .bear-label, .thought-bear-label { font-size: 11px; font-weight: 700; color: var(--error);
+    margin-top: 12px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .bear-body, .thought-bear { font-size: 13px; color: var(--text-sec); }
+  .conviction-tag, .thought-conviction { margin-top: 8px; font-size: 12px; font-weight: 700;
+    color: var(--warning); }
+
+  /* ---- synopsis ---- */
+  .synopsis-label { padding: 16px 20px 0; font-size: 18px; font-weight: 700; }
+  .synopsis-byline { padding: 2px 20px 12px; color: var(--text-sec); font-size: 13px;
+    border-bottom: 1px solid var(--border-sub); }
+  .synopsis-body { padding: 20px; column-count: 2; column-gap: 32px; }
+  .synopsis-para { font-size: 14px; line-height: 1.65; margin-bottom: 12px; }
+  @media (max-width: 760px) { .synopsis-body { column-count: 1; } }
+  .feed-link { color: var(--link); text-decoration: none; font-weight: 700; }
+  .feed-link:hover { text-decoration: underline; }
+
+  /* ---- top hypothesis ---- */
+  .thought-q { font-size: 16px; font-weight: 700; line-height: 1.45; margin-bottom: 8px; }
+  .thought-body { font-size: 13px; color: var(--text-sec); }
+
+  /* ---- trading signals ---- */
+  .trading-label { padding: 16px 20px; font-size: 18px; font-weight: 700;
+    border-bottom: 1px solid var(--border-sub); }
+  .trading-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+    gap: 16px; padding: 20px; }
+  .tc-card { background: var(--surface-alt); border: 1px solid var(--border-sub);
+    border-radius: var(--radius-sm); padding: 16px; }
+  .tc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .tc-sym { font-size: 16px; font-weight: 700; }
+  .tc-rec { font-size: 11px; font-weight: 700; padding: 2px 8px; border: 1px solid;
+    border-radius: var(--radius-xs); }
+  .rec-in { color: var(--success); background: var(--success-bg); border-color: var(--success-bd); }
+  .rec-out { color: var(--error); background: var(--error-bg); border-color: var(--error-bd); }
+  .rec-neutral { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-bd); }
+  .tc-price { font-size: 20px; font-weight: 700; margin-bottom: 12px; display: flex;
+    align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+  .tc-trend { font-size: 12px; font-weight: 600; }
   .tc-row { display: flex; justify-content: space-between; align-items: baseline;
-    padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-  .tc-lbl { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); }
-  .tc-val { font-size: 8.5px; color: var(--cream); text-align: right; }
-  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--tangerine);
-    border: 1px solid rgba(244,123,58,0.35); padding: 1px 4px; margin-left: 4px; }
-  .tc-ts { font-size: 7px; color: var(--text-muted); margin-top: 8px;
-    letter-spacing: 0.05em; text-align: right; }
-  .regime-panel { padding: 22px 28px; border-bottom: 1px solid var(--wire);
-    background: rgba(0,229,160,0.015); }
-  .regime-panel-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: #00e5a0; margin-bottom: 12px; font-weight: 500; }
-  .regime-badge-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
-    flex-wrap: wrap; }
-  .regime-badge { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700;
-    letter-spacing: 0.2em; padding: 5px 14px; border: 1px solid; }
-  .regime-desc { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; }
-  .regime-warn { font-size: 8px; color: #ff9a3c; letter-spacing: 0.1em;
-    border: 1px solid rgba(255,154,60,0.4); padding: 3px 8px; background: rgba(255,154,60,0.07); }
-  .regime-metrics { display: flex; gap: 0; border: 1px solid var(--wire); }
-  .rm { flex: 1; padding: 10px 14px; border-right: 1px solid var(--wire); }
-  .rm:last-child { border-right: none; }
-  .rm-lbl { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 5px; }
-  .rm-val { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
-    color: var(--cream); line-height: 1; margin-bottom: 3px; }
-  .rm-sub { font-size: 7.5px; color: var(--text-muted); letter-spacing: 0.05em; }
-  /* ---- Tactical framing: reticle corners + classification banner ---- */
-  .reticle { position: absolute; width: 16px; height: 16px; z-index: 3; pointer-events: none;
-    border-color: rgba(244,123,58,0.55); }
-  .reticle.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
-  .reticle.tr { top: 6px; right: 6px; border-top: 1px solid; border-right: 1px solid; }
-  .reticle.bl { bottom: 6px; left: 6px; border-bottom: 1px solid; border-left: 1px solid; }
-  .reticle.br { bottom: 6px; right: 6px; border-bottom: 1px solid; border-right: 1px solid; }
-  .classbar { display: flex; align-items: center; justify-content: space-between;
-    padding: 4px 28px; background: repeating-linear-gradient(45deg,
-      rgba(193,18,31,0.12) 0 10px, rgba(193,18,31,0.04) 10px 20px);
-    border-bottom: 1px solid rgba(193,18,31,0.25);
-    font-size: 7.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
-  .classbar .cb-mid { color: rgba(245,240,232,0.55); letter-spacing: 0.2em; }
-  @media (max-width: 600px) { .classbar .cb-mid { display: none; } }
-  .posture-pill { font-size: 7.5px; letter-spacing: 0.18em; font-weight: 600;
-    padding: 2px 8px; border: 1px solid; margin-left: 6px; }
-  #dataAge { color: var(--tangerine); }
-  /* ---- collapsible sections (native <details>) ---- */
-  details.sec { padding: 0; border-bottom: 1px solid var(--wire); }
-  details.sec > summary { list-style: none; cursor: pointer; display: flex;
-    align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px 0; }
+    padding: 5px 0; border-bottom: 1px solid var(--border-sub); }
+  .tc-lbl { font-size: 12px; color: var(--text-sec); }
+  .tc-val { font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .tc-badge { font-size: 10px; font-weight: 700; color: var(--text-sec); background: var(--sunken);
+    border: 1px solid var(--border-sub); border-radius: var(--radius-xs); padding: 1px 5px; margin-left: 4px; }
+  .tc-ts { font-size: 11px; color: var(--text-mut); margin-top: 8px; text-align: right; }
+
+  /* ---- regime ---- */
+  .regime-panel-label { padding: 16px 20px; font-size: 18px; font-weight: 700;
+    border-bottom: 1px solid var(--border-sub); }
+  .regime-badge-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 20px 0; }
+  .regime-badge { font-size: 13px; font-weight: 700; padding: 4px 12px; border: 1px solid;
+    border-radius: var(--radius-xs); }
+  .regime-desc { font-size: 13px; color: var(--text-sec); }
+  .regime-warn { font-size: 11px; font-weight: 700; color: var(--warning); background: var(--warning-bg);
+    border: 1px solid var(--warning-bd); border-radius: var(--radius-xs); padding: 3px 8px; }
+  .regime-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px; padding: 20px; }
+  .rm { min-width: 0; }
+  .rm-lbl { font-size: 12px; font-weight: 700; color: var(--text-sec); margin-bottom: 4px; }
+  .rm-val { font-size: 20px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .rm-sub { font-size: 11px; color: var(--text-mut); margin-top: 2px; }
+  .regime-strip, .regime-foot { padding: 0 20px 16px; font-size: 12px; color: var(--text-sec); }
+
+  /* ---- collapsible ---- */
+  details.sec > summary { list-style: none; cursor: pointer; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; padding: 16px 20px; }
   details.sec > summary::-webkit-details-marker { display: none; }
-  .sec-summary .links-header { margin-bottom: 0; }
-  .sec-chevron { color: var(--text-muted); font-size: 10px; transition: transform .2s; }
+  details.sec[open] > summary { border-bottom: 1px solid var(--border-sub); }
+  details.sec > summary:hover { background: var(--sunken); }
+  .links-header { font-size: 15px; font-weight: 700; color: var(--text); }
+  .sec-chevron { color: var(--text-sec); font-size: 12px; transition: transform .2s; }
   details.sec[open] > summary .sec-chevron { transform: rotate(180deg); }
-  details.sec > .tweet-grid, details.sec > .cmdbar { margin: 14px 28px 22px; }
-  details.sec > table.links-table { margin: 8px 28px 20px; width: calc(100% - 56px); }
-  /* ---- command bar (signal filter HUD) ---- */
-  .cmdbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-    padding: 10px 12px; border: 1px solid var(--wire); background: rgba(255,255,255,0.02); }
-  .cmd-input { flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
-    color: var(--cream); font-family: "IBM Plex Mono", monospace; font-size: 9px;
-    letter-spacing: 0.1em; padding: 6px 9px; }
-  .cmd-input::placeholder { color: var(--text-muted); letter-spacing: 0.18em; }
-  .cmd-input:focus { outline: none; border-color: rgba(244,123,58,0.6); }
-  .cmd-btn, .cmd-select { background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
-    color: var(--text-muted); font-family: "IBM Plex Mono", monospace; font-size: 8px;
-    letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 10px; cursor: pointer; }
-  .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
-  .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
-  .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
-  .cmd-link { text-decoration: none; }
+
+  /* ---- command bar ---- */
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 16px 20px;
+    background: var(--sunken); border-bottom: 1px solid var(--border-sub); }
+  .cmd-input { flex: 1; min-width: 180px; background: var(--surface); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--font); font-size: 14px; padding: 7px 11px; }
+  .cmd-input::placeholder { color: var(--text-mut); }
+  .cmd-input:focus { outline: 2px solid var(--primary); outline-offset: -1px; border-color: var(--primary); }
+  .cmd-btn, .cmd-select { background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-family: var(--font); font-size: 13px; padding: 7px 14px; cursor: pointer; }
+  .cmd-btn { border-radius: 20px; font-weight: 700; }
+  .cmd-select { border-radius: var(--radius-sm); }
+  .cmd-btn:hover, .cmd-select:hover { background: var(--sunken); }
+  .cmd-btn.on { color: #fff; background: var(--primary); border-color: var(--primary); }
+  html[data-theme="dark"] .cmd-btn.on { color: #000716; }
+  .cmd-count { font-size: 13px; color: var(--text-sec); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ---- signal cards ---- */
+  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(278px, 1fr));
+    gap: 16px; padding: 20px; align-items: stretch; }
+  .tweet-embed { min-width: 0; display: flex; }
+  .tw-card { display: flex; flex-direction: column; width: 100%; background: var(--surface);
+    border: 1px solid var(--border-sub); border-left: 3px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    transition: box-shadow .15s, border-left-color .15s; }
+  .tw-card:hover { box-shadow: var(--shadow); border-left-color: var(--primary); }
+  .tw-card-cited { border-left-color: var(--warning); background: var(--warning-bg); }
+  .tweet-embed:target .tw-card { outline: 2px solid var(--primary); outline-offset: 1px; }
+  .tw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .tw-handle { font-size: 13px; font-weight: 700; color: var(--link); }
+  .tw-meta { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .tw-cited { font-size: 10px; font-weight: 700; color: var(--warning); background: var(--surface);
+    border: 1px solid var(--warning-bd); border-radius: var(--radius-xs); padding: 1px 6px; }
+  .tw-ts { font-size: 11px; color: var(--text-mut); font-variant-numeric: tabular-nums; }
+  .tw-body { font-size: 13px; line-height: 1.55; flex: 1; }
+  .tw-link { display: inline-block; margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--border-sub); font-size: 12px; font-weight: 700;
+    color: var(--link); text-decoration: none; }
+  .tw-link:hover { text-decoration: underline; }
+
+  /* ---- links table ---- */
+  .links-table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px 20px; font-size: 13px; }
+  .links-table th { text-align: left; padding: 8px 12px; color: var(--text-sec); font-size: 12px;
+    font-weight: 700; border-bottom: 1px solid var(--border); }
+  .links-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-sub); vertical-align: top; }
+  .links-table tr:hover td { background: var(--sunken); }
+  .links-table a { color: var(--link); text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; }
+  .ts { color: var(--text-sec); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .author { font-weight: 600; white-space: nowrap; }
+  .feed-num { color: var(--text-mut); width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+  tr:target { background: var(--info-bg); }
+
+  /* ---- footer ---- */
+  .footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    gap: 12px; padding: 16px 4px; color: var(--text-sec); font-size: 12px; }
+  .footer-left span { color: var(--link); font-weight: 700; }
+  .footer-right { display: flex; gap: 8px; flex-wrap: wrap; }
+  .footer-tag { font-size: 11px; font-weight: 700; color: var(--text-sec); background: var(--surface);
+    border: 1px solid var(--border-sub); border-radius: var(--radius-xs); padding: 3px 9px; }
+  .footer-tag.active { color: var(--info); background: var(--info-bg); border-color: var(--info-bd); }
+
+  @media (max-width: 688px) {
+    .content { padding: 16px 16px 32px; }
+    .ph-title { font-size: 20px; }
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="scanline"></div>
-  <div class="reticle tl"></div><div class="reticle tr"></div>
-  <div class="reticle bl"></div><div class="reticle br"></div>
+<header class="top-nav">
+  <div class="tn-left">
+    <span class="tn-logo">Red<span class="accent">Hood</span></span>
+    <span class="tn-title">Reads &middot; Market Intelligence</span>
+  </div>
+  <div class="tn-right">
+    <span class="posture-pill po-ok">POSTURE &middot; WEAPONS FREE</span>
+    <span class="tn-meta">Monday, 26 October 2026 &nbsp;|&nbsp; Week 44 &middot; <span id="dataAge" data-runts="2026-10-26T05:11:20">live</span></span>
+    <button id="themeToggle" class="tn-btn" type="button">Dark mode</button>
+  </div>
+</header>
 
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="pulse"></div>
-      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
-      <span class="posture-pill" style="color:#00e5a0;border-color:#00e5a055;background:#00e5a014">POSTURE&nbsp;&middot;&nbsp;WEAPONS FREE</span>
-    </div>
-    <span class="topbar-date">Friday, 23 October 2026 &nbsp;|&nbsp; Week 43 &middot; <span id="dataAge" data-runts="2026-10-23T13:15:53">live</span></span>
+<div class="ticker-wrap"><div class="ticker-inner">
+  <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$80,154</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$28.21</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,624</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$100.95</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,032</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.24</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.988</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4013</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$80,154</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$28.21</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,624</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$100.95</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,032</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.24</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.988</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4013</span><span class="tick-chg up">+0.00%</span></span>
+</div></div>
+
+<main class="content">
+  <div class="page-header">
+    <div class="ph-crumb">Run &middot; 48.0h window &middot; 2026-10-26 05:11 &middot; Day 26</div>
+    <h1 class="ph-title">Brazil Lula Shock and EM Repricing</h1>
+    <p class="ph-desc">Lula&#x27;s surprise win drove EWZ -12% and led EM dollar-bond losses with Bolsonaro vowing annulment, so near-term volatility is extreme and institutional uncertainty is high. In a TRENDING, low-temperature regime I amplify only the clearer leg…</p>
   </div>
 
-  <div class="classbar">
-    <span>// SIGNAL INTELLIGENCE</span>
-    <span class="cb-mid">TRADE REFERENCE &middot; HANDLE WITH DISCRETION</span>
-    <span>NOT FINANCIAL ADVICE //</span>
-  </div>
-
-  <div class="ticker-wrap"><div class="ticker-inner">
-    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$81,526</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$29.19</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,663</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$101.06</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,042</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">20.24</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.959</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3977</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$81,526</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$29.19</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,663</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$101.06</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,042</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">20.24</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.959</span><span class="tick-chg up">+0.00%</span></span>
-    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.3977</span><span class="tick-chg up">+0.00%</span></span>
-  </div></div>
-
-  <div class="hero">
-    <div class="issue-line">
-      <span class="issue-num">Run &middot; 3.0h window &middot; 2026-10-23 13:15</span>
-      <div class="issue-rule"></div>
+  <section class="container">
+    <div class="container-header">
+      <h2>Signal overview</h2>
+      <span class="ch-desc">Feed volume and entropy risk across extracted narratives</span>
     </div>
-    <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
-    <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
-    <div class="headline-block">
-      <div class="headline">AI Capex Fears Drive Tech Selloff</div>
-      <div class="deck">The AI/semi complex is in a high-velocity deleveraging phase (Nasdaq -2.9%, semis -6.7%) as the OpenAI $1.25T valuation collides with stretched-capex anxiety, raising the system&#x27;s temperature despite the broader TRENDING regime. Quantum-bre…</div>
-    </div>
-    <div class="corner-deco">
-      <div class="vol-label">Day</div>
-      <div class="vol-num">23</div>
-    </div>
-  </div>
+    <div class="container-body"><div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">160</div><div class="metric-delta neutral">48.0h window</div></div>
+<div class="metric"><div class="metric-label">Brazil Lula Shock and EM R…</div><div class="metric-val sev-high">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">AI Capex Debt Saturation a…</div><div class="metric-val sev-med">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">German/European Growth Sta…</div><div class="metric-val sev-med">6/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Iran Threat Resurgence and…</div><div class="metric-val sev-med">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">US Housing Deep Freeze and…</div><div class="metric-val sev-low">4/10</div><div class="metric-delta up">LOW entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">5</div><div class="metric-delta neutral">Extracted</div></div></div></div>
+  </section>
 
-  <div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">59</div><div class="metric-delta neutral">3.0h window</div></div>
-<div class="metric"><div class="metric-label">AI Capex Fears Drive Tech …</div><div class="metric-val" style="color:#C1121F">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
-<div class="metric"><div class="metric-label">Canadian Consumer Momentum…</div><div class="metric-val" style="color:#4CAF50">3/10</div><div class="metric-delta up">LOW entropy</div></div>
-<div class="metric"><div class="metric-label">Middle East Tensions Repri…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
-<div class="metric"><div class="metric-label">US-China Trade De-escalati…</div><div class="metric-val" style="color:#B8975A">5/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
-<div class="metric"><div class="metric-label">Financials Cost-Cutting an…</div><div class="metric-val" style="color:#4CAF50">4/10</div><div class="metric-delta up">LOW entropy</div></div>
-<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">5</div><div class="metric-delta neutral">Extracted</div></div></div>
+  <div class="synopsis-section"><div class="synopsis-label">Market Intelligence Synopsis</div><div class="synopsis-byline">Compiled from 160 signal sources &middot; 2026-10-26 05:11 &middot; AI-assisted analysis</div><div class="synopsis-body"><p class="synopsis-para">Lula&#x27;s surprise win drove EWZ -12% and led EM dollar-bond losses with Bolsonaro vowing annulment, so near-term volatility is extreme and institutional uncertainty is high. In a TRENDING, low-temperature regime I amplify only the clearer leg — the panic-driven USD/BRL and bond-spread widening — while treating the equity dip-buy as high-entropy until the annulment challenge resolves. No realized-return history here tempers conviction, so I keep the contrarian equity leg small.</p><p class="synopsis-para">Pairs: long NVDA (demand sink via SpaceX GPU buys) vs short basket of levered AI-only neoclouds (CoreWeave, Nebius); buy NVDA at high conviction given TRENDING amplification Market participants are closely monitoring mega-cap tech earnings this week, neocloud refinancing/credit events.</p><p class="synopsis-para">However, analysts have flagged material downside risks. This is effectively two correlated bets masquerading as a hedge: fading the equity crash while shorting BRL both depend on the political situation resolving in an orderly way, and if the Bolsonaro annulment challenge escalates into a genuine institutional crisis, EWZ gaps down further AND USD/BRL spikes past where you can comfortably scale — but staged equity entries will keep filling into a falling knife. The 8/10 entropy and explicitly zero realized-return history mean you are sizing conviction into a catalyst (a court ruling) whose outcome is binary and unknowable, not fade-able.</p></div></div>
+
+  <section class="container">
+    <div class="container-header">
+      <h2>Narratives</h2>
+      <span class="ch-desc">Top themes with adversarial bear cases and conviction sizing</span>
+    </div>
+    <div class="container-body"><div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 8/10</div><div class="col-title">Brazil Lula Shock and EM Repricing</div><div class="col-body">Fade the initial EWZ crash via staged long BRZU/EWZ entries once dollar-bond selling exhausts; hedge with long USD/BRL via short BRL futures into the panic</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This is effectively two correlated bets masquerading as a hedge: fading the equity crash while shorting BRL both depend on the political situation resolving in an orderly way, and if the Bolsonaro ann…</div><div class="conviction-tag">Quarter Size — the FX/bond leg has a cleaner catalyst but the staged equity dip-buy into an unresolved annulment challenge is high-entropy knife-catching, so keep it minimal until the court ruling de-risks the tail.</div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 7/10</div><div class="col-title">AI Capex Debt Saturation and Neocloud Shakeout</div><div class="col-body">Pairs: long NVDA (demand sink via SpaceX GPU buys) vs short basket of levered AI-only neoclouds (CoreWeave, Nebius); buy NVDA at high conviction given TRENDING amplification</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The pair assumes NVDA (long) and levered neoclouds (short) diverge, but they share the same fundamental demand driver — if AI capex credit genuinely tightens, GPU order deferrals hit NVDA&#x27;s revenue an…</div><div class="conviction-tag">Half Size — the dispersion logic is sound and market-neutral structure limits directional risk, but shared demand sensitivity and squeeze risk in heavily-shorted neoclouds cap conviction.</div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 6/10</div><div class="col-title">German/European Growth Stabilization vs Fiscal Strain</div><div class="col-body">Long EWG / short EUO on IFO expectations beat; keep quarter size and pair against French OAT exposure</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">You are building a growth-stabilization long on a soft survey (IFO expectations) while current conditions actually missed — expectations indices are notoriously noisy and mean-revert, and a single bea…</div><div class="conviction-tag">Half Size — modest sizing is appropriate given the expectations-vs-current-conditions divergence is a genuinely mixed signal, not a confirmed inflection.</div></div>
+<div class="grid-col"><div class="col-tag">Geopolitical · Risk 7/10</div><div class="col-title">Iran Threat Resurgence and Oil Risk Premium</div><div class="col-body">Long XLE calls / OXY on dips as a cheap geopolitical hedge; small size given fading war premium and Saudi supply buffering</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The trade&#x27;s own rationale concedes the fundamentals cap upside — crude retreated on risk-on, Saudi is actively buffering Asian supply, and the war premium is fading — so you are paying theta on XLE ca…</div><div class="conviction-tag">Quarter Size — cheap optionality as a convex geopolitical hedge is defensible, but faded war premium and active Saudi supply buffering justify only a small, theta-limited position.</div></div>
+<div class="grid-col"><div class="col-tag">Canada / FX · Risk 4/10</div><div class="col-title">US Housing Deep Freeze and Affordability Overhang</div><div class="col-body">Short XHB / long TLT pair: fade homebuilders on record-worst sales while duration benefits if rate cuts accelerate</div><div class="sparkline"><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:80%"></div><div class="bar hi" style="height:70%"></div><div class="bar mid-hi" style="height:60%"></div><div class="bar mid-hi" style="height:50%"></div><div class="bar lo" style="height:40%"></div><div class="bar lo" style="height:35%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This is the most consensus, crowded trade in the set — &#x27;worst sales on record&#x27; and affordability-until-2031 are widely known, so XHB likely already discounts the deterioration, and homebuilders have r…</div><div class="conviction-tag">Half Size — the deterioration is real and low-entropy, but the two legs can conflict around the rate decision and the short side is a consensus-crowded fade, so avoid full sizing.</div></div></div></div>
+  </section>
+
+  <section class="container">
+    <div class="container-header">
+      <h2>Top trade hypothesis</h2>
+      <span class="ch-desc">Highest-ranked narrative, after adversarial stress-test</span>
+    </div>
+    <div class="container-body">
+      <div class="thought-q">Fade the initial EWZ crash via staged long BRZU/EWZ entries once dollar-bond selling exhausts; hedge with long USD/BRL via short BRL futures into the panic</div>
+      <div class="thought-body">Bolsonaro annulment challenge ruling, Brazil central bank / fiscal response, EM dollar-bond spread stabilization</div>
+      <div class="thought-bear-label">Bear case</div>
+      <div class="thought-bear">This is effectively two correlated bets masquerading as a hedge: fading the equity crash while shorting BRL both depend on the political situation resolving in an orderly way, and if the Bolsonaro annulment challenge escalates into a genuine institutional crisis, EWZ gaps down further AND USD/BRL spikes past where you can comfortably scale — but staged equity entries will keep filling into a falling knife. The 8/10 entropy and explicitly zero realized-return history mean you are sizing conviction into a catalyst (a court ruling) whose outcome is binary and unknowable, not fade-able.</div>
+      <div class="thought-conviction">Quarter Size — the FX/bond leg has a cleaner catalyst but the staged equity dip-buy into an unresolved annulment challenge is high-entropy knife-catching, so keep it minimal until the court ruling de-risks the tail.</div>
+    </div>
+  </section>
+
+  <div class="trading-section"><div class="trading-label">Quantitative Signal Analysis</div><div class="trading-grid"><div class="tc-card"><div class="tc-header"><span class="tc-sym">META</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$642.62<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-13.03%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">24.3</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.42 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.774 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$717.65 / $663.81</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$78</span></div><div class="tc-ts">2026-10-26 05:09:50</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AAPL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$347.73<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+4.23%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">72.3</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.16 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.726 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$338.91 / $329.47</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$607</span></div><div class="tc-ts">2026-10-26 05:09:51</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AMZN</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$248.00<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-3.23%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">47.3</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.33 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.639 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$254.43 / $255.65</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$147</span></div><div class="tc-ts">2026-10-26 05:09:51</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NFLX</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$65.85<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-4.13%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">45.6</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.35 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.833 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$69.15 / $74.27</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$115</span></div><div class="tc-ts">2026-10-26 05:09:52</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">GOOGL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$320.21<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-7.90%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">26.4</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.21 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.702 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$343.08 / $342.94</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$336</span></div><div class="tc-ts">2026-10-26 05:09:53</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">WMT</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$119.89<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+11.84%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">85.5</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.24 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.710 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$112.19 / $109.43</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$307</span></div><div class="tc-ts">2026-10-26 05:09:54</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NU</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$15.16<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-3.19%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">49.8</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.72 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.714 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$14.61 / $14.57</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$30</span></div><div class="tc-ts">2026-10-26 05:09:54</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">BTC-USD</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$80,156<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-3.54%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">42.9</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.23 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.745 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$81,985.80 / $81,800.84</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$290</span></div><div class="tc-ts">2026-10-26 05:09:55</div></div></div></div>
+
+  <div class="regime-panel"><div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (T 20-bar &middot; shape 60-bar &middot; detector v2)</div><div class="regime-badge-row"><span class="regime-badge rg-trending">TRENDING</span><span class="regime-desc">Low T &middot; equilibrium &mdash; amplify signals</span></div><div class="regime-metrics"><div class="rm"><div class="rm-lbl">Temperature</div><div class="rm-val rg-trending-fg">9.8%</div><div class="rm-sub">base 15%</div></div><div class="rm"><div class="rm-lbl">Entropy</div><div class="rm-val">1.694</div><div class="rm-sub">eq 1.59 &middot; crisis &gt; 2.03</div></div><div class="rm"><div class="rm-lbl">Departure D</div><div class="rm-val ">0.1045</div><div class="rm-sub">threshold 0.110</div></div><div class="rm"><div class="rm-lbl">Signal Mult</div><div class="rm-val">1.22&times;</div><div class="rm-sub">applied to signals</div></div><div class="rm"><div class="rm-lbl">Heat Budget</div><div class="rm-val">57%</div><div class="rm-sub">heat 2.6% of 6% cap</div></div></div></div>
 
   <details class="embeds-section sec" open>
     <summary class="sec-summary">
-      <span class="links-header">SIGINT &mdash; Signal Cards &middot; 50 of 59 &middot; 31 narrative-cited + top 55 &middot; 2026-10-23 13:15</span>
+      <span class="links-header">Signal cards &middot; 50 of 160 (23 narrative-cited + top 55)</span>
       <span class="sec-chevron">&#9662;</span>
     </summary>
     <div class="cmdbar">
-      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
-      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
-      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="Search signals or handles" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">Cited only</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">All accounts</option></select>
       <select id="sortSel" class="cmd-select" aria-label="Sort cards">
-        <option value="recent">SORT &middot; RECENT</option>
-        <option value="handle">SORT &middot; HANDLE</option>
+        <option value="recent">Sort: Recent</option>
+        <option value="handle">Sort: Handle</option>
       </select>
       <span id="cardCount" class="cmd-count"></span>
-      <a class="cmd-btn cmd-link" href="cards.html">HISTORY &rarr;</a>
     </div>
-    <div class="tweet-grid" id="tweetGrid"><div class="tweet-embed" id="feed-1" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T13:11:59" data-search="@marketfeed in q3, network revenue rose ~24% to ~$349 million (driven by surges in solana, bnb chain, and robinhood chain&#x27;s $51m debut), though ethereum declined and robinhood chain&#x27;s high revenue is not expected to persist due to fee adjustments ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 13:11</span></span></div><div class="tw-body">IN Q3, NETWORK REVENUE ROSE ~24% TO ~$349 MILLION (DRIVEN BY SURGES IN SOLANA, BNB CHAIN, AND ROBINHOOD CHAIN&#x27;S $51M DEBUT), THOUGH ETHEREUM DECLINED AND ROBINHOOD CHAIN&#x27;S HIGH REVENUE IS NOT EXPECTED TO PERSIST DUE TO FEE ADJUSTMENTS ...</div><a class="tw-link" href="https://t.me/marketfeed/1063195" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-2" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T13:06:43" data-search="@marketfeed the moment a quantum breakthrough headline lands, bitcoin and eth reprice downward immediately. points out that a lot of allocators do not want to live with that risk, which has clearly impacted flows. prices would likely be way higher without ai labs accelerating this front so aggressively. ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 13:06</span></span></div><div class="tw-body">THE MOMENT A QUANTUM BREAKTHROUGH HEADLINE LANDS, BITCOIN AND ETH REPRICE DOWNWARD IMMEDIATELY. POINTS OUT THAT A LOT OF ALLOCATORS DO NOT WANT TO LIVE WITH THAT RISK, WHICH HAS CLEARLY IMPACTED FLOWS. PRICES WOULD LIKELY BE WAY HIGHER WITHOUT AI LABS ACCELERATING THIS FRONT SO A…</div><a class="tw-link" href="https://t.me/marketfeed/1063194" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-3" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T13:00:58" data-search="@marketfeed u.s. effective federal funds rate at 3.88 pct on 22 october on $119 bln in trades vs 3.88 pct on $110 bln on 21 october says fed data ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 13:00</span></span></div><div class="tw-body">U.S. EFFECTIVE FEDERAL FUNDS RATE AT 3.88 PCT ON 22 OCTOBER ON $119 BLN IN TRADES VS 3.88 PCT ON $110 BLN ON 21 OCTOBER SAYS FED DATA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063193" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-4" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T13:00:43" data-search="@marketfeed belgium business confidence oct: -9.8 (prev -12.1) ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 13:00</span></span></div><div class="tw-body">BELGIUM BUSINESS CONFIDENCE OCT: -9.8 (PREV -12.1) ...</div><a class="tw-link" href="https://t.me/marketfeed/1063192" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-5" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T13:00:14" data-search="@marketfeed effective fed funds rate 3.88% october 22nd vs 3.88% october 21st ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 13:00</span></span></div><div class="tw-body">EFFECTIVE FED FUNDS RATE 3.88% OCTOBER 22ND VS 3.88% OCTOBER 21ST ...</div><a class="tw-link" href="https://t.me/marketfeed/1063191" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-6" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:59:44" data-search="@marketfeed us proposes further suspension of section 301 investigation into china’s targeting of maritime, logistics, and shipbuilding sectors for dominance through jan. 9, 2027 says office of ustr ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:59</span></span></div><div class="tw-body">US PROPOSES FURTHER SUSPENSION OF SECTION 301 INVESTIGATION INTO CHINA’S TARGETING OF MARITIME, LOGISTICS, AND SHIPBUILDING SECTORS FOR DOMINANCE THROUGH JAN. 9, 2027 SAYS OFFICE OF USTR ...</div><a class="tw-link" href="https://t.me/marketfeed/1063190" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-7" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:59:14" data-search="@marketfeed us proposes further suspension of section 301 investigation into china’s targeting of maritime, logistics, and shipbuilding sectors for dominance through jan. 9, 2027 -office of ustr ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:59</span></span></div><div class="tw-body">US PROPOSES FURTHER SUSPENSION OF SECTION 301 INVESTIGATION INTO CHINA’S TARGETING OF MARITIME, LOGISTICS, AND SHIPBUILDING SECTORS FOR DOMINANCE THROUGH JAN. 9, 2027 -OFFICE OF USTR ...</div><a class="tw-link" href="https://t.me/marketfeed/1063189" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-8" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:58:58" data-search="@marketfeed us proposes further suspension of section 301 investigation into china&#x27;s targeting of maritime, logistics, and shipbuilding sectors for dominance through january 9th, 2027 - office of ustr ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:58</span></span></div><div class="tw-body">US PROPOSES FURTHER SUSPENSION OF SECTION 301 INVESTIGATION INTO CHINA&#x27;S TARGETING OF MARITIME, LOGISTICS, AND SHIPBUILDING SECTORS FOR DOMINANCE THROUGH JANUARY 9TH, 2027 - OFFICE OF USTR ...</div><a class="tw-link" href="https://t.me/marketfeed/1063188" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-9" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T12:57:43" data-search="@marketfeed singapore, malaysia and thailand central banks expand cross-border stablecoin initiative involving ripple, visa and mastercard ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:57</span></span></div><div class="tw-body">SINGAPORE, MALAYSIA AND THAILAND CENTRAL BANKS EXPAND CROSS-BORDER STABLECOIN INITIATIVE INVOLVING RIPPLE, VISA AND MASTERCARD ...</div><a class="tw-link" href="https://t.me/marketfeed/1063187" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-10" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:52:14" data-search="@marketfeed eni exec says group has submitted development plan for venezuela gas field perla; final investment decision on venezuela&#x27;s perla field will come once government has approved development plan ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:52</span></span></div><div class="tw-body">ENI EXEC SAYS GROUP HAS SUBMITTED DEVELOPMENT PLAN FOR VENEZUELA GAS FIELD PERLA; FINAL INVESTMENT DECISION ON VENEZUELA&#x27;S PERLA FIELD WILL COME ONCE GOVERNMENT HAS APPROVED DEVELOPMENT PLAN ...</div><a class="tw-link" href="https://t.me/marketfeed/1063186" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-11" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:39:12" data-search="@marketfeed $axp amex ceo: to cut 5% of jobs, around 3.5k employees ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:39</span></span></div><div class="tw-body">$AXP AMEX CEO: TO CUT 5% OF JOBS, AROUND 3.5K EMPLOYEES ...</div><a class="tw-link" href="https://t.me/marketfeed/1063185" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-12" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:37:27" data-search="@marketfeed american express to cut 5% of jobs, about 3,500 employees $axp ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:37</span></span></div><div class="tw-body">AMERICAN EXPRESS TO CUT 5% OF JOBS, ABOUT 3,500 EMPLOYEES $AXP ...</div><a class="tw-link" href="https://t.me/marketfeed/1063184" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-13" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:36:57" data-search="@marketfeed american express to cut 5 pct of jobs, about 3,500 employees ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:36</span></span></div><div class="tw-body">AMERICAN EXPRESS TO CUT 5 PCT OF JOBS, ABOUT 3,500 EMPLOYEES ...</div><a class="tw-link" href="https://t.me/marketfeed/1063183" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-14" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T12:33:42" data-search="@marketfeed passengers are being evacuated from sheremetyevo airport near moscow - ria ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:33</span></span></div><div class="tw-body">PASSENGERS ARE BEING EVACUATED FROM SHEREMETYEVO AIRPORT NEAR MOSCOW - RIA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063182" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-15" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:32:57" data-search="@marketfeed 🇨🇦canadian retail sales surge, signaling stronger consumer demand canada&#x27;s retail sales posted solid gains in august, with preliminary data pointing to continued growth in september. 🔸 august retail sales: +1.2% m/m, +5.4% y/y 🔸 ex-autos: +1.2% m/m 🔸 ex-autos, parts and gasoline: +1.1% m/m 🔸 september flash estimate: +0.7% m/m the key takeaway: resilient consumer spending could complicate the bank of canada&#x27;s case for further interest-rate cuts. ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:32</span></span></div><div class="tw-body">🇨🇦CANADIAN RETAIL SALES SURGE, SIGNALING STRONGER CONSUMER DEMAND CANADA&#x27;S RETAIL SALES POSTED SOLID GAINS IN AUGUST, WITH PRELIMINARY DATA POINTING TO CONTINUED GROWTH IN SEPTEMBER. 🔸 AUGUST RETAIL SALES: +1.2% M/M, +5.4% Y/Y 🔸 EX-AUTOS: +1.2% M/M 🔸 EX-AUTOS, PARTS AND GASOLINE:…</div><a class="tw-link" href="https://t.me/marketfeed/1063181" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-16" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:32:11" data-search="@marketfeed canadian retail sales august report ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:32</span></span></div><div class="tw-body">CANADIAN RETAIL SALES AUGUST REPORT ...</div><a class="tw-link" href="https://t.me/marketfeed/1063180" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-17" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:31:57" data-search="@marketfeed canada sept. retail sales likely rose 0.7% m/m - statscan flash ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:31</span></span></div><div class="tw-body">CANADA SEPT. RETAIL SALES LIKELY ROSE 0.7% M/M - STATSCAN FLASH ...</div><a class="tw-link" href="https://t.me/marketfeed/1063179" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-18" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:31:27" data-search="@marketfeed canada retail sales (m/m) aug: 1.2% (est 1.3%; prev -0.7%; prev r -0.8%) - retail sales ex-autos (m/m): 1.2% (est 1.1%; prev -0.7%; prev r -0.8%) ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:31</span></span></div><div class="tw-body">CANADA RETAIL SALES (M/M) AUG: 1.2% (EST 1.3%; PREV -0.7%; PREV R -0.8%) - RETAIL SALES EX-AUTOS (M/M): 1.2% (EST 1.1%; PREV -0.7%; PREV R -0.8%) ...</div><a class="tw-link" href="https://t.me/marketfeed/1063178" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-19" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:30:42" data-search="@marketfeed 🔴 canadian retail sales mom actual 1.2% (forecast 1.3%, previous -0.7%) $macro ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:30</span></span></div><div class="tw-body">🔴 CANADIAN RETAIL SALES MOM ACTUAL 1.2% (FORECAST 1.3%, PREVIOUS -0.7%) $MACRO ...</div><a class="tw-link" href="https://t.me/marketfeed/1063176" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-20" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:30:42" data-search="@marketfeed canadian core retail sales mom actual 1.2% (forecast 1.1%, previous -0.7%) $macro ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:30</span></span></div><div class="tw-body">CANADIAN CORE RETAIL SALES MOM ACTUAL 1.2% (FORECAST 1.1%, PREVIOUS -0.7%) $MACRO ...</div><a class="tw-link" href="https://t.me/marketfeed/1063177" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-21" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T12:28:57" data-search="@marketfeed passengers are being evacuated from sheremetyevo airport near moscow - ria ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:28</span></span></div><div class="tw-body">PASSENGERS ARE BEING EVACUATED FROM SHEREMETYEVO AIRPORT NEAR MOSCOW - RIA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063175" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-22" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:28:19" data-search="@marketfeed eni exec says 60% of shipping we do is under long-term agreement, mitigating impact of raising shipping costs ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:28</span></span></div><div class="tw-body">ENI EXEC SAYS 60% OF SHIPPING WE DO IS UNDER LONG-TERM AGREEMENT, MITIGATING IMPACT OF RAISING SHIPPING COSTS ...</div><a class="tw-link" href="https://t.me/marketfeed/1063174" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-23" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:25:51" data-search="@marketfeed china opposes using outer space for activities harming other countries&#x27; sovereignty, security, development interests; china opposes countries abusing domestic law to obstruct or unilaterally sanction others&#x27; space activities - xinhua ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:25</span></span></div><div class="tw-body">CHINA OPPOSES USING OUTER SPACE FOR ACTIVITIES HARMING OTHER COUNTRIES&#x27; SOVEREIGNTY, SECURITY, DEVELOPMENT INTERESTS; CHINA OPPOSES COUNTRIES ABUSING DOMESTIC LAW TO OBSTRUCT OR UNILATERALLY SANCTION OTHERS&#x27; SPACE ACTIVITIES - XINHUA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063173" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-24" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:25:50" data-search="@marketfeed eni exec says venezuela junin 5 oil field will likely reach 200,000 barrels of production in 18-24 months ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:25</span></span></div><div class="tw-body">ENI EXEC SAYS VENEZUELA JUNIN 5 OIL FIELD WILL LIKELY REACH 200,000 BARRELS OF PRODUCTION IN 18-24 MONTHS ...</div><a class="tw-link" href="https://t.me/marketfeed/1063172" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-25" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:21:13" data-search="@marketfeed china: it opposes weaponisation and battlefieldisation of outer space; it opposes offensive military policies in outer space, calls for preventing arms race in outer space - xinhua ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:21</span></span></div><div class="tw-body">CHINA: IT OPPOSES WEAPONISATION AND BATTLEFIELDISATION OF OUTER SPACE; IT OPPOSES OFFENSIVE MILITARY POLICIES IN OUTER SPACE, CALLS FOR PREVENTING ARMS RACE IN OUTER SPACE - XINHUA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063171" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-26" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:18:57" data-search="@marketfeed china: outer space arms race risk, battlefield trend are biggest threat to space security - xinhua ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:18</span></span></div><div class="tw-body">CHINA: OUTER SPACE ARMS RACE RISK, BATTLEFIELD TREND ARE BIGGEST THREAT TO SPACE SECURITY - XINHUA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063170" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-27" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:18:28" data-search="@marketfeed china says it opposes weaponisation and battlefieldisation of outer space - xinhua china says it opposes offensive military policies in outer space, calls for preventing arms race in outer space - xinhua china says outer space arms race risk, battlefield trend are biggest threat to space security - xinhua - *walter bloomberg ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:18</span></span></div><div class="tw-body">CHINA SAYS IT OPPOSES WEAPONISATION AND BATTLEFIELDISATION OF OUTER SPACE - XINHUA CHINA SAYS IT OPPOSES OFFENSIVE MILITARY POLICIES IN OUTER SPACE, CALLS FOR PREVENTING ARMS RACE IN OUTER SPACE - XINHUA CHINA SAYS OUTER SPACE ARMS RACE RISK, BATTLEFIELD TREND ARE BIGGEST THREAT …</div><a class="tw-link" href="https://t.me/marketfeed/1063169" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-28" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:17:57" data-search="@marketfeed china says outer space arms race risk, battlefield trend are biggest threat to space security - xinhua ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:17</span></span></div><div class="tw-body">CHINA SAYS OUTER SPACE ARMS RACE RISK, BATTLEFIELD TREND ARE BIGGEST THREAT TO SPACE SECURITY - XINHUA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063168" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-29" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:14:56" data-search="@marketfeed oil futures extend gains, us wti rises over $2/bbl to $101.62 on concerns over escalating middle east tensions ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:14</span></span></div><div class="tw-body">OIL FUTURES EXTEND GAINS, US WTI RISES OVER $2/BBL TO $101.62 ON CONCERNS OVER ESCALATING MIDDLE EAST TENSIONS ...</div><a class="tw-link" href="https://t.me/marketfeed/1063167" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-30" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T12:06:10" data-search="@marketfeed morning juice – us session prep (23rd october) ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:06</span></span></div><div class="tw-body">MORNING JUICE – US SESSION PREP (23RD OCTOBER) ...</div><a class="tw-link" href="https://t.me/marketfeed/1063166" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-31" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T12:04:38" data-search="@marketfeed secured overnight financing rate 3.90% october 22nd vs 3.88% october 21st. ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:04</span></span></div><div class="tw-body">SECURED OVERNIGHT FINANCING RATE 3.90% OCTOBER 22ND VS 3.88% OCTOBER 21ST. ...</div><a class="tw-link" href="https://t.me/marketfeed/1063165" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-32" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T12:04:21" data-search="@marketfeed ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:04</span></span></div><div class="tw-body">...</div><a class="tw-link" href="https://t.me/marketfeed/1063164" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-33" data-handle="arb letter" data-cited="0" data-ts="2026-10-23T12:04:12" data-search="@arb letter 601: the left is prepping a color revolution"><div class="tw-card"><div class="tw-head"><span class="tw-handle">ARB Letter</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:04</span></span></div><div class="tw-body">601: The Left is Prepping a Color Revolution</div><a class="tw-link" href="https://arbletter.arbitrageandy.us/p/something-ugly-is-brewing-before" target="_blank">Read post &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-34" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T12:01:38" data-search="@marketfeed saudi-led coalition says intercepts missile fired at khamis mushait ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 12:01</span></span></div><div class="tw-body">SAUDI-LED COALITION SAYS INTERCEPTS MISSILE FIRED AT KHAMIS MUSHAIT ...</div><a class="tw-link" href="https://t.me/marketfeed/1063163" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-35" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T12:00:02" data-search="@marketfeed follow us on x for even faster headlines! https://x.com/marketnews_feed"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 12:00</span></span></div><div class="tw-body">Follow us on X for even faster headlines! https://x.com/MarketNews_Feed</div><a class="tw-link" href="https://t.me/marketfeed/1063162" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-36" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:57:23" data-search="@marketfeed zelenskiy says ukraine brings back 270 people in prisoner swap with russia, ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:57</span></span></div><div class="tw-body">ZELENSKIY SAYS UKRAINE BRINGS BACK 270 PEOPLE IN PRISONER SWAP WITH RUSSIA, ...</div><a class="tw-link" href="https://t.me/marketfeed/1063161" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-37" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:56:06" data-search="@marketfeed tech rout eases &amp; oil strength caps relief - europe market wrap ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:56</span></span></div><div class="tw-body">TECH ROUT EASES &amp; OIL STRENGTH CAPS RELIEF - EUROPE MARKET WRAP ...</div><a class="tw-link" href="https://t.me/marketfeed/1063160" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-38" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:38:31" data-search="@marketfeed bristol-myers squibb company says corr 40.5% for iza-bren vs 20.2% for chemotherapy; mdor 6.9 vs 4.2 months; iza-bren reduces risk of progression or death by 59% in phase 3 breast cancer study ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:38</span></span></div><div class="tw-body">BRISTOL-MYERS SQUIBB COMPANY SAYS CORR 40.5% FOR IZA-BREN VS 20.2% FOR CHEMOTHERAPY; MDOR 6.9 VS 4.2 MONTHS; IZA-BREN REDUCES RISK OF PROGRESSION OR DEATH BY 59% IN PHASE 3 BREAST CANCER STUDY ...</div><a class="tw-link" href="https://t.me/marketfeed/1063159" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-39" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:37:31" data-search="@marketfeed bristol -myers squibb company says median pfs 8.2 months for iza-bren vs 4.0 months for chemotherapy in phase 3 study; iza-bren demonstrates clinical benefit in five distinct tumor types ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:37</span></span></div><div class="tw-body">BRISTOL -MYERS SQUIBB COMPANY SAYS MEDIAN PFS 8.2 MONTHS FOR IZA-BREN VS 4.0 MONTHS FOR CHEMOTHERAPY IN PHASE 3 STUDY; IZA-BREN DEMONSTRATES CLINICAL BENEFIT IN FIVE DISTINCT TUMOR TYPES ...</div><a class="tw-link" href="https://t.me/marketfeed/1063158" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-40" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:33:50" data-search="@marketfeed two weeks out, the house looks gone and the senate is on a knife edge. we asked an elections expert what it means for markets. , managing editor of sabato’s crystal ball at uva, on this week’s us midterms preview. 5:08 why trump’s approval is running more than double as bad as it was going into 2018 10:58 what the early vote is really signaling, and the mail-in trap most analysts get wrong 13:33 the seven senate races that decide control, and the five red states in play 19:15 the three market scenarios, from a republican hold to a democratic sweep 21:38 the long-shot bipartisan move that could claw tariff authority back from trump watch the full episode on youtube; link in the first reply. for live market commentary, calendars and news feeds, start a trial at . #midterms #elections2026 #stockmarket #investing ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:33</span></span></div><div class="tw-body">TWO WEEKS OUT, THE HOUSE LOOKS GONE AND THE SENATE IS ON A KNIFE EDGE. WE ASKED AN ELECTIONS EXPERT WHAT IT MEANS FOR MARKETS. , MANAGING EDITOR OF SABATO’S CRYSTAL BALL AT UVA, ON THIS WEEK’S US MIDTERMS PREVIEW. 5:08 WHY TRUMP’S APPROVAL IS RUNNING MORE THAN DOUBLE AS BAD AS IT…</div><a class="tw-link" href="https://t.me/marketfeed/1063157" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-41" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T11:28:15" data-search="@marketfeed china: issues position paper on enhancing outer space governance ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 11:28</span></span></div><div class="tw-body">CHINA: ISSUES POSITION PAPER ON ENHANCING OUTER SPACE GOVERNANCE ...</div><a class="tw-link" href="https://t.me/marketfeed/1063156" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-42" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:24:46" data-search="@marketfeed china cabinet meeting: should strive to stabilise number of new births; should expand services sector investment - state media ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:24</span></span></div><div class="tw-body">CHINA CABINET MEETING: SHOULD STRIVE TO STABILISE NUMBER OF NEW BIRTHS; SHOULD EXPAND SERVICES SECTOR INVESTMENT - STATE MEDIA ...</div><a class="tw-link" href="https://t.me/marketfeed/1063155" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-43" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:23:15" data-search="@marketfeed uk gilt dealers see median £26.7 bln rise in 2027/28 gross financing requirement to £334.3 bln - poll; uk gilt dealers see uk government headroom vs 2029/30 budget rule falling to £15.1 bln from £23.6 bln -poll ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:23</span></span></div><div class="tw-body">UK GILT DEALERS SEE MEDIAN £26.7 BLN RISE IN 2027/28 GROSS FINANCING REQUIREMENT TO £334.3 BLN - POLL; UK GILT DEALERS SEE UK GOVERNMENT HEADROOM VS 2029/30 BUDGET RULE FALLING TO £15.1 BLN FROM £23.6 BLN -POLL ...</div><a class="tw-link" href="https://t.me/marketfeed/1063154" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-44" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:22:15" data-search="@marketfeed uk gilt dealers see median £3.4 bln rise in 2026/27 gilt issuance to £249.6 bln after budget-poll; uk gilt dealers see median £5 bln rise in 2026/27 net t-bill issuance to £10 bln after budget - poll ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:22</span></span></div><div class="tw-body">UK GILT DEALERS SEE MEDIAN £3.4 BLN RISE IN 2026/27 GILT ISSUANCE TO £249.6 BLN AFTER BUDGET-POLL; UK GILT DEALERS SEE MEDIAN £5 BLN RISE IN 2026/27 NET T-BILL ISSUANCE TO £10 BLN AFTER BUDGET - POLL ...</div><a class="tw-link" href="https://t.me/marketfeed/1063153" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-45" data-handle="marketfeed" data-cited="0" data-ts="2026-10-23T11:19:45" data-search="@marketfeed ubs sees $4,000 as key support for gold ubs expects gold could retest $4,000/oz, but sees strong dip-buying demand establishing a floor. despite rising u.s. real yields and a stronger dollar, central bank buying, chinese demand and debt concerns continue to support prices. ubs forecasts 750–1,000 metric tons of annual central bank purchases. ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-23 11:19</span></span></div><div class="tw-body">UBS SEES $4,000 AS KEY SUPPORT FOR GOLD UBS EXPECTS GOLD COULD RETEST $4,000/OZ, BUT SEES STRONG DIP-BUYING DEMAND ESTABLISHING A FLOOR. DESPITE RISING U.S. REAL YIELDS AND A STRONGER DOLLAR, CENTRAL BANK BUYING, CHINESE DEMAND AND DEBT CONCERNS CONTINUE TO SUPPORT PRICES. UBS FO…</div><a class="tw-link" href="https://t.me/marketfeed/1063152" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-46" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T11:13:30" data-search="@marketfeed the earnings are strong, the market is up, and both guests kept circling the same question: how long can this hold? of wall street horizon and , equity pm and trading coach, on this week’s q3 earnings preview. 7:16 the earnings pattern that last showed up right before the 2022 bear market 9:20 why 70% of the s&amp;p’s growth is coming from just ten names 11:00 the research on why meta reporting early could be a bullish tell 15:20 the financing problem now pricing a 60% default probability into coreweave 28:24 the risks investors have simply chosen to ignore all year watch the full episode on youtube, link in the first reply. for live market commentary, calendars and news feeds, start a trial at . #earningsseason #stockmarket #ai #fed #investing ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 11:13</span></span></div><div class="tw-body">THE EARNINGS ARE STRONG, THE MARKET IS UP, AND BOTH GUESTS KEPT CIRCLING THE SAME QUESTION: HOW LONG CAN THIS HOLD? OF WALL STREET HORIZON AND , EQUITY PM AND TRADING COACH, ON THIS WEEK’S Q3 EARNINGS PREVIEW. 7:16 THE EARNINGS PATTERN THAT LAST SHOWED UP RIGHT BEFORE THE 2022 BE…</div><a class="tw-link" href="https://t.me/marketfeed/1063151" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-47" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T11:04:30" data-search="@marketfeed $axp | american express q3 2026 earnings - rev: usd 20.06b (est usd 20.12b) - adj eps: usd 4.68 - billed business: usd 454b (est usd 456.93b) - provision for credit losses: usd 1b - total expenses: usd 14.5b (est usd 14.81b) - sees fy adj eps: usd 17.60 to usd 17.90 ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 11:04</span></span></div><div class="tw-body">$AXP | AMERICAN EXPRESS Q3 2026 EARNINGS - REV: USD 20.06B (EST USD 20.12B) - ADJ EPS: USD 4.68 - BILLED BUSINESS: USD 454B (EST USD 456.93B) - PROVISION FOR CREDIT LOSSES: USD 1B - TOTAL EXPENSES: USD 14.5B (EST USD 14.81B) - SEES FY ADJ EPS: USD 17.60 TO USD 17.90 ...</div><a class="tw-link" href="https://t.me/marketfeed/1063150" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-48" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T11:04:15" data-search="@marketfeed american express q3 2026 earnings - rev: usd 20.06b (est usd 20.12b) - booked usd 982m pre-tax gain on gbtg sale - adj eps: usd 4.68 - billed business: usd 454b (est usd 456.93b) - provision for credit losses: usd 1b - total expenses: usd 14.5b (est usd 14.81b) - sees fy adjusted eps: usd 17.60 to usd 17.90 ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 11:04</span></span></div><div class="tw-body">AMERICAN EXPRESS Q3 2026 EARNINGS - REV: USD 20.06B (EST USD 20.12B) - BOOKED USD 982M PRE-TAX GAIN ON GBTG SALE - ADJ EPS: USD 4.68 - BILLED BUSINESS: USD 454B (EST USD 456.93B) - PROVISION FOR CREDIT LOSSES: USD 1B - TOTAL EXPENSES: USD 14.5B (EST USD 14.81B) - SEES FY ADJUSTED…</div><a class="tw-link" href="https://t.me/marketfeed/1063149" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-49" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T11:00:21" data-search="@marketfeed market news feed pinned «🌅 market news digest [oct 22-23, 2026 est] 🔥 top stories • openai eyes $30b round at $1.25t valuation — mega-ai funding talk lands as markets already fret over stretched ai capex • tech/ai selloff hits global equities — s&amp;p 500 -1.2%, nasdaq 100 -2.9%, semis…»"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 11:00</span></span></div><div class="tw-body">Market News Feed pinned «🌅 Market News Digest [Oct 22-23, 2026 EST] 🔥 Top Stories • OpenAI eyes $30B round at $1.25T valuation — mega-AI funding talk lands as markets already fret over stretched AI capex • Tech/AI selloff hits global equities — S&amp;P 500 -1.2%, Nasdaq 100 -2.9%, se…</div><a class="tw-link" href="https://t.me/marketfeed/1063148" target="_blank">View on Telegram &rarr;</a></div></div>
-<div class="tweet-embed" id="feed-50" data-handle="marketfeed" data-cited="1" data-ts="2026-10-23T11:00:20" data-search="@marketfeed 🌅 market news digest [oct 22-23, 2026 est] 🔥 top stories • openai eyes $30b round at $1.25t valuation — mega-ai funding talk lands as markets already fret over stretched ai capex • tech/ai selloff hits global equities — s&amp;p 500 -1.2%, nasdaq 100 -2.9%, semis -6.7% as valuation fears spike • middle east conflict escalates — u.s. plans further strikes on iran; oil surged on saudi attacks and hormuz risk ⛽ oil &amp; energy • brent tops $113/bbl on saudi attacks — supply disruption fears lift crude; diesel tightness and tanker/oil spill headlines add pressure • trump invokes defense production act for oil capacity — moves signal push to expand u.s. petroleum output • ukraine energy grid under fire — russian strikes knocked out power for 500k+ across six regions 📊 markets &amp; macro • asia/europe equities wobble on risk-off tone — kospi -3.7%, nikkei -1.5%, europe mostly mixed after wall street tech rout • pmis disappoint in france and eurozone; u.k. surprises higher — eurozone composite 51.9, france 48.4; u.k. composite jumps to 53.1 • japan inflation stays hot — nationwide core cpi +2.1% y/y, bolstering boj tightening bets; usd/jpy whipsaws near 156-157 • u.k. retail sales weaken; consumer confidence slumps — spending softens and gfk confidence falls to -24, worst drop since 2020 • australia pmis sink below 50 — services and composite flash readings signal contraction • china keeps liquidity flowing — 258b yuan overnight repo injection offsets zero 7-day reverse repo 🌍 geopolitical • iran/israel/u.s. tensions intensify — reports say u.s. strike options include nuclear sites; iran warns of expanded retaliation • saudi security alerts flare then clear — riyadh/najran warnings issued after drone/missile threats, later downgraded • ukraine war remains active — russian strikes hit rail, ports and power assets; starlink/access and eu customs relocation stories persist 🪙 crypto &amp; defi • eth delayed on security concerns — glamsterdam test pushed back as devs flag contract risk • hsbc launches retail hkd stablecoin — another mainstream bank pushes tokenized payments 🏛️ regulatory &amp; policy • u.s. proposes curbs on outbound ai/semiconductor investment — new treasury rules target certain foreign countries • china rolls out ai-job guidelines — beijing seeks job-creation friendly ai growth and reduced labor disruption • south korea to tighten stablecoin rules — forex law may classify stablecoins as payment instruments • germany weighs electricity tax cut — relief under discussion, but contingent on budget room 🏢 corporate • apple begins foldable push — iphone duo seen as attempt to reshape foldable market • gm scraps rare-earth magnet supply deal — arbitration risk rises after canceled long-term contract • volvo cars disappoints and cuts jobs — weaker q3, 2,500 layoffs, further actions possible • eni boosts returns — buyback lifted to €3.8b plus €1.3b special dividend • slb beats on revenue/profit — upbeat 2027 outlook suggests middle east recovery could help services digested by *marketclaw* 🐾 — 324 messages scanned"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-23 11:00</span></span></div><div class="tw-body">🌅 Market News Digest [Oct 22-23, 2026 EST] 🔥 Top Stories • OpenAI eyes $30B round at $1.25T valuation — mega-AI funding talk lands as markets already fret over stretched AI capex • Tech/AI selloff hits global equities — S&amp;P 500 -1.2%, Nasdaq 100 -2.9%, semis -6.7% as valuation fe…</div><a class="tw-link" href="https://t.me/marketfeed/1063147" target="_blank">View on Telegram &rarr;</a></div></div></div>
+    <div class="tweet-grid" id="tweetGrid"><div class="tweet-embed" id="feed-1" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T05:04:40" data-search="@marketfeed switzerland domestic sight deposits (chf) oct-23: 434.7b (prev 435.4b) - total sight deposits: 455.8b (prev 457.0b) ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 05:04</span></span></div><div class="tw-body">SWITZERLAND DOMESTIC SIGHT DEPOSITS (CHF) OCT-23: 434.7B (PREV 435.4B) - TOTAL SIGHT DEPOSITS: 455.8B (PREV 457.0B) ...</div><a class="tw-link" href="https://t.me/marketfeed/1064096" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-2" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T05:04:40" data-search="@marketfeed japan&#x27;s top automobile industry union group looks beyond inflation-linked pay hikes for 2027 labour talks says chief ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 05:04</span></span></div><div class="tw-body">JAPAN&#x27;S TOP AUTOMOBILE INDUSTRY UNION GROUP LOOKS BEYOND INFLATION-LINKED PAY HIKES FOR 2027 LABOUR TALKS SAYS CHIEF ...</div><a class="tw-link" href="https://t.me/marketfeed/1064097" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-3" data-handle="marketfeed" data-cited="1" data-ts="2026-10-26T05:02:24" data-search="@marketfeed germany oct. ifo business confidence index 90.2; est. 89.9 ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 05:02</span></span></div><div class="tw-body">GERMANY OCT. IFO BUSINESS CONFIDENCE INDEX 90.2; EST. 89.9 ...</div><a class="tw-link" href="https://t.me/marketfeed/1064095" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-4" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T05:01:25" data-search="@marketfeed germany october ifo business confidence index 90.2; est. 89.9 ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 05:01</span></span></div><div class="tw-body">GERMANY OCTOBER IFO BUSINESS CONFIDENCE INDEX 90.2; EST. 89.9 ...</div><a class="tw-link" href="https://t.me/marketfeed/1064094" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-5" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T05:01:24" data-search="@marketfeed lme aluminum alloy inventory unchanged at 1,500 tons ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 05:01</span></span></div><div class="tw-body">LME ALUMINUM ALLOY INVENTORY UNCHANGED AT 1,500 TONS ...</div><a class="tw-link" href="https://t.me/marketfeed/1064093" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-6" data-handle="marketfeed" data-cited="1" data-ts="2026-10-26T05:01:10" data-search="@marketfeed germany ifo business climate oct: 90.2 (est 89.9; prev 89.9) - current assessment: 88.8 (est 89.8; prev 89.5) - expectations: 91.6 (est 90.0; prev 90.4) ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 05:01</span></span></div><div class="tw-body">GERMANY IFO BUSINESS CLIMATE OCT: 90.2 (EST 89.9; PREV 89.9) - CURRENT ASSESSMENT: 88.8 (EST 89.8; PREV 89.5) - EXPECTATIONS: 91.6 (EST 90.0; PREV 90.4) ...</div><a class="tw-link" href="https://t.me/marketfeed/1064091" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-7" data-handle="marketfeed" data-cited="1" data-ts="2026-10-26T05:01:10" data-search="@marketfeed 🔴 german ifo expectations actual 91.6 (forecast 90, previous 90.4) $macro ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 05:01</span></span></div><div class="tw-body">🔴 GERMAN IFO EXPECTATIONS ACTUAL 91.6 (FORECAST 90, PREVIOUS 90.4) $MACRO ...</div><a class="tw-link" href="https://t.me/marketfeed/1064092" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-8" data-handle="marketfeed" data-cited="1" data-ts="2026-10-26T05:00:55" data-search="@marketfeed 🔴 german ifo current conditions actual 88.8 (forecast 89.8, previous 89.5) $macro ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 05:00</span></span></div><div class="tw-body">🔴 GERMAN IFO CURRENT CONDITIONS ACTUAL 88.8 (FORECAST 89.8, PREVIOUS 89.5) $MACRO ...</div><a class="tw-link" href="https://t.me/marketfeed/1064090" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-9" data-handle="marketfeed" data-cited="1" data-ts="2026-10-26T05:00:54" data-search="@marketfeed 🔴 ⚠️ breaking: german ifo business climate actual 90.2 (forecast 89.9, previous 89.9) $macro ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 05:00</span></span></div><div class="tw-body">🔴 ⚠️ BREAKING: GERMAN IFO BUSINESS CLIMATE ACTUAL 90.2 (FORECAST 89.9, PREVIOUS 89.9) $MACRO ...</div><a class="tw-link" href="https://t.me/marketfeed/1064089" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-10" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:59:39" data-search="@marketfeed usd/jpy rises 0.3% to 157.26, resistance seen at 157.55 ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:59</span></span></div><div class="tw-body">USD/JPY RISES 0.3% TO 157.26, RESISTANCE SEEN AT 157.55 ...</div><a class="tw-link" href="https://t.me/marketfeed/1064088" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-11" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:58:38" data-search="@marketfeed ukraine&#x27;s fire point: its drones were used to attack synthetic rubber plant in russia&#x27;s voronezh ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:58</span></span></div><div class="tw-body">UKRAINE&#x27;S FIRE POINT: ITS DRONES WERE USED TO ATTACK SYNTHETIC RUBBER PLANT IN RUSSIA&#x27;S VORONEZH ...</div><a class="tw-link" href="https://t.me/marketfeed/1064087" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-12" data-handle="tradehaven" data-cited="0" data-ts="2026-10-26T04:55:33" data-search="@tradehaven happy holidays to travellers in kamikōchi, japan"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:55</span></span></div><div class="tw-body">Happy holidays to travellers in Kamikōchi, Japan</div><a class="tw-link" href="https://t.me/tradehaven/79917" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-13" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:55:23" data-search="@marketfeed japan&#x27;s top automobile industry union group looks beyond inflation-linked pay hikes for 2027 labour talks, chief: ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:55</span></span></div><div class="tw-body">JAPAN&#x27;S TOP AUTOMOBILE INDUSTRY UNION GROUP LOOKS BEYOND INFLATION-LINKED PAY HIKES FOR 2027 LABOUR TALKS, CHIEF: ...</div><a class="tw-link" href="https://t.me/marketfeed/1064086" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-14" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:54:53" data-search="@marketfeed japan&#x27;s top automobile industry union group chief: we look beyond inflation-linked pay hikes for 2027 labour talks. ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:54</span></span></div><div class="tw-body">JAPAN&#x27;S TOP AUTOMOBILE INDUSTRY UNION GROUP CHIEF: WE LOOK BEYOND INFLATION-LINKED PAY HIKES FOR 2027 LABOUR TALKS. ...</div><a class="tw-link" href="https://t.me/marketfeed/1064085" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-15" data-handle="marketfeed" data-cited="1" data-ts="2026-10-26T04:54:08" data-search="@marketfeed brazil dollar bonds drop, lead em losses on lula&#x27;s surprise win ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 04:54</span></span></div><div class="tw-body">BRAZIL DOLLAR BONDS DROP, LEAD EM LOSSES ON LULA&#x27;S SURPRISE WIN ...</div><a class="tw-link" href="https://t.me/marketfeed/1064084" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-16" data-handle="marketfeed" data-cited="1" data-ts="2026-10-26T04:49:53" data-search="@marketfeed icymi | dni chief warns of heightened iranian threats in letter to rubio – politico ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 04:49</span></span></div><div class="tw-body">ICYMI | DNI CHIEF WARNS OF HEIGHTENED IRANIAN THREATS IN LETTER TO RUBIO – POLITICO ...</div><a class="tw-link" href="https://t.me/marketfeed/1064083" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-17" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:45:24" data-search="@marketfeed easyjet to add starlink wifi on their fleets ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:45</span></span></div><div class="tw-body">EASYJET TO ADD STARLINK WIFI ON THEIR FLEETS ...</div><a class="tw-link" href="https://t.me/marketfeed/1064082" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-18" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:42:53" data-search="@marketfeed boj yen index oct-26: 74.11 (prev 74.13) ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:42</span></span></div><div class="tw-body">BOJ YEN INDEX OCT-26: 74.11 (PREV 74.13) ...</div><a class="tw-link" href="https://t.me/marketfeed/1064081" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-19" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:35:22" data-search="@marketfeed hsbc asset management business to absorb hang seng&#x27;s investment management unit, sources say ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:35</span></span></div><div class="tw-body">HSBC ASSET MANAGEMENT BUSINESS TO ABSORB HANG SENG&#x27;S INVESTMENT MANAGEMENT UNIT, SOURCES SAY ...</div><a class="tw-link" href="https://t.me/marketfeed/1064080" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-20" data-handle="marketfeed" data-cited="0" data-ts="2026-10-26T04:34:08" data-search="@marketfeed eu to present new curbs on china trade as early as q1 2027 ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-10-26 04:34</span></span></div><div class="tw-body">EU TO PRESENT NEW CURBS ON CHINA TRADE AS EARLY AS Q1 2027 ...</div><a class="tw-link" href="https://t.me/marketfeed/1064079" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-21" data-handle="unusual whales" data-cited="1" data-ts="2026-10-26T04:04:03" data-search="@unusual whales flavio bolsonaro to seek annulment after lula wins brazil runoff, per reuters senator flavio bolsonaro said he will seek annulment of brazil&#x27;s runoff after president lula won 51.76% to 48.24%, completing the first first-round comeback since 1989, per reuters."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 04:04</span></span></div><div class="tw-body">Flavio Bolsonaro to Seek Annulment After Lula Wins Brazil Runoff, per Reuters Senator Flavio Bolsonaro said he will seek annulment of Brazil&#x27;s runoff after President Lula won 51.76% to 48.24%, completing the first first-round comeback since 1989, per Reuters.</div><a class="tw-link" href="https://unusualwhales.com/news/flavio-bolsonaro-seek-annulment-lula-runoff-reuters/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-22" data-handle="unusual whales" data-cited="1" data-ts="2026-10-26T04:01:16" data-search="@unusual whales sellers outnumber buyers by 63% as 2026 shapes up as the worst year for home sales on record, per yahoo finance more homes are hitting the market than at any point since 2000, yet 2026 is shaping up to be the worst year for existing home sales on record, per yahoo finance, with sellers outnumbering buyers by 63%."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 04:01</span></span></div><div class="tw-body">Sellers Outnumber Buyers by 63% as 2026 Shapes Up as the Worst Year for Home Sales on Record, per Yahoo Finance More homes are hitting the market than at any point since 2000, yet 2026 is shaping up to be the worst year for existing home sales on record, per Yahoo Finance, with s…</div><a class="tw-link" href="https://unusualwhales.com/news/sellers-outnumber-buyers-63-percent-worst-home-sales-yahoo-finance/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-23" data-handle="unusual whales" data-cited="1" data-ts="2026-10-26T03:58:50" data-search="@unusual whales housing costs may not return to normal until around 2031, per redfin a new redfin analysis says housing costs may not return to 2018 levels until around 2031, and in about half of major metros the wait could stretch to 10 years or more."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 03:58</span></span></div><div class="tw-body">Housing Costs May Not Return to Normal Until Around 2031, per Redfin A new Redfin analysis says housing costs may not return to 2018 levels until around 2031, and in about half of major metros the wait could stretch to 10 years or more.</div><a class="tw-link" href="https://unusualwhales.com/news/housing-costs-return-normal-2031-redfin/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-24" data-handle="unusual whales" data-cited="1" data-ts="2026-10-26T03:55:29" data-search="@unusual whales spacex has closed a $40 billion debt deal to fund ai chips, musk says elon musk said spacex closed $40 billion of debt to pay for ai chips, mostly callable, funding gpu purchases arriving in q1 and q2. apollo led the financing, per ft reporting."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 03:55</span></span></div><div class="tw-body">SpaceX Has Closed a $40 Billion Debt Deal to Fund AI Chips, Musk Says Elon Musk said SpaceX closed $40 billion of debt to pay for AI chips, mostly callable, funding GPU purchases arriving in Q1 and Q2. Apollo led the financing, per FT reporting.</div><a class="tw-link" href="https://unusualwhales.com/news/spacex-closes-40-billion-debt-deal-ai-chips-reuters/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-25" data-handle="unusual whales" data-cited="1" data-ts="2026-10-26T03:53:21" data-search="@unusual whales trump on high gas prices: &quot;we&#x27;re making a freaking fortune&quot; at a perry, georgia rally, trump said the us is &quot;making a freaking fortune&quot; from high oil prices while aaa puts regular gas at $4.29 a gallon and diesel at $6.34."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 03:53</span></span></div><div class="tw-body">Trump on High Gas Prices: &quot;We&#x27;re Making a Freaking Fortune&quot; At a Perry, Georgia rally, Trump said the US is &quot;making a freaking fortune&quot; from high oil prices while AAA puts regular gas at $4.29 a gallon and diesel at $6.34.</div><a class="tw-link" href="https://unusualwhales.com/news/trump-gas-prices-making-a-freaking-fortune-the-hill/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-26" data-handle="unusual whales" data-cited="0" data-ts="2026-10-26T03:50:59" data-search="@unusual whales share of teen girls identifying as lesbian or bisexual has dropped sharply, per cdc data cited by the washington post cdc youth risk behavior data show ninth-grade girls identifying as lesbian or bisexual fell from 30% in 2021 to 17% in 2025, with bisexual identity halving, per the washington post."><div class="tw-card"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-ts">2026-10-26 03:50</span></span></div><div class="tw-body">Share of Teen Girls Identifying as Lesbian or Bisexual Has Dropped Sharply, per CDC Data Cited by the Washington Post CDC Youth Risk Behavior data show ninth-grade girls identifying as lesbian or bisexual fell from 30% in 2021 to 17% in 2025, with bisexual identity halving, per t…</div><a class="tw-link" href="https://unusualwhales.com/news/teen-girls-lesbian-bisexual-share-drops-cdc-washington-post/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-27" data-handle="unusual whales" data-cited="0" data-ts="2026-10-26T03:49:56" data-search="@unusual whales audi will build its first us factory in georgia, trump announces, per reuters audi plans a $4 billion assembly plant near macon, georgia, its first in the us, producing 200,000 q7, q8 and q9 suvs a year and creating about 4,500 jobs, per reuters."><div class="tw-card"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-ts">2026-10-26 03:49</span></span></div><div class="tw-body">Audi Will Build Its First US Factory in Georgia, Trump Announces, per Reuters Audi plans a $4 billion assembly plant near Macon, Georgia, its first in the US, producing 200,000 Q7, Q8 and Q9 SUVs a year and creating about 4,500 jobs, per Reuters.</div><a class="tw-link" href="https://unusualwhales.com/news/audi-first-us-factory-georgia-4-billion-reuters/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-28" data-handle="tradehaven" data-cited="1" data-ts="2026-10-26T03:46:54" data-search="@tradehaven france&#x27;s 10-yr bond yield down 5.3 bps to 4.9685% after moody&#x27;s maintains sovereign rating on friday"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 03:46</span></span></div><div class="tw-body">FRANCE&#x27;S 10-YR BOND YIELD DOWN 5.3 BPS TO 4.9685% AFTER MOODY&#x27;S MAINTAINS SOVEREIGN RATING ON FRIDAY</div><a class="tw-link" href="https://t.me/tradehaven/79916" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-29" data-handle="unusual whales" data-cited="1" data-ts="2026-10-26T03:46:52" data-search="@unusual whales musk says debt markets have shut off ai-only borrowers, warns 200+ neoclouds face &quot;death and consolidation&quot; musk said debt markets have almost entirely shut off companies without revenue independent of ai data centers, predicting guppy-level death for 200+ neoclouds like coreweave and nebius."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 03:46</span></span></div><div class="tw-body">Musk Says Debt Markets Have Shut Off AI-Only Borrowers, Warns 200+ Neoclouds Face &quot;Death and Consolidation&quot; Musk said debt markets have almost entirely shut off companies without revenue independent of AI data centers, predicting guppy-level death for 200+ neoclouds like CoreWeav…</div><a class="tw-link" href="https://unusualwhales.com/news/musk-debt-markets-shut-neoclouds-consolidation-cryptobriefing/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-30" data-handle="unusual whales" data-cited="0" data-ts="2026-10-26T03:46:48" data-search="@unusual whales trump asked google to rename the atlantic ocean, and sundar pichai said no trump told a clemson rally he called google ceo sundar pichai about renaming the atlantic ocean to trump ocean. pichai declined, saying oceans cover a lot of countries."><div class="tw-card"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-ts">2026-10-26 03:46</span></span></div><div class="tw-body">Trump Asked Google to Rename the Atlantic Ocean, and Sundar Pichai Said No Trump told a Clemson rally he called Google CEO Sundar Pichai about renaming the Atlantic Ocean to Trump Ocean. Pichai declined, saying oceans cover a lot of countries.</div><a class="tw-link" href="https://unusualwhales.com/news/trump-asked-google-rename-atlantic-ocean-variety/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-31" data-handle="unusual whales" data-cited="1" data-ts="2026-10-26T03:46:23" data-search="@unusual whales pentagon launches &quot;fortress america,&quot; ordering bases to run 90 days on their own, per fox news the pentagon&#x27;s fortress initiative orders major us bases to sustain power, water, fuel and communications independently for at least 90 days, per fox news."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Unusual Whales</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 03:46</span></span></div><div class="tw-body">Pentagon Launches &quot;FORTRESS America,&quot; Ordering Bases to Run 90 Days on Their Own, per Fox News The Pentagon&#x27;s FORTRESS initiative orders major US bases to sustain power, water, fuel and communications independently for at least 90 days, per Fox News.</div><a class="tw-link" href="https://unusualwhales.com/news/pentagon-fortress-america-bases-90-days-fox-news/" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-32" data-handle="tradehaven" data-cited="0" data-ts="2026-10-26T02:24:49" data-search="@tradehaven https://www.straitstimes.com/business/spore-to-raise-retirement-age-to-65-re-employment-age-to-70-in-2029-expand-flexi-work-for-seniors?ref=top-stories"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-26 02:24</span></span></div><div class="tw-body">https://www.straitstimes.com/business/spore-to-raise-retirement-age-to-65-re-employment-age-to-70-in-2029-expand-flexi-work-for-seniors?ref=top-stories</div><a class="tw-link" href="https://t.me/tradehaven/79915" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-33" data-handle="tradehaven" data-cited="1" data-ts="2026-10-26T02:23:33" data-search="@tradehaven saudi arabia to store oil in singapore to bolster asia supply security | reuters https://share.google/xnh5glidksigsongb"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-26 02:23</span></span></div><div class="tw-body">Saudi Arabia to store oil in Singapore to bolster Asia supply security | Reuters https://share.google/xNh5GlidksIGsonGB</div><a class="tw-link" href="https://t.me/tradehaven/79914" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-34" data-handle="tradehaven" data-cited="0" data-ts="2026-10-26T00:03:26" data-search="@tradehaven rate decisions; tech earnings: events to watch (correct) 2026-10-26 03:59:59 gmt by conor cooper (bloomberg) -- (corrects release date of south korean gdp in post that originally moved at 3am singapore time.) traders have plenty to work with in the coming week including interest rate decisions from the fed, boc, ecb, boj and rbnz. it’s also expected to be the busiest week for us earnings with roughly one third of the s&amp;p index components due to report, including three more from the mag 7 in microsoft, alphabet and amazon.com. updates from samsung and sk hynix will also be closely watched. on the data front, we await the first reading of us third-quarter gdp as well as core pce, durable goods and consumer confidence. euro-area gdp plus german and french cpi top the bill in europe. the uk budget will also garner attention. chinese industrial profits and cpi from australia and tokyo feature in asia pacific. below is a list of the most important events for markets. click here for a full rundown. monday, oct. 26 german ifo survey tuesday, oct. 27 south korea gdp a china industrial profits us durable goods orders, consumer confidence and new home sales wednesday, oct. 28 australia cpi rbnz interest rate decision sk hynix earnings uk budget boc interest rate decision federal reserve interest rate decision microsoft and alphabet earnings thursday, oct. 29 samsung earnings ecb interest rate decision us gdp a, personal income, personal spending, core pce and jobless claims amazon.com and intel earnings friday, oct. 30 boj interest rate decision tokyo cpi, retail sales and industrial production euro-area gdp a germany and france cpi p us employment cost index"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-26 00:03</span></span></div><div class="tw-body">Rate Decisions; Tech Earnings: Events to Watch (Correct) 2026-10-26 03:59:59 GMT By Conor Cooper (Bloomberg) -- (Corrects release date of South Korean GDP in post that originally moved at 3am Singapore time.) Traders have plenty to work with in the coming week including interest …</div><a class="tw-link" href="https://t.me/tradehaven/79913" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-35" data-handle="tradehaven" data-cited="1" data-ts="2026-10-25T23:30:52" data-search="@tradehaven bolsonaro refused to concede defeat and vowed to challenge the election results."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-25 23:30</span></span></div><div class="tw-body">Bolsonaro refused to concede defeat and vowed to challenge the election results.</div><a class="tw-link" href="https://t.me/tradehaven/79910" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-36" data-handle="tradehaven" data-cited="1" data-ts="2026-10-25T22:18:34" data-search="@tradehaven traders are bracing for steep losses across brazilian markets after president luiz inácio lula da silva pulled off a stunning comeback to defeat flávio bolsonaro https://www.bloomberg.com/news/articles/2026-10-26/brazil-markets-brace-for-rout-on-lula-s-improbable-election-win"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-25 22:18</span></span></div><div class="tw-body">Traders are bracing for steep losses across Brazilian markets after President Luiz Inácio Lula da Silva pulled off a stunning comeback to defeat Flávio Bolsonaro https://www.bloomberg.com/news/articles/2026-10-26/brazil-markets-brace-for-rout-on-lula-s-improbable-election-win</div><a class="tw-link" href="https://t.me/tradehaven/79909" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-37" data-handle="tradehaven" data-cited="1" data-ts="2026-10-25T20:33:11" data-search="@tradehaven brazil etf ewz crashes -12% as lula takes the lead in the presidential runoff."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-25 20:33</span></span></div><div class="tw-body">Brazil ETF EWZ crashes -12% as Lula takes the lead in the presidential runoff.</div><a class="tw-link" href="https://t.me/tradehaven/79905" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-38" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T20:05:35" data-search="@tradehaven trump changes his tune on norwegian migrants: &quot;i don’t want anybody from norway. i don’t want anything to do with norway. i didn’t get the nobel prize, even though i ended wars.&quot;"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 20:05</span></span></div><div class="tw-body">Trump changes his tune on Norwegian migrants: &quot;I don’t want anybody from Norway. I don’t want anything to do with Norway. I didn’t get the Nobel Prize, even though I ended wars.&quot;</div><a class="tw-link" href="https://t.me/tradehaven/79904" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-39" data-handle="tradehaven" data-cited="1" data-ts="2026-10-25T19:55:35" data-search="@tradehaven brazil etf ewz crashes -12% as lula takes the lead in the presidential runoff."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-25 19:55</span></span></div><div class="tw-body">Brazil ETF EWZ crashes -12% as Lula takes the lead in the presidential runoff.</div><a class="tw-link" href="https://t.me/tradehaven/79903" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-40" data-handle="tradehaven" data-cited="1" data-ts="2026-10-25T19:23:44" data-search="@tradehaven key data 26-oct jp leading index si industrial production tw retail sales ge ifo business climate us chicago fed index us dallas fed manuf index auctions bills us 3m/6m bonds us 2y central banks ec ecb elderson speech"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-25 19:23</span></span></div><div class="tw-body">KEY DATA 26-Oct JP Leading Index SI Industrial Production TW Retail Sales GE IFO Business Climate US Chicago FED Index US Dallas FED Manuf Index AUCTIONS Bills US 3M/6M Bonds US 2Y CENTRAL BANKS EC ECB Elderson Speech</div><a class="tw-link" href="https://t.me/tradehaven/79902" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-41" data-handle="tradehaven" data-cited="1" data-ts="2026-10-25T18:46:01" data-search="@tradehaven bbg - us stock futures advanced and crude oil retreated as traders weighed the latest geopolitical developments over iran and looked ahead to a string of central bank rate decisions this week. nasdaq 100 futures climbed 0.6%, while contracts on the s&amp;p 500 gained 0.4% after the benchmark fell friday. brent dropped over 1% to around $115 a barrel, pulling back from its highest close since april. president donald trump said it’s “getting to be decision time” on whether to reach a deal with tehran or resume attacks as threats from iran and the houthis against americans in the middle east mount. the dollar was broadly steady against its group-of-10 peers on monday after ending last week lower. treasuries had given back some of their earlier gains on friday as us technology stocks and french bonds stabilized. the euro was quoted higher early monday after france dodged a downgrade at moody’s ratings. investors face a pivotal stretch as renewed geopolitical tensions, stubborn inflation and cracks in the artificial intelligence trade test risk appetite heading into november. central-bank decisions in the us, euro zone and japan this week will provide the next test, with policymakers balancing the threat of higher energy costs against signs of strain across financial markets. australia’s 10-year yield advanced 5 bps to 5.21%. bitcoin was little changed. wti crude fell 1.5%. spot gold was little changed."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-25 18:46</span></span></div><div class="tw-body">BBG - US stock futures advanced and crude oil retreated as traders weighed the latest geopolitical developments over Iran and looked ahead to a string of central bank rate decisions this week. Nasdaq 100 futures climbed 0.6%, while contracts on the S&amp;P 500 gained 0.4% after the b…</div><a class="tw-link" href="https://t.me/tradehaven/79900" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-42" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T08:53:26" data-search="@tradehaven interesting"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 08:53</span></span></div><div class="tw-body">Interesting</div><a class="tw-link" href="https://t.me/tradehaven/79898" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-43" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T08:46:46" data-search="@tradehaven just in time for monday blues"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 08:46</span></span></div><div class="tw-body">Just in time for Monday blues</div><a class="tw-link" href="https://t.me/tradehaven/79897" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-44" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T08:34:52" data-search="@tradehaven it’s so true … pride and honour is all but lost in this new world we live in"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 08:34</span></span></div><div class="tw-body">It’s so true … pride and honour is all but lost in this new world we live in</div><a class="tw-link" href="https://t.me/tradehaven/79896" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-45" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T08:34:33" data-search="@tradehaven ‘i cannot teach you integrity’: how employee theft is hurting small businesses in africa https://www.bbc.com/news/articles/cmz98plpjzplo"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 08:34</span></span></div><div class="tw-body">‘I cannot teach you integrity’: How employee theft is hurting small businesses in Africa https://www.bbc.com/news/articles/cmz98plpjzplo</div><a class="tw-link" href="https://t.me/tradehaven/79895" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-46" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T07:58:14" data-search="@tradehaven we are off crabs for life coming to 2nd year anniversary of crabbie’s death"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 07:58</span></span></div><div class="tw-body">We are off crabs for life coming to 2nd year anniversary of Crabbie’s death</div><a class="tw-link" href="https://t.me/tradehaven/79894" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-47" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T07:56:17" data-search="@tradehaven ‘hairy crab freedom’: chinese delicacy’s price tag drops amid high output https://www.scmp.com/economy/china-economy/article/3371598/hairy-crab-freedom-chinese-delicacys-price-tag-drops-amid-high-output-weakened-demand"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 07:56</span></span></div><div class="tw-body">‘Hairy crab freedom’: Chinese delicacy’s price tag drops amid high output https://www.scmp.com/economy/china-economy/article/3371598/hairy-crab-freedom-chinese-delicacys-price-tag-drops-amid-high-output-weakened-demand</div><a class="tw-link" href="https://t.me/tradehaven/79893" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-48" data-handle="noahpinion" data-cited="0" data-ts="2026-10-25T07:19:36" data-search="@noahpinion the internet breaks what will be next to break?"><div class="tw-card"><div class="tw-head"><span class="tw-handle">Noahpinion</span><span class="tw-meta"><span class="tw-ts">2026-10-25 07:19</span></span></div><div class="tw-body">The internet breaks What will be next to break?</div><a class="tw-link" href="https://www.noahpinion.blog/p/the-internet-breaks" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-49" data-handle="tradehaven" data-cited="0" data-ts="2026-10-25T07:12:03" data-search="@tradehaven someone is testing out their new 1000 litre rain water collector"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-10-25 07:12</span></span></div><div class="tw-body">Someone is testing out their new 1000 litre rain water collector</div><a class="tw-link" href="https://t.me/tradehaven/79892" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-50" data-handle="doomberg" data-cited="1" data-ts="2026-10-24T09:02:02" data-search="@doomberg margin call will brazil replicate guyana’s magic in the equatorial atlantic?"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">Doomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-10-24 09:02</span></span></div><div class="tw-body">Margin Call Will Brazil replicate Guyana’s magic in the Equatorial Atlantic?</div><a class="tw-link" href="https://newsletter.doomberg.com/p/margin-call" target="_blank">Read post &rarr;</a></div></div></div>
   </details>
 
-  <div class="synopsis-section"><div class="synopsis-label">Market Intelligence Synopsis</div><div class="synopsis-byline">Compiled from 59 signal sources &middot; 2026-10-23 13:15 &middot; AI-assisted analysis</div><div class="synopsis-body"><p class="synopsis-para">The AI/semi complex is in a high-velocity deleveraging phase (Nasdaq -2.9%, semis -6.7%) as the OpenAI $1.25T valuation collides with stretched-capex anxiety, raising the system&#x27;s temperature despite the broader TRENDING regime. Quantum-breakthrough headlines (<a class="feed-link" href="#feed-2">feed 2</a>) add a non-linear repricing vector for crypto beta, compounding downside convexity. The <a class="feed-link" href="#feed-46">feed 46</a> reference to the &#x27;earnings pattern before 2022 bear&#x27; signals a possible phase transition from euphoria to risk-off.</p><p class="synopsis-para">Long CAD vs USD spot, overlay long Canadian consumer-discretionary equities (XRE/XCD proxies); amplify given TRENDING multiplier 2.32x Market participants are closely monitoring canada september final retail sales release, boc rate decision.</p><p class="synopsis-para">However, analysts have flagged material downside risks. This is a crowded, multi-legged short into the single most dip-bought complex of the cycle; a one-day Nasdaq -2.9%/semis -6.7% move is as likely to mark a local capitulation low as the start of a bear phase, and the structure bleeds on three fronts (put spread theta, VIX call roll/contango decay, and speculative &#x27;BTC-quantum&#x27; puts with no clean deliverable) if the bounce comes. The &#x27;2022 analog&#x27; is pattern-matching narrative, not a mechanism, and mega-cap earnings have repeatedly rewarded capex with higher forward numbers rather than punishing it.</p></div></div>
-
-  <div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 8/10</div><div class="col-title">AI Capex Fears Drive Tech Selloff</div><div class="col-body">Short NVDA and SOXX via put spreads, pair with long VIX calls; hedge tail with long BTC-quantum-risk puts</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This is a crowded, multi-legged short into the single most dip-bought complex of the cycle; a one-day Nasdaq -2.9%/semis -6.7% move is as likely to mark a local capitulation low as the start of a bear…</div><div class="conviction-tag">Quarter Size — the deleveraging thesis has real tactical merit but the entropy (8/10), negative carry on every leg, and the speculative quantum/BTC tail make this a small, tightly-stopped tactical short rather than a core position.</div></div>
-<div class="grid-col"><div class="col-tag">Market Signal · Risk 3/10</div><div class="col-title">Canadian Consumer Momentum Supports CAD</div><div class="col-body">Long CAD vs USD spot, overlay long Canadian consumer-discretionary equities (XRE/XCD proxies); amplify given TRENDING multiplier 2.32x</div><div class="sparkline"><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:80%"></div><div class="bar hi" style="height:70%"></div><div class="bar mid-hi" style="height:60%"></div><div class="bar mid-hi" style="height:50%"></div><div class="bar lo" style="height:40%"></div><div class="bar lo" style="height:35%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The thesis rests on WTI &#x27;firm above $100,&#x27; which is both historically anomalous and directly contradicts the real forward curve — CAD is far more sensitive to the Fed/BoC rate differential and broad U…</div><div class="conviction-tag">Half Size — the data is clean and corroborated, but the $100 WTI assumption looks stale and the 2.32x amplification into a consensus USD trade is the opposite of risk management, so size down and drop the leverage overlay.</div></div>
-<div class="grid-col"><div class="col-tag">Macro View · Risk 7/10</div><div class="col-title">Middle East Tensions Reprice Oil Higher</div><div class="col-body">Long WTI crude futures with trailing stop, long XLE call spreads, long ENI on Venezuela production optionality</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Geopolitical oil spikes without an actual supply disruption are notoriously fast-fading — missile intercepts mean the barrels are still flowing, and crude has repeatedly round-tripped these risk premi…</div><div class="conviction-tag">Quarter Size — long crude with a trailing stop is defensible as a momentum/tail-hedge, but entropy 7/10 and the fade-prone nature of intercept-driven spikes argue for a small, stop-disciplined position, and I&#x27;d drop the ENI leg as thesis-incoherent.</div></div>
-<div class="grid-col"><div class="col-tag">Geopolitical · Risk 5/10</div><div class="col-title">US-China Trade De-escalation and Space Governance</div><div class="col-body">Long China-exposed shippers and FXI calls, short defensive space/defense volatility hedges</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This trade is built on a proposed suspension of one narrow Section 301 investigation and extrapolates it into a broad &#x27;China risk-on&#x27; thesis via FXI calls — US-China de-escalation headlines are notori…</div><div class="conviction-tag">Pass — the author&#x27;s own framing (mixed signals, &#x27;cautious thaw,&#x27; entropy 5/10) describes a non-trade, and the short-defense-vol leg is actively dangerous against the admitted geopolitical friction.</div></div>
-<div class="grid-col"><div class="col-tag">Canada / FX · Risk 4/10</div><div class="col-title">Financials Cost-Cutting and Credit Normalization</div><div class="col-body">Long AXP on efficiency narrative despite revenue miss; pair against regional-bank credit-quality shorts</div><div class="sparkline"><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:80%"></div><div class="bar hi" style="height:70%"></div><div class="bar mid-hi" style="height:60%"></div><div class="bar mid-hi" style="height:50%"></div><div class="bar lo" style="height:40%"></div><div class="bar lo" style="height:35%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Celebrating a workforce cut and a one-time GBTG sale gain as a bullish &#x27;efficiency&#x27; catalyst inverts the signal — layoffs and a revenue miss are defensive late-cycle behavior, and a $982M non-recurrin…</div><div class="conviction-tag">Half Size — the relative-value structure (quality AXP vs weaker regionals) is sound and low-entropy, but the long leg&#x27;s thesis leans on a one-time gain and defensive cost cuts, so run it smaller and treat the credit-normalization short as the higher-conviction side.</div></div></div>
-
-  <div class="thought-block">
-    <div class="thought-rule"></div>
-    <div>
-      <div class="thought-label">Top Trade Hypothesis</div>
-      <div class="thought-q">Short NVDA and SOXX via put spreads, pair with long VIX calls; hedge tail with long BTC-quantum-risk puts</div>
-      <div class="thought-body">OpenAI $30B funding round confirmation, Mega-cap tech Q3 earnings prints, Any quantum computing breakthrough headline</div>
-      <div class="thought-bear-label">Bear Case</div>
-      <div class="thought-bear">This is a crowded, multi-legged short into the single most dip-bought complex of the cycle; a one-day Nasdaq -2.9%/semis -6.7% move is as likely to mark a local capitulation low as the start of a bear phase, and the structure bleeds on three fronts (put spread theta, VIX call roll/contango decay, and speculative &#x27;BTC-quantum&#x27; puts with no clean deliverable) if the bounce comes. The &#x27;2022 analog&#x27; is pattern-matching narrative, not a mechanism, and mega-cap earnings have repeatedly rewarded capex with higher forward numbers rather than punishing it.</div>
-      <div class="thought-conviction">Quarter Size — the deleveraging thesis has real tactical merit but the entropy (8/10), negative carry on every leg, and the speculative quantum/BTC tail make this a small, tightly-stopped tactical short rather than a core position.</div>
-    </div>
-  </div>
-
   
 
-  <div class="regime-panel"><div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (20-bar)</div><div class="regime-badge-row"><span class="regime-badge" style="color:#00e5a0;border-color:#00e5a040;background:#00e5a012">TRENDING</span><span class="regime-desc">Low T &middot; Low S &mdash; amplify signals</span><span class="regime-warn">&#9888; REGIME DRIFT</span></div><div class="regime-metrics"><div class="rm"><div class="rm-lbl">Temperature</div><div class="rm-val" style="color:#00e5a0">9.8%</div><div class="rm-sub">base 15%</div></div><div class="rm"><div class="rm-lbl">Entropy</div><div class="rm-val">2.059</div><div class="rm-sub">base 2.50</div></div><div class="rm"><div class="rm-lbl">KL Divergence</div><div class="rm-val" style="color:#ff9a3c">0.5739</div><div class="rm-sub">drift detected</div></div><div class="rm"><div class="rm-lbl">Signal Mult</div><div class="rm-val">2.32&times;</div><div class="rm-sub">applied to signals</div></div><div class="rm"><div class="rm-lbl">Heat Budget</div><div class="rm-val">100%</div><div class="rm-sub">remaining</div></div></div></div>
-
-  
-
-  
-
-  <div class="footer">
-    <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
+  <footer class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &middot; Not financial advice &middot; Generated 2026-10-26 05:11</div>
     <div class="footer-right">
       <span class="footer-tag active">AI</span>
-      <span class="footer-tag">MACRO</span>
-      <span class="footer-tag">CRYPTO</span>
-      <span class="footer-tag">SIGNALS</span>
+      <span class="footer-tag">Macro</span>
+      <span class="footer-tag">Crypto</span>
+      <span class="footer-tag">Signals</span>
     </div>
-  </div>
-</div>
+  </footer>
+</main>
 <script>
 (function(){
   "use strict";
@@ -507,6 +498,23 @@
       age.textContent = 'T+' + (h ? h + 'h ' : '') + m + 'm';
     };
     tick(); setInterval(tick, 30000);
+  }
+  // Theme toggle (Cloudscape light / dark tokens)
+  var tBtn = document.getElementById('themeToggle');
+  if (tBtn) {
+    var root = document.documentElement;
+    var saved = null;
+    try { saved = localStorage.getItem('rh-theme'); } catch (e) {}
+    var setTheme = function (t) {
+      if (t === 'dark') { root.setAttribute('data-theme', 'dark'); }
+      else { root.removeAttribute('data-theme'); }
+      tBtn.textContent = (t === 'dark') ? 'Light mode' : 'Dark mode';
+      try { localStorage.setItem('rh-theme', t); } catch (e) {}
+    };
+    setTheme(saved === 'dark' ? 'dark' : 'light');
+    tBtn.addEventListener('click', function () {
+      setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
   }
 })();
 </script>
