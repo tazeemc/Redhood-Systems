@@ -91,6 +91,7 @@ class Config:
     # or bot token required, mirroring the Nitter approach for X/Twitter).
     TELEGRAM_CHANNELS = [
         'marketfeed',     # high-volume macro/markets headline wire
+        'tradehaven',     # macro / geopolitics / rates-FX wire with a daily KEY DATA calendar
     ]
     # Each t.me/s/ page holds ~20 posts; page back (via ?before=<id>) up to this
     # many pages per channel so high-volume channels cover more of the window.

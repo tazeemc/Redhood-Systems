@@ -2,6 +2,18 @@
 
 ---
 
+## v1.4.1 — October 26, 2026
+
+### Changes
+- **Telegram: added [@tradehaven](https://t.me/tradehaven)** to `Config.TELEGRAM_CHANNELS` alongside
+  @marketfeed. It is a macro / geopolitics / rates-FX headline wire that also posts a daily KEY DATA
+  calendar; it is scraped through the same `t.me/s/` preview with `?before=` paging, so every run from
+  here on feeds it into narrative extraction, the feed anchors and the report.
+- Known: at `TELEGRAM_MAX_PAGES = 5` the high-volume @marketfeed covers only the newest ~5 h of a long
+  window (100 posts), while @tradehaven (~20 posts/day) spans a full 48 h window.
+
+---
+
 ## v1.2 — June 24, 2026
 
 ### Summary

@@ -179,3 +179,9 @@ class TestPagination:
         # Same page returned for ?before=5 makes no progress -> stop, without dupes.
         assert len(serve_page['requested']) == 2
         assert [i.content for i in items] == ['msg']
+
+
+class TestConfig:
+    def test_both_telegram_channels_configured(self):
+        from redhood_aggregator import Config
+        assert Config.TELEGRAM_CHANNELS == ["marketfeed", "tradehaven"]
