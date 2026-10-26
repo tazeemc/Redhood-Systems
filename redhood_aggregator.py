@@ -25,6 +25,7 @@ import re
 import json
 import time
 import base64
+import hashlib
 import html as _html
 import urllib.request
 import urllib.error
@@ -113,15 +114,53 @@ class Config:
 class FeedItem:
     """Represents a single feed item from any source"""
 
+    # Per-source natural keys, read off the post's permalink: the post number
+    # in ``t.me/<channel>/<id>`` and the tweet id in ``/status/<id>``. A channel
+    # preview url (``t.me/s/<channel>``) names no post and gets no key.
+    _NATURAL_KEY_PATTERNS = {
+        'telegram': re.compile(r'^https?://t\.me/(?!s/)[^/?#]+/(?P<key>\d+)'),
+        'twitter':  re.compile(r'/status/(?P<key>\d+)'),
+    }
+
     def __init__(self, source: str, author: str, content: str,
                  timestamp: datetime, url: str = None, metadata: dict = None):
-        self.id = f"{source}_{author}_{int(timestamp.timestamp())}"
         self.source = source
         self.author = author
         self.content = content
         self.timestamp = timestamp
         self.url = url
         self.metadata = metadata or {}
+        self.id = self._make_id()
+
+    def _make_id(self) -> str:
+        """Stable per-post id.
+
+        ``feeds.id`` is the PRIMARY KEY and ``INSERT OR IGNORE`` on it is how a
+        post re-seen by an overlapping run is deduplicated, so the same post must
+        always map to the same id while two different posts never share one.
+        Prefers the source's natural key (Telegram post id, tweet id, RSS entry
+        guid or link). Without one, falls back to the legacy
+        ``source_author_epoch`` form plus a short hash of url and content, so two
+        posts from one author in the same second no longer collide.
+        """
+        key = self._natural_key()
+        if key is None:
+            digest = hashlib.sha1(
+                f"{self.url or ''}\n{self.content or ''}".encode('utf-8')).hexdigest()[:8]
+            key = f"{int(self.timestamp.timestamp())}_{digest}"
+        return f"{self.source}_{self.author}_{key}"
+
+    def _natural_key(self) -> str | None:
+        pattern = self._NATURAL_KEY_PATTERNS.get(self.source)
+        if pattern is not None:
+            match = pattern.search(self.url or '')
+            return match.group('key') if match else None
+        if self.source == 'rss':
+            # The guid outlives link rewrites (RSSFeedScraper.LINK_REWRITES).
+            key = self.metadata.get('entry_id') or self.url
+            if key:
+                return hashlib.sha1(key.encode('utf-8')).hexdigest()[:12]
+        return None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -224,7 +263,7 @@ class RSSFeedScraper:
                         content=cls._content(entry),
                         timestamp=pub_date,
                         url=cls._public_link(entry.get('link')),
-                        metadata={'feed_url': feed_url}
+                        metadata={'feed_url': feed_url, 'entry_id': entry.get('id')}
                     )
                     items.append(item)
 
@@ -697,11 +736,12 @@ IMPORTANT:
             narratives = []
 
             for n in data.get('narratives', []):
-                # Map feed indices to feed IDs
-                supporting_feeds = [
+                # Map feed indices to feed IDs; a repeated index must not cite
+                # the same feed twice, so dedupe while keeping Claude's order.
+                supporting_feeds = list(dict.fromkeys(
                     feeds[i-1].id for i in n.get('supporting_feed_indices', [])
                     if 0 < i <= len(feeds)
-                ]
+                ))
 
                 narrative = Narrative(
                     title=n['title'],
@@ -1908,15 +1948,18 @@ class RedHoodAggregator:
             run_id = cursor.lastrowid
             conn.commit()
 
+            # feeds.id is the PRIMARY KEY: a post already stored by an earlier,
+            # overlapping run is skipped here and keeps its original run_id.
+            new_feeds = 0
             for feed in all_feeds:
-                conn.execute(
+                new_feeds += conn.execute(
                     """INSERT OR IGNORE INTO feeds
                        (id, run_id, source, author, content, published_at, url, nitter_instance)
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                     (feed.id, run_id, feed.source, feed.author, feed.content,
                      feed.timestamp.isoformat(), feed.url,
                      feed.metadata.get('nitter_instance'))
-                )
+                ).rowcount
 
             ticker_rows_total = 0
             now_iso = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
@@ -1962,7 +2005,8 @@ class RedHoodAggregator:
                 ticker_rows_total += len(ticker_rows)
 
             conn.commit()
-            print(f"🗄️  DB: run #{run_id} saved — {len(all_feeds)} feeds, "
+            print(f"🗄️  DB: run #{run_id} saved — {len(all_feeds)} feeds "
+                  f"({new_feeds} new, {len(all_feeds) - new_feeds} already stored), "
                   f"{len(narratives)} narratives, {ticker_rows_total} ticker mentions")
             return run_id
         except Exception as e:

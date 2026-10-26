@@ -4,7 +4,7 @@ import time
 from datetime import datetime, timedelta
 
 import redhood_aggregator
-from redhood_aggregator import RSSFeedScraper
+from redhood_aggregator import FeedItem, RSSFeedScraper
 
 GHOST_FEED = 'https://unusual-whales.ghost.io/rss/'
 
@@ -62,3 +62,20 @@ def test_other_links_untouched_and_old_items_dropped(monkeypatch):
 def test_content_falls_back_when_summary_missing_or_repeats_title():
     assert RSSFeedScraper._content({'title': 'Headline'}) == 'Headline'
     assert RSSFeedScraper._content({'title': 'Head', 'summary': 'Head and more'}) == 'Head and more'
+
+
+def test_entry_guid_recorded_and_same_second_entries_keep_distinct_ids(monkeypatch):
+    url = 'https://doomberg.substack.com/feed'
+    a = _entry('A', 'first', 'https://doomberg.substack.com/p/a')
+    b = _entry('B', 'second', 'https://doomberg.substack.com/p/b')
+    b['published_parsed'] = a['published_parsed']
+    a['id'] = 'guid-a'
+    _patch_parse(monkeypatch, {url: _FakeFeed('Doomberg', [a, b])})
+    first, second = RSSFeedScraper.fetch([url])
+    assert first.metadata['entry_id'] == 'guid-a'
+    assert second.metadata['entry_id'] is None
+    assert first.timestamp == second.timestamp
+    assert first.id != second.id
+    # The same guid seen again under any link or timestamp maps to the same id.
+    assert first.id == FeedItem('rss', 'Doomberg', 'A', datetime.now(), url='https://elsewhere',
+                                metadata={'entry_id': 'guid-a'}).id
