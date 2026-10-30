@@ -101,6 +101,48 @@ _FORCE_KEEP = {"DXY", "GLD", "SLV", "VIX", "SPY", "DIA", "IWM", "QQQ",
                "TLT", "TLTS", "EEM", "XLE", "XLF", "XLK", "XLI", "XLY",
                "XLP", "XLV", "XLU", "XLB", "XLRE", "XLC", "DBC"}
 
+# Tokens that are never a listed symbol in any market context: macro releases
+# and surveys, sovereign-bond shorthands, hardware / AI acronyms, central
+# banks and agencies, rates jargon, regions, reporting shorthand. Shared with
+# redhood_grader (NON_INVESTABLE) so the star schema and the $2,500 long-only
+# ledger reject the same tokens. Run 53 (2026-10-26) stored GPU, IFO and OAT
+# as tickers, and GPU as a long equity, from "SpaceX GPU buys", "IFO
+# expectations beat" and "French OAT exposure".
+# Keep real symbols OUT of this set: ADP, RBA, HBM, IOT, AGI, LNG, CAT, TAN,
+# GCC, UAE and GULF read like acronyms but are listed names.
+NON_TICKER_TOKENS: frozenset = frozenset({
+    # Macro releases / surveys
+    "IFO", "ZEW", "HICP", "NAHB", "NFIB", "PMIS",
+    # Sovereign bonds / rates jargon (OAT = French government bond)
+    "OAT", "OATS", "BUND", "BUNDS", "BTP", "BTPS", "GILT", "GILTS", "JGB", "JGBS",
+    "UST", "USTS", "SOFR", "LIBOR", "OIS", "CDS", "FX", "YCC", "BPS",
+    # Hardware / AI acronyms
+    "GPU", "GPUS", "CPU", "CPUS", "TPU", "TPUS", "NPU", "ASIC", "ASICS",
+    "LLM", "LLMS", "GPT", "DRAM", "NAND", "HPC", "EV",
+    # Central banks / agencies / bodies
+    "ECB", "BOJ", "BOE", "PBOC", "RBNZ", "SNB", "BOC", "BOK", "RBI",
+    "IMF", "WTO", "BIS", "SEC", "FTC", "FDA", "EPA", "DOE", "IEA", "EIA",
+    "DNI", "CBO", "OMB", "BLS", "BEA", "DOJ", "DOD", "DHS",
+    # Regions / blocs
+    "APAC", "EMEA", "LATAM", "MENA", "DACH",
+    # Valuation / reporting shorthand
+    "EPS", "DCF", "ROE", "ROIC", "AUM", "NAV", "YOY", "QOQ", "YTD", "CAPEX",
+})
+_STOPWORDS |= NON_TICKER_TOKENS
+
+# Symbols that no longer trade under that name. A hypothesis may still use
+# them, but the ledger cannot price them, so redhood_grader treats them as
+# non-investable. The star schema keeps the historical mention, so they are
+# deliberately NOT stopwords here.
+RETIRED_SYMBOLS: frozenset = frozenset({
+    "RTN",   # Raytheon -> RTX (Apr 2020)
+    "FB",    # Facebook -> META (Jun 2022)
+    "TWTR",  # Twitter, taken private (Oct 2022)
+    "RSX",   # VanEck Russia ETF, liquidated (2023)
+    "TELL",  # Tellurian, acquired by Woodside (Oct 2024)
+    "SQ",    # Block -> XYZ (Jan 2025)
+})
+
 
 LONG, SHORT, HEDGE, PAIR = "Long", "Short", "Hedge", "Pair"
 

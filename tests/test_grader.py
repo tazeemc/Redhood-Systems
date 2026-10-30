@@ -1,6 +1,7 @@
 """Tests for redhood_grader: long-ticker extraction + 0-20 grading rubric."""
 
-from redhood_grader import grade, extract_long_tickers, _letter
+from redhood_grader import grade, extract_long_tickers, _letter, NON_INVESTABLE, KNOWN_EQUITIES
+from ticker_extraction import NON_TICKER_TOKENS, RETIRED_SYMBOLS
 
 
 def _tickers(hypothesis):
@@ -76,3 +77,32 @@ class TestGrade:
         assert _letter(7) == 'D'
         assert _letter(6) == 'F'
         assert _letter(0) == 'F'
+
+
+class TestNonTickerStoplist:
+    """Run 53 (2026-10-26) persisted GPU as a long equity and stored IFO / OAT
+    as tickers; none of them can be priced, so the P&L loop never closes."""
+
+    def test_hardware_acronym_in_long_clause_is_not_a_long_equity(self):
+        got = _tickers(
+            "Pairs: long NVDA (demand sink via SpaceX GPU buys) vs short basket of "
+            "levered AI-only neoclouds (CoreWeave, Nebius); buy NVDA at high "
+            "conviction given TRENDING amplification")
+        assert {t for t, _ in got} == {'NVDA'}
+
+    def test_survey_and_sovereign_bond_names_excluded(self):
+        got = _tickers(
+            "Long EWG / short EUO on IFO expectations beat; keep quarter size "
+            "and pair against French OAT exposure")
+        assert got == [('EWG', 'long')]
+
+    def test_index_symbols_excluded(self):
+        assert _tickers("Long KOSPI and XAU exposure, long DXY and SOX") == []
+
+    def test_retired_symbols_excluded(self):
+        assert _tickers("Long RTN and TELL on defense demand, buy SQ and FB") == []
+
+    def test_shared_sets_are_non_investable_and_disjoint_from_known_equities(self):
+        assert NON_TICKER_TOKENS <= NON_INVESTABLE
+        assert RETIRED_SYMBOLS <= NON_INVESTABLE
+        assert not (NON_INVESTABLE & KNOWN_EQUITIES)

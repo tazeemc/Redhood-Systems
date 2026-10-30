@@ -28,6 +28,8 @@ import json
 import re
 from dataclasses import dataclass, field, asdict
 
+from ticker_extraction import NON_TICKER_TOKENS, RETIRED_SYMBOLS
+
 
 # ----------------------------------------------------------------------------
 # Ticker extraction
@@ -88,6 +90,17 @@ KNOWN_EQUITIES = frozenset({
     "AAPL","AMZN","TSLA","MU","INTC","AVGO","BABA","DIS","BAC",
     "JPM","WMT","XOM","CVX","COIN","HOOD",
 })
+
+# Index / benchmark symbols the star schema keeps (ticker_extraction
+# force-keeps VIX and DXY as dimensions) but that cannot be bought as shares.
+INDEX_SYMBOLS = frozenset({
+    "SPX", "NDX", "RUT", "VIX", "DXY", "SOX", "HSI", "KOSPI", "XAU", "XAG", "TTF",
+})
+
+# Non-symbol tokens (surveys, sovereign bonds, hardware acronyms, agencies)
+# and retired symbols are shared with ticker_extraction, so the star schema
+# and this ledger agree on what is not a tradeable name.
+NON_INVESTABLE = NON_INVESTABLE | NON_TICKER_TOKENS | RETIRED_SYMBOLS | INDEX_SYMBOLS
 
 
 @dataclass

@@ -21,6 +21,13 @@ Entry date = first trading-day close on/after the run_at date of the
 narrative the ticker was extracted from — or the NEXT session's close when
 the run finished after the US close (no look-ahead).
 
+Price cache: yfinance >= 0.2.51 returns a two-level column index
+(Price, Ticker) even for a single symbol, so df['Close'] is a one-column
+DataFrame rather than a Series. closes_from_frame() handles both shapes.
+A top-up that writes no rows prints a warning naming the ticker and the
+reason (download error, unknown / delisted symbol, empty window, or an
+unrecognised frame) instead of silently returning 0.
+
 Usage:
     python redhood_pnl.py                      # update prices (yfinance), recompute P&L
     python redhood_pnl.py --refresh            # force refetch (ignore cache)
@@ -46,6 +53,13 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'redhood.db')
 DEFAULT_SIZE_USD = 2500.0
 BENCHMARK = 'SPY'
 HORIZONS = (5, 20, 60)
+
+# When the cache already reaches `since`, re-request from this many calendar
+# days before the last cached close. The overlap re-fetches the last session
+# or two, so a partial bar written by a mid-session run is corrected on the
+# next run, and no sessions are skipped when the pipeline has not run for a
+# while (the old code always asked for a fixed 7-day tail).
+TOPUP_OVERLAP_DAYS = 3
 
 
 def _need_yfinance(quiet: bool = False) -> bool:
@@ -97,39 +111,97 @@ def _ensure_prices_table(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-def _cache_has(conn: sqlite3.Connection, ticker: str, on_or_after: str) -> bool:
+def last_cached_date(conn: sqlite3.Connection, ticker: str) -> str | None:
+    """Most recent price_date cached for `ticker`, or None when nothing is cached."""
     row = conn.execute(
-        "SELECT MAX(price_date) FROM prices WHERE ticker = ? AND price_date >= ?",
-        (ticker, on_or_after),
+        "SELECT MAX(price_date) FROM prices WHERE ticker = ?", (ticker,)
     ).fetchone()
-    return row[0] is not None
+    return row[0] if row else None
 
 
-def fetch_prices(ticker: str, start: str, end: str | None = None) -> list:
-    """Return list of (date_iso, close) tuples for a ticker via yfinance."""
+def closes_from_frame(df, ticker: str) -> list:
+    """Return [(YYYY-MM-DD, close)] from a yfinance download frame.
+
+    yfinance >= 0.2.51 returns a two-level column index (Price, Ticker) even
+    for a single ticker, so df['Close'] is a one-column DataFrame, not a
+    Series: iterating it yields (column_name, Series) pairs and float(Series)
+    raises TypeError. Older versions, and multi_level_index=False, return flat
+    columns. Both shapes are handled here. A tz-aware index keeps its
+    wall-clock date (ts.date()), so a New York session stays on its own day.
+    """
+    if df is None or len(df) == 0:
+        return []
+    cols = df.columns
+    close = None
+    if getattr(cols, 'nlevels', 1) > 1:
+        if ('Close', ticker) in cols:
+            close = df[('Close', ticker)]
+        elif 'Close' in cols.get_level_values(0):
+            close = df['Close'].iloc[:, 0]
+    elif 'Close' in cols:
+        close = df['Close']
+    if close is None:
+        return []
+    out = []
+    for ts, val in close.dropna().items():
+        try:
+            v = float(val)
+        except (TypeError, ValueError):
+            continue
+        d = ts.date().isoformat() if hasattr(ts, 'date') else str(ts)[:10]
+        out.append((d, v))
+    return out
+
+
+def _yf_error(ticker: str) -> str | None:
+    """yfinance records per-symbol failures ("possibly delisted; no timezone
+    found") in yfinance.shared._ERRORS; surface that text when present."""
+    try:
+        from yfinance import shared
+        err = shared._ERRORS.get(ticker)
+    except Exception:
+        return None
+    return str(err) if err else None
+
+
+def download_closes(ticker: str, start: str, end: str | None = None) -> tuple:
+    """Download daily closes for `ticker` via yfinance.
+
+    Returns (rows, reason): rows is [(date_iso, close)]; reason is None on
+    success, otherwise a short string saying why nothing came back.
+    """
     import yfinance as yf
     end = end or (date.today() + timedelta(days=1)).isoformat()
     try:
         df = yf.download(ticker, start=start, end=end, progress=False, auto_adjust=False)
     except Exception as e:
-        print(f"  ! {ticker}: download failed: {e}", file=sys.stderr)
-        return []
-    if df.empty:
-        return []
-    out = []
-    # Handle yfinance's MultiIndex columns when single-ticker
-    close_col = df['Close'] if 'Close' in df.columns else df.iloc[:, 3]
-    for ts, val in close_col.dropna().items():
-        try:
-            v = float(val)
-        except (TypeError, ValueError):
-            continue
-        out.append((ts.strftime('%Y-%m-%d'), v))
-    return out
+        return [], f"download failed: {e}"
+    if df is None or len(df) == 0:
+        return [], _yf_error(ticker) or f"no bars returned for {start}..{end}"
+    rows = closes_from_frame(df, ticker)
+    if not rows:
+        return [], f"no Close column in download (columns={list(df.columns)[:6]})"
+    return rows, None
 
 
-def upsert_closes(conn: sqlite3.Connection, ticker: str, rows: list, source: str = 'yfinance') -> int:
-    """Insert/replace (date, close) rows for a ticker, preserving OHLCV columns if present."""
+def fetch_prices(ticker: str, start: str, end: str | None = None) -> list:
+    """Return list of (date_iso, close) tuples for a ticker via yfinance.
+
+    Empty on failure, with the reason printed to stderr.
+    """
+    rows, reason = download_closes(ticker, start, end)
+    if reason:
+        print(f"  ! {ticker}: {reason}", file=sys.stderr)
+    return rows
+
+
+def upsert_closes(conn: sqlite3.Connection, ticker: str, rows: list,
+                  source: str = 'yfinance') -> int:
+    """Insert/replace (date, close) rows for a ticker.
+
+    ON CONFLICT ... DO UPDATE rather than INSERT OR REPLACE, so OHLCV columns
+    that a CSV import added to `prices` survive a close-only refresh.
+    """
     now = _now_iso()
     conn.executemany(
         "INSERT INTO prices (ticker, price_date, close, fetched_at, source) VALUES (?, ?, ?, ?, ?) "
@@ -141,16 +213,33 @@ def upsert_closes(conn: sqlite3.Connection, ticker: str, rows: list, source: str
     return len(rows)
 
 
+def _warn(msg: str) -> None:
+    """Print a loud warning to stdout (which the run log captures); fall back
+    to plain text on consoles that cannot encode the emoji prefix."""
+    try:
+        print(f"   ⚠️  {msg}")
+    except UnicodeEncodeError:
+        print(f"   WARNING: {msg}")
+
+
 def update_cache(conn: sqlite3.Connection, ticker: str, since: str,
                  force: bool = False) -> int:
-    """Fetch and upsert price rows for `ticker` since the given date (yfinance)."""
-    if not force and _cache_has(conn, ticker, since):
-        # Cache extends from `since`; only top up the tail (last 7 days)
-        recent = (date.today() - timedelta(days=7)).isoformat()
-        rows = fetch_prices(ticker, recent)
+    """Fetch and upsert daily closes for `ticker`; returns the rows written.
+
+    When the cache already reaches `since`, only the tail is requested: from
+    TOPUP_OVERLAP_DAYS before the last cached close through today. A top-up
+    that writes nothing prints a warning naming the ticker and the reason,
+    so a silent "0 rows" can no longer hide a parsing or symbol problem.
+    """
+    cached_max = None if force else last_cached_date(conn, ticker)
+    if cached_max is None or cached_max < since:
+        start = since
     else:
-        rows = fetch_prices(ticker, since)
+        start = (date.fromisoformat(cached_max[:10])
+                 - timedelta(days=TOPUP_OVERLAP_DAYS)).isoformat()
+    rows, reason = download_closes(ticker, start)
     if not rows:
+        _warn(f"{ticker}: price top-up wrote 0 rows (requested from {start}) - {reason}")
         return 0
     return upsert_closes(conn, ticker, rows, 'yfinance')
 

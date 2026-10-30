@@ -5,6 +5,9 @@ from ticker_extraction import (
     entropy_band,
     conviction_size,
     catalyst_count,
+    NON_TICKER_TOKENS,
+    RETIRED_SYMBOLS,
+    _FORCE_KEEP,
 )
 
 
@@ -96,3 +99,30 @@ class TestCatalystCount:
         assert catalyst_count('{"a": 1}') == 0
         assert catalyst_count('not json') == 0
         assert catalyst_count(None) == 0
+
+
+class TestNonTickerStoplist:
+    """Run 53 (2026-10-26) stored GPU, IFO and OAT in the star schema."""
+
+    def test_hardware_acronym_is_not_a_ticker(self):
+        got = _as_map(extract_tickers(
+            "Pairs: long NVDA (demand sink via SpaceX GPU buys) vs short basket "
+            "of levered AI-only neoclouds (CoreWeave, Nebius)"))
+        assert got == {'NVDA': 'Long'}
+
+    def test_survey_and_sovereign_bond_names_are_not_tickers(self):
+        got = _as_map(extract_tickers(
+            "Long EWG / short EUO on IFO expectations beat; keep quarter size "
+            "and pair against French OAT exposure"))
+        assert got == {'EWG': 'Long', 'EUO': 'Short'}
+
+    def test_agencies_and_rates_jargon_are_not_tickers(self):
+        assert extract_tickers("ECB and BOJ hold; SOFR, OIS and CDS widen; BUND and BTP spreads") == []
+
+    def test_shared_stoplist_does_not_shadow_force_keep(self):
+        assert not (NON_TICKER_TOKENS & _FORCE_KEEP)
+        assert not (RETIRED_SYMBOLS & NON_TICKER_TOKENS)
+
+    def test_retired_symbols_stay_in_star_schema(self):
+        # Historical mentions keep their symbol; only the ledger rejects them.
+        assert _as_map(extract_tickers("short SQ, long RTN")) == {'SQ': 'Short', 'RTN': 'Long'}
