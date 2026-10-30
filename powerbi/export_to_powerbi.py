@@ -374,6 +374,46 @@ def export_fact_prices(conn):
     write_csv('fact_prices.csv', out, fields)
 
 
+def export_fact_regime_history(conn):
+    """Thermodynamic regime per run (detector v2) — crisis status and history."""
+    if not _table_exists(conn, 'regime_history'):
+        print("  -- regime_history not present; skipping (run the aggregator once)")
+        return
+    rows = conn.execute("""
+        SELECT id AS regime_row_id, run_id, computed_at, symbol, as_of_date, label, temperature,
+               entropy, eta, entropy_eq, entropy_hi, kl_divergence, kl_threshold, heat, heat_budget,
+               signal_multiplier, warning, detector_version
+        FROM regime_history
+        ORDER BY computed_at
+    """).fetchall()
+    out = [dict(r) for r in rows]
+    fields = ['regime_row_id', 'run_id', 'computed_at', 'symbol', 'as_of_date', 'label', 'temperature',
+              'entropy', 'eta', 'entropy_eq', 'entropy_hi', 'kl_divergence', 'kl_threshold', 'heat',
+              'heat_budget', 'signal_multiplier', 'warning', 'detector_version']
+    write_csv('fact_regime_history.csv', out, fields)
+
+
+def export_fact_narrative_returns(conn):
+    """Realised forward returns of long-side (narrative, ticker) pairs vs SPY."""
+    if not _table_exists(conn, 'narrative_returns'):
+        print("  -- narrative_returns not present; skipping (run redhood_pnl.py --forward first)")
+        return
+    rows = conn.execute("""
+        SELECT r.narrative_id, r.ticker, r.entry_date, r.entry_close, r.h5, r.h20, r.h60, r.todate,
+               r.spy_h5, r.spy_h20, r.spy_h60, r.spy_todate,
+               r.h5 - r.spy_h5 AS excess_h5, r.h20 - r.spy_h20 AS excess_h20,
+               r.h60 - r.spy_h60 AS excess_h60, r.todate - r.spy_todate AS excess_todate,
+               r.last_date, r.computed_at, n.run_id, n.prior_mentions
+        FROM narrative_returns r JOIN narratives n ON n.id = r.narrative_id
+        ORDER BY r.entry_date, r.ticker
+    """).fetchall()
+    out = [dict(r) for r in rows]
+    fields = ['narrative_id', 'ticker', 'entry_date', 'entry_close', 'h5', 'h20', 'h60', 'todate',
+              'spy_h5', 'spy_h20', 'spy_h60', 'spy_todate', 'excess_h5', 'excess_h20', 'excess_h60',
+              'excess_todate', 'last_date', 'computed_at', 'run_id', 'prior_mentions']
+    write_csv('fact_narrative_returns.csv', out, fields)
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -397,6 +437,10 @@ def main():
     export_fact_narrative_tickers(conn)
     export_fact_narrative_grades(conn)
     export_fact_prices(conn)
+
+    # History additions (paper v3, 2026-10)
+    export_fact_regime_history(conn)
+    export_fact_narrative_returns(conn)
 
     conn.close()
     print(f"\nDone. Import the CSV files from {OUT_DIR} into Power BI Desktop.")

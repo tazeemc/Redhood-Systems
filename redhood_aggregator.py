@@ -36,6 +36,8 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from accounts_db import get_active_handles, init_db
 from models import DB_PATH, init_schema
+import card_history
+
 from ticker_extraction import (
     extract_tickers,
     entropy_band as _entropy_band,
@@ -48,6 +50,22 @@ try:
     _REGIME_AVAILABLE = True
 except ImportError:
     _REGIME_AVAILABLE = False
+
+# History layer (paper v3): paginated timeline, continuation flags, prompt context,
+# realised returns and portfolio heat. All stdlib; imported defensively so the
+# aggregator still runs if a module is missing.
+try:
+    from redhood_timeline import (recent_context as _recent_context,
+                                  find_continuation as _find_continuation,
+                                  write_html as _write_timeline_html)
+    _TIMELINE_AVAILABLE = True
+except ImportError:
+    _TIMELINE_AVAILABLE = False
+try:
+    from redhood_pnl import current_heat as _current_heat, compute_forward_returns as _compute_forward_returns
+    _PNL_AVAILABLE = True
+except ImportError:
+    _PNL_AVAILABLE = False
 
 load_dotenv()  # loads .env from project root if present
 
@@ -100,6 +118,12 @@ class Config:
     # AI Configuration
     CLAUDE_MODEL = 'claude-opus-4-8'
     MAX_FEEDS_TO_PROCESS = 50  # Limit for cost control
+
+    # History / thermodynamics (paper v3)
+    EQUITY = float(os.getenv('REDHOOD_EQUITY', '100000'))   # book size for heat
+    BASE_TEMP = 0.15                                         # annualised, decimal (15%)
+    HISTORY_RUNS = 8                                         # runs shown to the LLM
+    HISTORY_MAX_CHARS = 3500
 
     # Output
     OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -155,6 +179,9 @@ class Narrative:
         self.bear_case = bear_case
         self.disconfirming_signals = disconfirming_signals or []
         self.conviction_adjustment = conviction_adjustment
+        self.prior_mentions = 0          # how many earlier narratives (30d) share this theme
+        self.continuation_of = None      # id of the latest such narrative
+        self.continues_prior = False     # the model's own flag from the prompt
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -169,6 +196,9 @@ class Narrative:
             'bear_case': self.bear_case,
             'disconfirming_signals': self.disconfirming_signals,
             'conviction_adjustment': self.conviction_adjustment,
+            'prior_mentions': self.prior_mentions,
+            'continuation_of': self.continuation_of,
+            'continues_prior': self.continues_prior,
         }
 
 
@@ -483,7 +513,8 @@ class NarrativeExtractor:
         self.client = Anthropic(api_key=api_key)
         self.model = Config.CLAUDE_MODEL
 
-    def extract_narratives(self, feeds: list[FeedItem], max_feeds: int = 50, regime_context: str = '') -> list[Narrative]:
+    def extract_narratives(self, feeds: list[FeedItem], max_feeds: int = 50, regime_context: str = '',
+                           history_context: str = '') -> list[Narrative]:
         """
         Process feeds through Claude to extract top narratives
 
@@ -491,6 +522,8 @@ class NarrativeExtractor:
             feeds: List of FeedItem objects
             max_feeds: Maximum number of feeds to process (cost control)
             regime_context: Optional thermodynamic regime string to include in prompt
+            history_context: Optional block from redhood_timeline.recent_context()
+                (recent narratives, crowded tickers, realised lessons)
 
         Returns:
             List of Narrative objects
@@ -516,7 +549,7 @@ class NarrativeExtractor:
         feeds_text = self._format_feeds_for_prompt(feeds_to_process)
 
         # Build prompt
-        prompt = self._build_extraction_prompt(feeds_text, regime_context)
+        prompt = self._build_extraction_prompt(feeds_text, regime_context, history_context)
 
         # Call Claude API
         try:
@@ -560,16 +593,27 @@ class NarrativeExtractor:
 
         return "\n".join(formatted)
 
-    def _build_extraction_prompt(self, feeds_text: str, regime_context: str = '') -> str:
+    def _build_extraction_prompt(self, feeds_text: str, regime_context: str = '',
+                                 history_context: str = '') -> str:
         """Build the prompt for Claude"""
         regime_section = (
             f'\nCURRENT MARKET REGIME (thermodynamic): {regime_context}\n'
             'Calibrate entropy risk scoring and position sizing recommendations to this regime.\n'
-            'In CRISIS regime, flag all hypotheses as high-risk. In TRENDING, amplify high-conviction ideas.\n'
+            'In CRISIS regime, flag all hypotheses as high-risk and propose no new longs. '
+            'In TRANSITION, size at most neutral. In TRENDING, amplify high-conviction ideas.\n'
         ) if regime_context else ''
+        history_section = (
+            f'\n{history_context}\n'
+            'Use this history: (a) if a narrative continues one listed above, say so by setting '
+            '"continues_prior": true and keep the title wording close to the earlier one; '
+            '(b) tickers in TICKER REDUNDANCY are crowded — do not propose a new long in a ticker '
+            'already mentioned 2+ times unless you cite a genuinely new catalyst, and prefer a '
+            'different instrument for the same theme; (c) when realised returns are shown, let them '
+            'temper conviction and say so in the rationale.\n'
+        ) if history_context else ''
 
         return f"""You are a portfolio manager with a physics PhD analyzing market intelligence feeds.
-{regime_section}
+{regime_section}{history_section}
 Your task: Extract the top 5 market narratives from these feeds and generate actionable trade hypotheses.
 
 FEEDS:
@@ -597,7 +641,8 @@ OUTPUT FORMAT (strict JSON):
       "hypothesis": "Specific trade idea (e.g., 'Long QQQ calls, short XLE')",
       "rationale": "Why this trade makes sense given the narrative (2-3 sentences)",
       "catalysts": ["Upcoming event 1", "Data release 2"],
-      "supporting_feed_indices": [1, 3, 5]
+      "supporting_feed_indices": [1, 3, 5],
+      "continues_prior": false
     }}
   ]
 }}
@@ -606,7 +651,8 @@ IMPORTANT:
 - Return ONLY valid JSON, no markdown formatting
 - Include exactly 5 narratives
 - Be specific with trade ideas (not just "buy tech")
-- Entropy scoring should reflect information quality/consensus level"""
+- Entropy scoring should reflect information quality/consensus level
+- "continues_prior" is true only when the narrative continues a theme listed in HISTORICAL CONTEXT"""
 
     def _build_adversarial_prompt(self, narratives: list['Narrative']) -> str:
         """Build the adversarial stress-test prompt from extracted narratives"""
@@ -710,6 +756,7 @@ IMPORTANT:
                     catalysts=n.get('catalysts', []),
                     supporting_feeds=supporting_feeds
                 )
+                narrative.continues_prior = bool(n.get('continues_prior', False))
                 narratives.append(narrative)
 
             return narratives
@@ -798,7 +845,41 @@ class GitHubPagesPublisher:
         latest_path = f"{self.DOCS_PATH}/latest.html"
         self._put_file(latest_path, html, f"Update latest {ts}", self._get_sha(latest_path))
 
+        try:
+            self._publish_card_history(html, filename, ts)
+        except Exception as e:  # history is a bonus; never fail the report publish
+            print(f"   ⚠️  [GitHub Pages] Card history update failed: {e}")
+
         return f"{self.BASE_URL}/{filename}"
+
+    def _get_text(self, path: str):
+        """Return a file's raw text (raw media type handles files over 1 MB), or None."""
+        url = (f"https://api.github.com/repos/{self.OWNER}/{self.REPO}"
+               f"/contents/{path}?ref={self.BRANCH}")
+        req = urllib.request.Request(
+            url, headers={**self._headers, "Accept": "application/vnd.github.raw"})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return r.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            raise
+
+    def _publish_card_history(self, html: str, filename: str, ts: str):
+        """Fold this report's signal cards into docs/cards_history.json and re-render docs/cards.html."""
+        cards = card_history.extract_cards(html)
+        if not cards:
+            return
+        json_path = f"{self.DOCS_PATH}/{card_history.HISTORY_JSON}"
+        history = card_history.load(self._get_text(json_path))
+        added = card_history.merge(history, cards, filename, card_history.report_time(filename))
+        self._put_file(json_path, card_history.dump(history),
+                       f"Update card history {ts}", self._get_sha(json_path))
+        page_path = f"{self.DOCS_PATH}/{card_history.HISTORY_HTML}"
+        self._put_file(page_path, card_history.render_page(history),
+                       f"Update card history page {ts}", self._get_sha(page_path))
+        print(f"🗂️  [GitHub Pages] Card history: +{added} new, {len(history['cards'])} total")
 
 
 # ============================================================================
@@ -824,20 +905,52 @@ class RedHoodAggregator:
         # Ensure output directory exists
         os.makedirs(self.config.OUTPUT_DIR, exist_ok=True)
 
+    def _current_heat(self) -> dict | None:
+        """Portfolio heat from the ledger (fraction of equity at risk at stops); None if unavailable."""
+        if not _PNL_AVAILABLE:
+            return None
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            try:
+                return _current_heat(conn, equity=self.config.EQUITY)
+            finally:
+                conn.close()
+        except Exception as e:
+            print(f"   ⚠️  Heat computation failed: {e}")
+            return None
+
     def _compute_regime(self):
-        """Fetch 3-month SPY closes from Yahoo Finance and compute regime state."""
+        """Fetch 6 months of SPY closes from Yahoo Finance and compute the v2 regime state.
+
+        Six months (~125 closes) are needed because the shape statistics
+        (occupation entropy, KL departure) use a 60-return window; the
+        temperature itself uses 20.  Heat is fed from the ledger so the
+        heat budget in the report is measured, not assumed.
+        """
         try:
             import pandas as pd
             url = ('https://query1.finance.yahoo.com/v8/finance/chart/'
-                   'SPY?interval=1d&range=3mo')
+                   'SPY?interval=1d&range=6mo')
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req, timeout=8) as r:
                 data = json.loads(r.read())
-            closes = data['chart']['result'][0]['indicators']['quote'][0]['close']
-            prices = pd.Series([c for c in closes if c is not None])
-            if len(prices) < 25:
+            result = data['chart']['result'][0]
+            closes = result['indicators']['quote'][0]['close']
+            stamps = result.get('timestamp') or []
+            pairs = ([(t, c) for t, c in zip(stamps, closes, strict=False) if c is not None]
+                     if stamps else [(None, c) for c in closes if c is not None])
+            if len(pairs) < 25:
                 return None
-            detector = RegimeDetector(base_temp=0.15, base_entropy=2.5, window=20)
+            if pairs[0][0] is not None:
+                idx = pd.to_datetime([t for t, _ in pairs], unit='s')
+                prices = pd.Series([c for _, c in pairs], index=idx)
+            else:
+                prices = pd.Series([c for _, c in pairs])
+            detector = RegimeDetector(base_temp=self.config.BASE_TEMP, window=20, shape_window=60)
+            heat = self._current_heat()
+            if heat:
+                detector.set_current_heat(heat['heat'])
+                self._heat_info = heat
             return detector.update(prices)
         except Exception as e:
             print(f"   ⚠️  Regime detection failed: {e}")
@@ -897,16 +1010,37 @@ class RedHoodAggregator:
             if regime_state:
                 label = regime_state.label.value
                 print(f"   Regime: {label} | T={regime_state.temperature:.1%} | "
-                      f"S={regime_state.entropy:.3f} | Mult={regime_state.signal_multiplier:.2f}×"
-                      + (" | ⚠ REGIME DRIFT" if regime_state.warning else ""))
+                      f"S={regime_state.entropy:.3f} (eq {regime_state.entropy_eq:.3f}) | "
+                      f"D={regime_state.kl_divergence:.4f} (thr {regime_state.kl_threshold:.4f}) | "
+                      f"heat={regime_state.heat:.1%} | Mult={regime_state.signal_multiplier:.2f}×"
+                      + (" | ⚠ DRIFT" if regime_state.warning else ""))
                 regime_context = (
-                    f"Regime={label} | Temperature={regime_state.temperature:.1%} (base 15%) | "
-                    f"Entropy={regime_state.entropy:.3f} (base 2.5) | "
-                    f"Signal Multiplier={regime_state.signal_multiplier:.2f}× | "
-                    f"KL Divergence={regime_state.kl_divergence:.4f}"
-                    + (" | ⚠ REGIME DRIFT ALERT" if regime_state.warning else "")
+                    f"Regime={label} ({regime_state.description}) | "
+                    f"Temperature={regime_state.temperature:.1%} (base {regime_state.base_temp:.0%}) | "
+                    f"Occupation entropy={regime_state.entropy:.3f} nats (equilibrium at this T "
+                    f"{regime_state.entropy_eq:.3f}; crisis band above {regime_state.entropy_hi:.3f}) | "
+                    f"Departure from Boltzmann D={regime_state.kl_divergence:.4f} (alert above "
+                    f"{regime_state.kl_threshold:.4f}) | Portfolio heat={regime_state.heat:.1%} of equity "
+                    f"(budget {regime_state.heat_budget:.0%} remaining) | "
+                    f"Signal Multiplier={regime_state.signal_multiplier:.2f}×"
+                    + (" | ⚠ DRIFT ALERT" if regime_state.warning else "")
                 )
             print()
+
+        # Historical context for the prompt (paginated timeline, paper v3)
+        history_context = ''
+        if _TIMELINE_AVAILABLE:
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                try:
+                    history_context = _recent_context(conn, n_runs=self.config.HISTORY_RUNS,
+                                                      max_chars=self.config.HISTORY_MAX_CHARS)
+                finally:
+                    conn.close()
+                if history_context:
+                    print(f"🕰️  History context: {len(history_context)} chars from the timeline\n")
+            except Exception as e:
+                print(f"   ⚠️  History context unavailable: {e}\n")
 
         # Extract narratives using AI
         print("🧠 AI Analysis Phase...\n")
@@ -914,20 +1048,26 @@ class RedHoodAggregator:
             all_feeds,
             max_feeds=self.config.MAX_FEEDS_TO_PROCESS,
             regime_context=regime_context,
+            history_context=history_context,
         )
+
+        # Continuation flags: how often each theme already appeared (30-day window)
+        self._flag_continuations(narratives)
 
         # Save results
         results = {
             'timestamp': datetime.now().isoformat(),
+            'regime': regime_state.to_dict() if regime_state else None,
             'feeds': [f.to_dict() for f in all_feeds],
             'narratives': [n.to_dict() for n in narratives]
         }
 
         json_path, html_path = self._save_results(results, narratives, hours_back, trading_json, regime_state)
-        self._persist_to_db(hours_back, all_feeds, narratives, json_path, html_path)
+        run_id = self._persist_to_db(hours_back, all_feeds, narratives, json_path, html_path, regime_state)
+        self._post_run(run_id, narratives)
 
         github_token = os.getenv("GITHUB_TOKEN")
-        if github_token:
+        if github_token and not os.getenv("REDHOOD_NO_PUBLISH"):
             try:
                 pub_url = GitHubPagesPublisher(github_token).publish(html_path)
                 print(f"\n🌐 [GitHub Pages] Published:  {pub_url}")
@@ -947,6 +1087,82 @@ class RedHoodAggregator:
         self._print_summary(narratives, trading_data_for_print)
 
         return results
+
+    def _flag_continuations(self, narratives: list[Narrative]) -> None:
+        """Set prior_mentions / continuation_of on each new narrative from the timeline."""
+        if not _TIMELINE_AVAILABLE or not narratives:
+            return
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            try:
+                for n in narratives:
+                    count, latest = _find_continuation(conn, n.title, n.date.isoformat())
+                    n.prior_mentions = count
+                    n.continuation_of = latest
+            finally:
+                conn.close()
+            seen = [n for n in narratives if n.prior_mentions]
+            if seen:
+                print("🔁 Continuations: " + "; ".join(f"\"{n.title[:40]}\" x{n.prior_mentions}" for n in seen))
+        except Exception as e:
+            print(f"   ⚠️  Continuation flags failed: {e}")
+
+    def _post_run(self, run_id, narratives: list[Narrative]) -> None:
+        """Close the loop after persisting: grade + extract long tickers, realised
+        returns from cached prices, and regenerate the timeline page.
+
+        Price refresh via yfinance is attempted when the package is installed
+        (tail top-up for tickers mentioned in the last 60 days plus SPY);
+        set REDHOOD_NO_PRICE_REFRESH=1 to skip it.
+        """
+        if run_id is None:
+            return
+        try:
+            from score_narratives import score_all
+            since = datetime.now(timezone.utc).replace(tzinfo=None).date().isoformat()
+            score_all(db_path=DB_PATH, since=since)
+        except Exception as e:
+            print(f"   ⚠️  Scoring step failed: {e}")
+        if _PNL_AVAILABLE and not os.getenv('REDHOOD_NO_PRICE_REFRESH'):
+            try:
+                import redhood_pnl
+                if redhood_pnl._need_yfinance(quiet=True):
+                    conn = sqlite3.connect(DB_PATH)
+                    try:
+                        cutoff = (datetime.now(timezone.utc) - timedelta(days=60)).replace(tzinfo=None).isoformat()
+                        tickers = [r[0] for r in conn.execute(
+                            "SELECT DISTINCT nt.ticker FROM narrative_tickers nt JOIN narratives n ON n.id = nt.narrative_id "
+                            "WHERE nt.is_long_equity = 1 AND n.created_at >= ?", (cutoff,)).fetchall()]
+                        n_rows = 0
+                        for t in tickers + [redhood_pnl.BENCHMARK]:
+                            n_rows += redhood_pnl.update_cache(conn, t, since='2026-01-01')
+                        print(f"💲 Prices: {len(tickers) + 1} tickers topped up ({n_rows} rows)")
+                    finally:
+                        conn.close()
+            except Exception as e:
+                print(f"   ⚠️  Price refresh failed: {e}")
+        if _PNL_AVAILABLE:
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                try:
+                    stats = _compute_forward_returns(conn)
+                    print(f"📈 Realised returns: {stats['written']} long-side pairs updated "
+                          f"({stats['missing_prices']} without prices)")
+                finally:
+                    conn.close()
+            except Exception as e:
+                print(f"   ⚠️  Forward-return step failed: {e}")
+        if _TIMELINE_AVAILABLE:
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                try:
+                    path = _write_timeline_html(conn)
+                    print(f"🕰️  Timeline updated: {path}")
+                finally:
+                    conn.close()
+            except Exception as e:
+                print(f"   ⚠️  Timeline page failed: {e}")
 
     def _save_results(self, results: dict[str, Any],
                       narratives: list[Narrative], hours_back: float,
@@ -984,6 +1200,7 @@ class RedHoodAggregator:
         TICKERS = [
             ('BTC/USD',  'BTC-USD',   '{:,.0f}',  '$'),
             ('$BLSH',    'BLSH',      '{:.2f}',   '$'),
+            ('$NVDA',    'NVDA',      '{:.2f}',   '$'),
             ('S&P 500',  '^GSPC',     '{:,.0f}',  ''),
             ('WTI',      'CL=F',      '{:.2f}',   '$'),
             ('GOLD',     'GC=F',      '{:,.0f}',  '$'),
@@ -995,13 +1212,25 @@ class RedHoodAggregator:
         for label, symbol, fmt, prefix in TICKERS:
             try:
                 url = (f'https://query1.finance.yahoo.com/v8/finance/chart/'
-                       f'{urllib.request.quote(symbol)}?interval=1d&range=2d')
+                       f'{urllib.request.quote(symbol)}?interval=1d&range=5d')
                 req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=5) as resp:
                     data = json.loads(resp.read())
-                meta = data['chart']['result'][0]['meta']
-                price = meta.get('regularMarketPrice') or meta.get('previousClose', 0)
-                prev  = meta.get('previousClose') or price
+                result = data['chart']['result'][0]
+                meta = result['meta']
+                quote = (result.get('indicators') or {}).get('quote') or [{}]
+                closes = [c for c in (quote[0].get('close') or []) if c is not None]
+                price = meta.get('regularMarketPrice') or (closes[-1] if closes else 0)
+                # 'previousClose' only exists on intraday ranges; take the prior daily
+                # bar instead so the change is not a permanent +0.00%.
+                stamps = result.get('timestamp') or []
+                rmt = meta.get('regularMarketTime') or (stamps[-1] if stamps else 0)
+                same_session = bool(stamps) and abs(rmt - stamps[-1]) < 24 * 3600
+                prev = meta.get('previousClose')
+                if not prev and len(closes) >= 2:
+                    prev = closes[-2] if same_session else closes[-1]
+                if not prev:
+                    prev = meta.get('chartPreviousClose') or price
                 chg   = ((price - prev) / prev * 100) if prev else 0
                 val_str = prefix + fmt.format(price)
                 chg_str = f'{chg:+.2f}%'
@@ -1082,9 +1311,13 @@ class RedHoodAggregator:
                 f'<div class="bear-body">{bear}</div>'
                 f'<div class="conviction-tag">{conviction}</div>'
             ) if bear else ''
+            seen_n = int(getattr(narr, 'prior_mentions', 0) or 0)
+            seen_html = (f'<div class="seen-tag">&#8635; seen {seen_n}&times; in the last 30 days</div>'
+                         if seen_n else '')
             return (f'<div class="grid-col">'
                     f'<div class="col-tag">{tag}</div>'
                     f'<div class="col-title">{title}</div>'
+                    f'{seen_html}'
                     f'<div class="col-body">{body}</div>'
                     f'{sparkline(narr.entropy_risk)}'
                     f'{bear_html}</div>')
@@ -1334,6 +1567,7 @@ class RedHoodAggregator:
         # Regime panel
         regime_panel_html = ''
         if regime_state:
+            v2 = getattr(regime_state, 'detector_version', 'v1') == 'v2'
             _REGIME_COLORS = {
                 'TRENDING':   ('#00e5a0', 'Low T &middot; Low S &mdash; amplify signals'),
                 'CHOPPY':     ('#f5a623', 'High T &middot; Low S &mdash; reduce size'),
@@ -1346,7 +1580,8 @@ class RedHoodAggregator:
                      if regime_state.warning else '')
             regime_panel_html = (
                 f'<div class="regime-panel">'
-                f'<div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (20-bar)</div>'
+                f'<div class="regime-panel-label">Thermodynamic Regime &mdash; SPY '
+                f'({"T 20-bar &middot; shape 60-bar &middot; detector v2" if v2 else "20-bar"})</div>'
                 f'<div class="regime-badge-row">'
                 f'<span class="regime-badge" style="color:{rcolor};border-color:{rcolor}40;background:{rcolor}12">{rlabel}</span>'
                 f'<span class="regime-desc">{rdesc}</span>'
@@ -1693,6 +1928,9 @@ class RedHoodAggregator:
   .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
   .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
   .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
+  .cmd-link { text-decoration: none; }
+  .seen-tag { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #a78bfa; margin: 2px 0 6px; }
 </style>
 </head>
 <body>
@@ -1739,6 +1977,25 @@ class RedHoodAggregator:
 
   <div class="metrics-strip">%%METRICS%%</div>
 
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">SIGINT &mdash; Signal Cards &middot; %%EMBED_COUNT%% of %%FEED_COUNT%% &middot; %%CITED_COUNT%% narrative-cited + top 55 &middot; %%RUN_TIME%%</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">SORT &middot; RECENT</option>
+        <option value="handle">SORT &middot; HANDLE</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+      <a class="cmd-btn cmd-link" href="cards.html">HISTORY &rarr;</a>
+    </div>
+    <div class="tweet-grid" id="tweetGrid">%%EMBEDS%%</div>
+  </details>
+
   %%SYNOPSIS%%
 
   <div class="grid-section">%%GRID%%</div>
@@ -1758,24 +2015,6 @@ class RedHoodAggregator:
   %%TRADING%%
 
   %%REGIME_PANEL%%
-
-  <details class="embeds-section sec" open>
-    <summary class="sec-summary">
-      <span class="links-header">SIGINT &mdash; Signal Cards &middot; %%EMBED_COUNT%% of %%FEED_COUNT%% &middot; %%CITED_COUNT%% narrative-cited + top 55 &middot; %%RUN_TIME%%</span>
-      <span class="sec-chevron">&#9662;</span>
-    </summary>
-    <div class="cmdbar">
-      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
-      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
-      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
-      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
-        <option value="recent">SORT &middot; RECENT</option>
-        <option value="handle">SORT &middot; HANDLE</option>
-      </select>
-      <span id="cardCount" class="cmd-count"></span>
-    </div>
-    <div class="tweet-grid" id="tweetGrid">%%EMBEDS%%</div>
-  </details>
 
   %%LINKS_SECTION%%
 
@@ -1858,8 +2097,8 @@ class RedHoodAggregator:
 </html>'''
 
     def _persist_to_db(self, hours_back: float, all_feeds: list, narratives: list,
-                        json_path: str, html_path: str) -> int:
-        """Persist run results into SQLite (runs, feeds, narratives, narrative_feeds)."""
+                        json_path: str, html_path: str, regime_state=None) -> int:
+        """Persist run results into SQLite (runs, feeds, narratives, narrative_feeds, regime_history)."""
         conn = sqlite3.connect(DB_PATH)
         try:
             cursor = conn.execute(
@@ -1893,14 +2132,16 @@ class RedHoodAggregator:
                     """INSERT OR IGNORE INTO narratives
                        (id, run_id, title, entropy_risk, hypothesis, rationale, catalysts, created_at,
                         bear_case, disconfirming_signals, conviction_adjustment,
-                        catalyst_count, conviction_size, entropy_band)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        catalyst_count, conviction_size, entropy_band, prior_mentions, continuation_of)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (narrative.id, run_id, narrative.title, narrative.entropy_risk,
                      narrative.hypothesis, narrative.rationale,
                      catalysts_json, narrative.date.isoformat(),
                      narrative.bear_case, json.dumps(narrative.disconfirming_signals),
                      narrative.conviction_adjustment,
-                     cat_count, conv_size, ent_band)
+                     cat_count, conv_size, ent_band,
+                     int(getattr(narrative, 'prior_mentions', 0) or 0),
+                     getattr(narrative, 'continuation_of', None))
                 )
                 for feed_id in narrative.supporting_feeds:
                     conn.execute(
@@ -1924,9 +2165,28 @@ class RedHoodAggregator:
                     )
                 ticker_rows_total += len(ticker_rows)
 
+            # --- Regime history (crisis status is now persisted per run) ---
+            if regime_state is not None:
+                conn.execute(
+                    """INSERT INTO regime_history
+                       (run_id, computed_at, symbol, as_of_date, label, temperature, entropy, eta,
+                        entropy_eq, eta_eq, entropy_hi, kl_divergence, kl_threshold, heat, heat_budget,
+                        signal_multiplier, warning, detector_version)
+                       VALUES (?, ?, 'SPY', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (run_id, now_iso, getattr(regime_state, 'as_of', '') or None,
+                     regime_state.label.value, regime_state.temperature, regime_state.entropy,
+                     getattr(regime_state, 'eta', None), getattr(regime_state, 'entropy_eq', None),
+                     getattr(regime_state, 'eta_eq', None), getattr(regime_state, 'entropy_hi', None),
+                     regime_state.kl_divergence, getattr(regime_state, 'kl_threshold', None),
+                     getattr(regime_state, 'heat', None), regime_state.heat_budget,
+                     regime_state.signal_multiplier, int(bool(regime_state.warning)),
+                     getattr(regime_state, 'detector_version', 'v1'))
+                )
+
             conn.commit()
             print(f"🗄️  DB: run #{run_id} saved — {len(all_feeds)} feeds, "
-                  f"{len(narratives)} narratives, {ticker_rows_total} ticker mentions")
+                  f"{len(narratives)} narratives, {ticker_rows_total} ticker mentions"
+                  + (f", regime {regime_state.label.value}" if regime_state is not None else ""))
             return run_id
         except Exception as e:
             conn.rollback()

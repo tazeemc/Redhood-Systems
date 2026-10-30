@@ -22,10 +22,17 @@ compressed context*.md
 # Claude Code local config and worktrees
 .claude/
 
-# Output data
-data/
+# Output data (root data/ only; the paper's inputs under paper/data are versioned)
+/data/
 *.json
+!paper/data/*.json
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Local database backups
+redhood.db.bak-*
+
+# Stray wheel downloads
+*.whl

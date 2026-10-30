@@ -50,6 +50,12 @@ NON_INVESTABLE = frozenset({
     "US", "EU", "UK", "EM", "DM", "ASEAN", "OPEC", "NATO",
     # Asset-class buckets (not direct tickers in narratives)
     "IPOS", "SPACS", "IPO", "SPAC",
+    # False positives found when the P&L loop was closed (paper v3, Oct 2026):
+    # macro acronyms, foreign-bond and commodity shorthands, delisted names,
+    # and English words that happen to be listed symbols.
+    "CDS", "DOD", "DXY", "EV", "ILS", "JGB", "JJU", "MAU", "NG", "NICK", "OAT",
+    "PCE", "RTN", "TELL", "TIPS", "TO", "TTF", "XAU", "XUT", "ZPR", "BTC", "ETH",
+    "NGL", "LNGS", "QT", "QE", "YCC", "EPS", "AUM", "NAV", "CAPEX", "ROE", "ROIC",
 })
 
 # Words near a ticker that mean the position is options / futures, not shares.

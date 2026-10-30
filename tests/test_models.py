@@ -7,7 +7,7 @@ from models import init_schema
 EXPECTED_TABLES = {
     'twitter_accounts', 'runs', 'feeds', 'narratives', 'narrative_feeds',
     'narrative_tickers', 'narrative_grades', 'tickers', 'prices',
-    'earnings', 'date_dim',
+    'earnings', 'date_dim', 'regime_history', 'narrative_returns',
 }
 
 
@@ -37,3 +37,14 @@ def test_init_schema_is_idempotent(tmp_path):
     init_schema(path)
     init_schema(path)  # must not raise on existing objects
     assert EXPECTED_TABLES <= _names(path, 'table')
+
+
+def test_init_schema_adds_history_columns(tmp_path):
+    path = str(tmp_path / 'schema.db')
+    init_schema(path)
+    conn = sqlite3.connect(path)
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(narratives)")}
+    views = _names(path, 'view')
+    conn.close()
+    assert {'prior_mentions', 'continuation_of'} <= cols
+    assert {'fact_regime_history', 'fact_narrative_returns'} <= views
