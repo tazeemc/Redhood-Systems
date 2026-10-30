@@ -10,7 +10,8 @@ Usage:
     python score_narratives.py                        # score all
     python score_narratives.py --since 2026-03-01     # score recent only
     python score_narratives.py --dry-run              # print, don't persist
-    python score_narratives.py --with-pnl             # also refresh prices/P&L
+    python score_narratives.py --with-pnl             # also refresh prices/P&L (yfinance)
+    python score_narratives.py --forward              # also compute realised forward returns
 """
 
 from __future__ import annotations
@@ -68,9 +69,17 @@ def score_all(db_path: str = DB_PATH,
                   f"long={g.long_tickers}")
             continue
 
-        # Replace any existing rows for this narrative (idempotent)
+        # Replace any existing GRADER rows for this narrative (idempotent).
+        # Only rows this module wrote (extracted_at IS NOT NULL / lower-case
+        # grader sides) are deleted: the star-schema rows written by
+        # ticker_extraction.py (sides Long/Short/Hedge/Pair, extracted_at NULL)
+        # share the bridge table and must survive re-scoring.  v1 deleted
+        # every row for the narrative, which wiped the star schema.
         conn.execute("DELETE FROM narrative_grades  WHERE narrative_id = ?", (n['id'],))
-        conn.execute("DELETE FROM narrative_tickers WHERE narrative_id = ?", (n['id'],))
+        conn.execute(
+            "DELETE FROM narrative_tickers WHERE narrative_id = ? "
+            "AND (extracted_at IS NOT NULL OR side IN ('long', 'pair_long'))",
+            (n['id'],))
 
         conn.execute(
             "INSERT INTO narrative_grades "
@@ -114,7 +123,10 @@ def main():
     p.add_argument("--dry-run", action="store_true",
                    help="Print grades but don't write to DB")
     p.add_argument("--with-pnl", action="store_true",
-                   help="After scoring, also refresh prices and print P&L leaderboard")
+                   help="After scoring, also refresh prices (yfinance) and print P&L leaderboard")
+    p.add_argument("--forward", action="store_true",
+                   help="After scoring, (re)compute realised forward returns into narrative_returns "
+                        "from cached prices (no network needed)")
     args = p.parse_args()
 
     score_all(db_path=args.db, since=args.since, dry_run=args.dry_run)
@@ -126,6 +138,14 @@ def main():
             print_leaderboard(rows)
         except ImportError as e:
             print(f"P&L step skipped: {e}", file=sys.stderr)
+
+    if args.forward and not args.dry_run:
+        from redhood_pnl import compute_forward_returns, novelty_summary, print_novelty
+        conn = sqlite3.connect(args.db)
+        conn.row_factory = sqlite3.Row
+        compute_forward_returns(conn, since=args.since, verbose=True)
+        print_novelty(novelty_summary(conn))
+        conn.close()
 
 
 if __name__ == "__main__":

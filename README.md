@@ -25,10 +25,11 @@
 
 - **AI Narrative Extraction:** Claude AI (Opus 4.8) processes 50+ feeds to identify top market themes
 - **Entropy Risk Scoring:** Quantifies market uncertainty (1-10 scale) using physics-inspired framework
-- **Thermodynamic Regime Detection:** Auto signal generation from market temperature/entropy state (`redhood_regime_detector.py`)
+- **Thermodynamic Regime Detection (v2):** Temperature, fixed-level occupation entropy and a calibrated Boltzmann-departure statistic classify TRENDING / CHOPPY / CRISIS / TRANSITION; every run's state is persisted to `regime_history` (`redhood_regime_detector.py`)
+- **Historical Timeline:** Paginated memory of past runs, regimes, narratives and realised returns; feeds a HISTORICAL CONTEXT block into narrative extraction and renders `docs/timeline.html` (`redhood_timeline.py`)
 - **Trade Hypothesis Generation:** Specific, actionable trade ideas with entry/exit logic
 - **Hypothesis Grading:** 0–20 quality grade (Specificity / Catalyst / Risk Management / Cohesion) + A–F letter, with long-side ticker extraction (`redhood_grader.py`, `score_narratives.py`)
-- **Long-Only P&L Tracking:** $2,500-per-ticker ledger over extracted tickers via yfinance (`redhood_pnl.py`)
+- **Long-Only P&L Tracking (loop closed):** $2,500-per-ticker ledger plus realised 5/20/60-day returns vs SPY per narrative (`narrative_returns`), portfolio heat from the open book, CSV price import when yfinance is unavailable (`redhood_pnl.py`)
 - **Star-Schema Persistence:** Runs, feeds, narratives, tickers, grades, prices, earnings + Power BI views in `redhood.db`
 - **Power BI Export:** SQLite → Power BI pipeline with Power Query (M), DAX measures, and report layout (`powerbi/`)
 - **RedHood Reads HTML Report:** Styled editorial card report generated every run
@@ -58,8 +59,9 @@
 │ redhood.db │  │ HTML Report     │
 └─────┬──────┘  └─────────────────┘
       │
-      ├──▶ score_narratives.py ──▶ grades + long tickers (redhood_grader.py)
-      ├──▶ redhood_pnl.py ───────▶ long-only P&L ledger (yfinance)
+      ├──▶ score_narratives.py ──▶ grades + long tickers (redhood_grader.py)   ┐ run automatically
+      ├──▶ redhood_pnl.py ───────▶ realised returns + heat (narrative_returns) │ after every
+      ├──▶ redhood_timeline.py ──▶ regime_history / prompt context / timeline  ┘ aggregation
       └──▶ powerbi/export_to_powerbi.py ──▶ Power BI (Power Query + DAX)
 ```
 
@@ -116,17 +118,28 @@ python redhood_aggregator.py
 python redhood_aggregator.py --hours 24
 ```
 
-### Score, Grade & Track P&L
+### Score, Grade & Track P&L (runs automatically after each aggregation)
 
 ```bash
 # Grade every narrative + extract long-side tickers (idempotent)
 python score_narratives.py
 
-# Score only recent narratives, also refresh prices/P&L
-python score_narratives.py --since 2026-03-01 --with-pnl
+# Score recent narratives and (re)compute realised forward returns vs SPY
+python score_narratives.py --since 2026-03-01 --forward
 
-# Long-only P&L leaderboard ($2,500/ticker; needs yfinance)
+# Long-only P&L leaderboard ($2,500/ticker; needs yfinance) ...
 python redhood_pnl.py --report
+# ... or close the loop from a CSV of daily closes when yfinance is unavailable
+python redhood_pnl.py --import-csv data/prices_20261023.csv --forward --heat
+```
+
+### Historical Timeline
+
+```bash
+python redhood_timeline.py --page 1 --size 10   # newest runs first: regime, narratives, realised returns
+python redhood_timeline.py --context             # the HISTORICAL CONTEXT block the LLM reads
+python redhood_timeline.py --html                # docs/timeline.html (paginated, filterable)
+python redhood_timeline.py --flag                # recompute "seen N× before" flags
 ```
 
 ### Run Tests & Static Analysis
@@ -196,7 +209,8 @@ python accounts_db.py --toggle FirstSquawk
 ```
 Redhood-Systems/
 ├── redhood_aggregator.py       # Main aggregator + RedHood Reads HTML generator
-├── redhood_regime_detector.py  # Thermodynamic regime detection + auto signals
+├── redhood_regime_detector.py  # Thermodynamic regime detection v2 (calibrated; CRISIS reachable)
+├── redhood_timeline.py         # Paginated history: prompt context, continuation flags, docs/timeline.html
 ├── ticker_extraction.py        # Extract tickers + Long/Short/Hedge sides from hypotheses
 ├── redhood_grader.py           # Hypothesis grader (0–20 / A–F) + long-ticker extraction
 ├── score_narratives.py         # CLI: grade narratives → narrative_tickers + narrative_grades
@@ -298,7 +312,10 @@ This repository contains key documents demonstrating PM skills:
 - [x] Hypothesis grading (0–20 / A–F) + narrative scoring CLI
 - [x] Long-only P&L tracking ($2,500/ticker, via yfinance)
 - [x] Power BI export pipeline (Power Query + DAX)
-- [ ] Historical backtesting of signal accuracy
+- [x] Realised-return tracking of every long-side narrative vs SPY (`narrative_returns`)
+- [x] Regime history persisted per run; CRISIS reachable; thresholds calibrated
+- [x] Paginated historical timeline feeding narrative extraction
+- [ ] Pre-registered forward test of the redundancy filter (from 1 Nov 2026)
 - [ ] Sentiment trend tracking across runs
 - [ ] Live ticker data in HTML report
 
@@ -395,5 +412,5 @@ Have questions about the project or want to discuss product opportunities?
 
 ---
 
-**Last Updated:** July 2, 2026
-**Version:** 1.3 (Telegram source + $BLSH ticker)
+**Last Updated:** October 23, 2026
+**Version:** 1.4 (regime detector v2, closed P&L loop, historical timeline — see `paper/` for the audit)

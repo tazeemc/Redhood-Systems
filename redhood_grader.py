@@ -28,6 +28,8 @@ import json
 import re
 from dataclasses import dataclass, field, asdict
 
+from ticker_extraction import NON_TICKER_TOKENS, RETIRED_SYMBOLS
+
 
 # ----------------------------------------------------------------------------
 # Ticker extraction
@@ -50,6 +52,12 @@ NON_INVESTABLE = frozenset({
     "US", "EU", "UK", "EM", "DM", "ASEAN", "OPEC", "NATO",
     # Asset-class buckets (not direct tickers in narratives)
     "IPOS", "SPACS", "IPO", "SPAC",
+    # False positives found when the P&L loop was closed (paper v3, Oct 2026):
+    # macro acronyms, foreign-bond and commodity shorthands, delisted names,
+    # and English words that happen to be listed symbols.
+    "CDS", "DOD", "DXY", "EV", "ILS", "JGB", "JJU", "MAU", "NG", "NICK", "OAT",
+    "PCE", "RTN", "TELL", "TIPS", "TO", "TTF", "XAU", "XUT", "ZPR", "BTC", "ETH",
+    "NGL", "LNGS", "QT", "QE", "YCC", "EPS", "AUM", "NAV", "CAPEX", "ROE", "ROIC",
 })
 
 # Words near a ticker that mean the position is options / futures, not shares.
@@ -82,6 +90,17 @@ KNOWN_EQUITIES = frozenset({
     "AAPL","AMZN","TSLA","MU","INTC","AVGO","BABA","DIS","BAC",
     "JPM","WMT","XOM","CVX","COIN","HOOD",
 })
+
+# Index / benchmark symbols the star schema keeps (ticker_extraction
+# force-keeps VIX and DXY as dimensions) but that cannot be bought as shares.
+INDEX_SYMBOLS = frozenset({
+    "SPX", "NDX", "RUT", "VIX", "DXY", "SOX", "HSI", "KOSPI", "XAU", "XAG", "TTF",
+})
+
+# Non-symbol tokens (surveys, sovereign bonds, hardware acronyms, agencies)
+# and retired symbols are shared with ticker_extraction, so the star schema
+# and this ledger agree on what is not a tradeable name.
+NON_INVESTABLE = NON_INVESTABLE | NON_TICKER_TOKENS | RETIRED_SYMBOLS | INDEX_SYMBOLS
 
 
 @dataclass

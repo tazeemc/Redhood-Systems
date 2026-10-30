@@ -17,6 +17,14 @@ Star-schema additions (driven by the 2026-05-06 model audit):
     earnings          - fact: per-ticker earnings prints
     date_dim          - calendar dimension for joining run_date / created_date / report_date
 
+History additions (paper v3, October 2026 — closing the loop):
+    regime_history    - fact: one row per run with the thermodynamic regime state
+                        (temperature, occupation entropy, KL departure, heat, label)
+    narrative_returns - fact: realised forward returns of each long-side
+                        (narrative, ticker) pair vs SPY (5 / 20 / 60 days, to date)
+    narratives.prior_mentions / continuation_of - how often the narrative's theme
+                        had already appeared, and which earlier narrative it continues
+
 Power BI compatibility views (consumed directly by the .pbix):
     dim_runs, fact_narratives, fact_narratives_ticker,
     dim_ticker, dim_date, fact_prices, fact_earnings
@@ -252,6 +260,60 @@ CREATE TABLE IF NOT EXISTS watchlist (
     first_added_at TEXT,                 -- ISO-8601 UTC, first sync that saw it
     last_synced_at TEXT                  -- ISO-8601 UTC, most recent sync that saw it
 );
+
+-- -----------------------------------------------------------------------
+-- regime_history  (fact)
+--   One row per aggregator run (and optionally per ad-hoc computation) with
+--   the thermodynamic regime state produced by redhood_regime_detector v2.
+--   This is the "crisis status and history" the report and the timeline
+--   refer back to. label is TRENDING | CHOPPY | CRISIS | TRANSITION.
+-- -----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS regime_history (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id            INTEGER REFERENCES runs(id) ON DELETE SET NULL,
+    computed_at       TEXT    NOT NULL,          -- ISO-8601 UTC
+    symbol            TEXT    NOT NULL DEFAULT 'SPY',
+    as_of_date        TEXT,                      -- last price date used
+    label             TEXT    NOT NULL,
+    temperature       REAL    NOT NULL,          -- annualised, decimal
+    entropy           REAL,                      -- occupation entropy S (nats)
+    eta               REAL,                      -- S / ln k
+    entropy_eq        REAL,                      -- equilibrium S at current T
+    eta_eq            REAL,
+    entropy_hi        REAL,                      -- calibrated S threshold
+    kl_divergence     REAL,                      -- D: KL(observed || Boltzmann at T)
+    kl_threshold      REAL,                      -- calibrated D threshold
+    heat              REAL,                      -- portfolio heat (fraction of equity at risk)
+    heat_budget       REAL,                      -- 1 - heat / heat_max
+    signal_multiplier REAL,
+    warning           INTEGER NOT NULL DEFAULT 0, -- 1 when D > kl_threshold (drift)
+    detector_version  TEXT    NOT NULL DEFAULT 'v2'
+);
+
+-- -----------------------------------------------------------------------
+-- narrative_returns  (fact)
+--   Realised forward returns of each grader-vetted long-side (narrative,
+--   ticker) pair, entered at the first close on/after the run date, against
+--   SPY over identical windows. Written by redhood_pnl.compute_forward_returns.
+--   This closes the P&L loop: the timeline and the extraction prompt read it.
+-- -----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS narrative_returns (
+    narrative_id    TEXT    NOT NULL REFERENCES narratives(id) ON DELETE CASCADE,
+    ticker          TEXT    NOT NULL,
+    entry_date      TEXT,
+    entry_close     REAL,
+    h5              REAL,                        -- simple return over 5 trading days
+    h20             REAL,
+    h60             REAL,
+    todate          REAL,                        -- to the last cached close
+    spy_h5          REAL,
+    spy_h20         REAL,
+    spy_h60         REAL,
+    spy_todate      REAL,
+    last_date       TEXT,
+    computed_at     TEXT    NOT NULL,
+    PRIMARY KEY (narrative_id, ticker)
+);
 """
 
 
@@ -271,6 +333,9 @@ CREATE INDEX IF NOT EXISTS idx_narrative_tickers_side   ON narrative_tickers(sid
 CREATE INDEX IF NOT EXISTS idx_narrative_grades_letter  ON narrative_grades(letter_grade);
 CREATE INDEX IF NOT EXISTS idx_prices_date              ON prices(price_date);
 CREATE INDEX IF NOT EXISTS idx_earnings_report_date     ON earnings(report_date);
+CREATE INDEX IF NOT EXISTS idx_regime_history_run       ON regime_history(run_id);
+CREATE INDEX IF NOT EXISTS idx_regime_history_time      ON regime_history(computed_at);
+CREATE INDEX IF NOT EXISTS idx_narrative_returns_ticker ON narrative_returns(ticker);
 """
 
 
@@ -406,6 +471,51 @@ SELECT
     surprise_pct, time_of_day
 FROM earnings;
 
+DROP VIEW IF EXISTS fact_regime_history;
+CREATE VIEW fact_regime_history AS
+SELECT
+    h.id              AS regime_row_id,
+    h.run_id,
+    h.computed_at,
+    DATE(h.computed_at) AS computed_date,
+    h.symbol,
+    h.as_of_date,
+    h.label,
+    h.temperature,
+    h.entropy,
+    h.eta,
+    h.entropy_eq,
+    h.kl_divergence,
+    h.kl_threshold,
+    h.heat,
+    h.heat_budget,
+    h.signal_multiplier,
+    h.warning,
+    h.detector_version
+FROM regime_history h;
+
+DROP VIEW IF EXISTS fact_narrative_returns;
+CREATE VIEW fact_narrative_returns AS
+SELECT
+    r.narrative_id,
+    r.ticker,
+    r.entry_date,
+    r.entry_close,
+    r.h5, r.h20, r.h60, r.todate,
+    r.spy_h5, r.spy_h20, r.spy_h60, r.spy_todate,
+    r.h5  - r.spy_h5      AS excess_h5,
+    r.h20 - r.spy_h20     AS excess_h20,
+    r.h60 - r.spy_h60     AS excess_h60,
+    r.todate - r.spy_todate AS excess_todate,
+    r.last_date,
+    n.run_id,
+    DATE(n.created_at)    AS created_date,
+    n.entropy_band,
+    n.conviction_size,
+    n.prior_mentions
+FROM narrative_returns r
+JOIN narratives n ON n.id = r.narrative_id;
+
 DROP VIEW IF EXISTS dim_watchlist;
 CREATE VIEW dim_watchlist AS
 SELECT
@@ -432,6 +542,8 @@ NARRATIVES_MIGRATIONS = [
     ('catalyst_count',        "INTEGER NOT NULL DEFAULT 0"),
     ('conviction_size',       "REAL"),
     ('entropy_band',          "TEXT"),
+    ('prior_mentions',        "INTEGER NOT NULL DEFAULT 0"),  # redhood_timeline: theme seen N times before
+    ('continuation_of',       "TEXT"),                        # redhood_timeline: id of the narrative it continues
 ]
 
 # Bring older databases up to the reconciled superset schema. CREATE TABLE

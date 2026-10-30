@@ -6,6 +6,11 @@
 #   .\run.ps1 -Symbols "NU","AAPL"     # override: analyze these symbols only (skips watchlist)
 #   .\run.ps1 -SkipTrading             # skip trading analysis, run RedHood only
 #   .\run.ps1 -SkipRedHood             # skip RedHood, run trading analysis only
+#   .\run.ps1 -Timeline                # after the run, print page 1 of the historical timeline
+#
+# After each aggregation the Python side closes the loop automatically:
+# grades + long-ticker extraction, yfinance top-up (if installed), realised
+# forward returns (narrative_returns), regime_history row, docs/timeline.html.
 #
 # Symbols: when -Symbols is not passed, the list is pulled from your merged
 # TradingView + Yahoo Finance watchlist (watchlist.py, backed by redhood.db).
@@ -16,18 +21,27 @@
 param(
     [double]$Hours          = 0.75,             # default: 45 minutes  |  common: 5 (5h), 24 (full day)
     [string[]]$Symbols      = @(),               # empty => resolve from the watchlist (see below)
-    [double]$BaseTemp       = 25.0,
+    [double]$BaseTemp       = 0.15,             # annualised vol as a DECIMAL (0.15 = 15%). The old default of
+                                                 # 25.0 was a percentage against a decimal T, which pinned every
+                                                 # position at the 2% cap (paper v3, lesson L1).
     [double]$MaxHeat        = 80.0,
     [double]$InitialEquity  = 100000.0,
     [switch]$SkipTrading,
-    [switch]$SkipRedHood
+    [switch]$SkipRedHood,
+    [switch]$Timeline
 )
+
+# Guard against the percentage/decimal confusion that silently saturated the sizer.
+if ($BaseTemp -gt 1.5) {
+    Write-Warning "BaseTemp=$BaseTemp looks like a percentage; using $($BaseTemp / 100)"
+    $BaseTemp = $BaseTemp / 100
+}
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 # --- Resolve trading symbols from the watchlist ----------------------------
 # Historical default, used only if the watchlist can't be resolved.
-$FallbackSymbols = @("NU", "BTC-USD", "BLSH", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT")
+$FallbackSymbols = @("NU", "BTC-USD", "BLSH", "NVDA", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT")
 
 if ($Symbols.Count -eq 0 -and -not $SkipTrading) {
     $watchlistScript = Join-Path $ScriptDir "watchlist.py"
@@ -360,5 +374,10 @@ if (-not $SkipRedHood) {
         python "$ScriptDir\redhood_aggregator.py" --hours $Hours --trading-json $latestTradingJson
     } else {
         python "$ScriptDir\redhood_aggregator.py" --hours $Hours
+    }
+
+    if ($Timeline) {
+        Write-Host "`n=== Historical Timeline (page 1) ===" -ForegroundColor Green
+        python "$ScriptDir\redhood_timeline.py" --page 1 --size 5
     }
 }

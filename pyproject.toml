@@ -8,7 +8,7 @@ addopts = "-ra"
 [tool.ruff]
 target-version = "py310"
 line-length = 120
-extend-exclude = ["docs", "powerbi/*.m", "powerbi/*.dax"]
+extend-exclude = ["docs", "powerbi/*.m", "powerbi/*.dax", "paper"]   # paper/analysis are research scripts, not product code
 
 [tool.ruff.lint]
 # Default rule set (pycodestyle errors + pyflakes) plus import hygiene
