@@ -37,7 +37,6 @@ from dotenv import load_dotenv
 import card_history
 from accounts_db import get_active_handles, init_db
 from models import DB_PATH, init_schema
-import card_history
 
 from ticker_extraction import (
     extract_tickers,
