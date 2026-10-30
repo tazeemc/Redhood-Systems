@@ -9,8 +9,11 @@
   @marketfeed. It is a macro / geopolitics / rates-FX headline wire that also posts a daily KEY DATA
   calendar; it is scraped through the same `t.me/s/` preview with `?before=` paging, so every run from
   here on feeds it into narrative extraction, the feed anchors and the report.
-- Known: at `TELEGRAM_MAX_PAGES = 5` the high-volume @marketfeed covers only the newest ~5 h of a long
-  window (100 posts), while @tradehaven (~20 posts/day) spans a full 48 h window.
+- **Telegram: paging now reaches the requested window.** `TelegramScraper.fetch` pages back until the
+  window's cutoff, pausing 0.3 s between page requests; `TELEGRAM_MAX_PAGES` goes from 5 to 60 and is
+  only a safety ceiling. Previously the 5-page cap left the high-volume @marketfeed covering ~5 h of a
+  48 h window (100 posts). The run log now prints each channel's coverage (posts, pages, oldest post)
+  and warns when a channel stops short of the window.
 - **$NVDA** added to the watchlist exports (`watchlists/`, synced into `redhood.db`), the ticker tape and
   the `run.ps1` fallback symbols, so it appears in the Quantitative Signal Analysis cards and the trading scan.
 - Ticker tape change is now measured against the prior daily close (it was a permanent +0.00%).

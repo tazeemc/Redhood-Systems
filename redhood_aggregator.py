@@ -112,9 +112,11 @@ class Config:
         'marketfeed',     # high-volume macro/markets headline wire
         'tradehaven',     # macro / geopolitics / rates-FX wire with a daily KEY DATA calendar
     ]
-    # Each t.me/s/ page holds ~20 posts; page back (via ?before=<id>) up to this
-    # many pages per channel so high-volume channels cover more of the window.
-    TELEGRAM_MAX_PAGES = 5
+    # Each t.me/s/ page holds ~20 posts. Paging back (via ?before=<id>) stops
+    # once a channel reaches the window's cutoff; this ceiling is only a safety
+    # net against runaway paging (60 pages ≈ 1,200 posts ≈ 25 posts/h over a
+    # 48 h window). The scraper warns when a channel hits it before the cutoff.
+    TELEGRAM_MAX_PAGES = 60
 
     # AI Configuration
     CLAUDE_MODEL = 'claude-opus-4-8'
@@ -388,6 +390,8 @@ class TelegramScraper:
     """
 
     _PREVIEW_URL = 'https://t.me/s/{channel}'
+    # Politeness pause between successive ?before= page requests (seconds).
+    PAGE_DELAY = 0.3
 
     # Each rendered message lives in its own ``tgme_widget_message_wrap`` block.
     _TEXT_RE = re.compile(
@@ -410,37 +414,71 @@ class TelegramScraper:
         """Fetch recent posts from public Telegram channels via the web preview.
 
         With ``max_pages > 1``, pages back through older posts (``?before=<id>``)
-        until the cutoff is reached, the channel runs out, or the page limit hits.
+        until the window's cutoff is reached, pausing ``PAGE_DELAY`` seconds
+        between page requests. ``max_pages`` is only a safety ceiling (the
+        pipeline passes ``Config.TELEGRAM_MAX_PAGES``). Whenever paging stops
+        short of the cutoff -- ceiling hit, a page failed to download, or the
+        channel ran out of posts -- a warning names the channel, the pages
+        fetched and the oldest post reached, so the run log shows that the
+        channel covers less than the requested window.
         """
         items = []
         cutoff_time = datetime.now() - timedelta(hours=hours_back)
+        page_cap = max(1, max_pages)
 
         for channel in channels:
             handle = channel.lstrip('@')
             url = self._PREVIEW_URL.format(channel=handle)
             found = 0
+            pages = 0
+            oldest_ts = None
+            stopped_short = None    # why paging stopped before the cutoff
             seen_urls = set()
             before = None   # oldest post id seen so far; None = newest page
-            for _ in range(max(1, max_pages)):
+            while True:
+                if pages:
+                    time.sleep(self.PAGE_DELAY)
                 page_url = url if before is None else f"{url}?before={before}"
                 page = self._get(page_url, handle)
                 if page is None:
+                    stopped_short = 'page download failed'
                     break
+                pages += 1
                 page_items, oldest_id, reached_cutoff = self._parse_page(
                     page, handle, url, cutoff_time)
                 page_items = [i for i in page_items if i.url not in seen_urls]
                 seen_urls.update(i.url for i in page_items)
                 items.extend(page_items)
                 found += len(page_items)
-                # Stop when we've passed the cutoff, the page had no posts, or
-                # paging made no progress (Telegram returned the same page).
-                if (reached_cutoff or oldest_id is None
-                        or (before is not None and oldest_id >= before)):
+                for item in page_items:
+                    if oldest_ts is None or item.timestamp < oldest_ts:
+                        oldest_ts = item.timestamp
+                if reached_cutoff:
+                    break
+                # Stop short when the page had no posts, paging made no progress
+                # (Telegram returned the same page), or the safety ceiling hit.
+                if oldest_id is None:
+                    stopped_short = 'channel has no older posts'
+                    break
+                if before is not None and oldest_id >= before:
+                    stopped_short = 'paging made no progress'
+                    break
+                if pages >= page_cap:
+                    stopped_short = f'page cap of {page_cap} hit'
                     break
                 before = oldest_id
 
             if found == 0:
                 print(f"   ⚠️  No recent messages parsed for Telegram @{handle}")
+                continue
+            span = (f"{found} posts across {pages} page(s), "
+                    f"oldest {oldest_ts:%Y-%m-%d %H:%M}")
+            if stopped_short:
+                print(f"   ⚠️  Telegram @{handle}: stopped before the {hours_back:g}h "
+                      f"cutoff ({stopped_short}): {span}. Coverage is shorter "
+                      f"than the window.")
+            else:
+                print(f"   📄 Telegram @{handle}: {span}")
 
         return items
 
