@@ -962,7 +962,7 @@ class RedHoodAggregator:
         self._persist_to_db(hours_back, all_feeds, narratives, json_path, html_path)
 
         github_token = os.getenv("GITHUB_TOKEN")
-        if github_token:
+        if github_token and not os.getenv("REDHOOD_NO_PUBLISH"):
             try:
                 pub_url = GitHubPagesPublisher(github_token).publish(html_path)
                 print(f"\n🌐 [GitHub Pages] Published:  {pub_url}")
@@ -1019,6 +1019,7 @@ class RedHoodAggregator:
         TICKERS = [
             ('BTC/USD',  'BTC-USD',   '{:,.0f}',  '$'),
             ('$BLSH',    'BLSH',      '{:.2f}',   '$'),
+            ('$NVDA',    'NVDA',      '{:.2f}',   '$'),
             ('S&P 500',  '^GSPC',     '{:,.0f}',  ''),
             ('WTI',      'CL=F',      '{:.2f}',   '$'),
             ('GOLD',     'GC=F',      '{:,.0f}',  '$'),
@@ -1030,13 +1031,25 @@ class RedHoodAggregator:
         for label, symbol, fmt, prefix in TICKERS:
             try:
                 url = (f'https://query1.finance.yahoo.com/v8/finance/chart/'
-                       f'{urllib.request.quote(symbol)}?interval=1d&range=2d')
+                       f'{urllib.request.quote(symbol)}?interval=1d&range=5d')
                 req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=5) as resp:
                     data = json.loads(resp.read())
-                meta = data['chart']['result'][0]['meta']
-                price = meta.get('regularMarketPrice') or meta.get('previousClose', 0)
-                prev  = meta.get('previousClose') or price
+                result = data['chart']['result'][0]
+                meta = result['meta']
+                quote = (result.get('indicators') or {}).get('quote') or [{}]
+                closes = [c for c in (quote[0].get('close') or []) if c is not None]
+                price = meta.get('regularMarketPrice') or (closes[-1] if closes else 0)
+                # 'previousClose' only exists on intraday ranges; take the prior daily
+                # bar instead so the change is not a permanent +0.00%.
+                stamps = result.get('timestamp') or []
+                rmt = meta.get('regularMarketTime') or (stamps[-1] if stamps else 0)
+                same_session = bool(stamps) and abs(rmt - stamps[-1]) < 24 * 3600
+                prev = meta.get('previousClose')
+                if not prev and len(closes) >= 2:
+                    prev = closes[-2] if same_session else closes[-1]
+                if not prev:
+                    prev = meta.get('chartPreviousClose') or price
                 chg   = ((price - prev) / prev * 100) if prev else 0
                 val_str = prefix + fmt.format(price)
                 chg_str = f'{chg:+.2f}%'
@@ -1117,9 +1130,13 @@ class RedHoodAggregator:
                 f'<div class="bear-body">{bear}</div>'
                 f'<div class="conviction-tag">{conviction}</div>'
             ) if bear else ''
+            seen_n = int(getattr(narr, 'prior_mentions', 0) or 0)
+            seen_html = (f'<div class="seen-tag">&#8635; seen {seen_n}&times; in the last 30 days</div>'
+                         if seen_n else '')
             return (f'<div class="grid-col">'
                     f'<div class="col-tag">{tag}</div>'
                     f'<div class="col-title">{title}</div>'
+                    f'{seen_html}'
                     f'<div class="col-body">{body}</div>'
                     f'{sparkline(narr.entropy_risk)}'
                     f'{bear_html}</div>')
@@ -1369,6 +1386,7 @@ class RedHoodAggregator:
         # Regime panel
         regime_panel_html = ''
         if regime_state:
+            v2 = getattr(regime_state, 'detector_version', 'v1') == 'v2'
             _REGIME_COLORS = {
                 'TRENDING':   ('#00e5a0', 'Low T &middot; Low S &mdash; amplify signals'),
                 'CHOPPY':     ('#f5a623', 'High T &middot; Low S &mdash; reduce size'),
@@ -1381,7 +1399,8 @@ class RedHoodAggregator:
                      if regime_state.warning else '')
             regime_panel_html = (
                 f'<div class="regime-panel">'
-                f'<div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (20-bar)</div>'
+                f'<div class="regime-panel-label">Thermodynamic Regime &mdash; SPY '
+                f'({"T 20-bar &middot; shape 60-bar &middot; detector v2" if v2 else "20-bar"})</div>'
                 f'<div class="regime-badge-row">'
                 f'<span class="regime-badge" style="color:{rcolor};border-color:{rcolor}40;background:{rcolor}12">{rlabel}</span>'
                 f'<span class="regime-desc">{rdesc}</span>'
@@ -1729,6 +1748,8 @@ class RedHoodAggregator:
   .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
   .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
   .cmd-link { text-decoration: none; }
+  .seen-tag { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #a78bfa; margin: 2px 0 6px; }
 </style>
 </head>
 <body>

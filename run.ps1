@@ -27,7 +27,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 # --- Resolve trading symbols from the watchlist ----------------------------
 # Historical default, used only if the watchlist can't be resolved.
-$FallbackSymbols = @("NU", "BTC-USD", "BLSH", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT")
+$FallbackSymbols = @("NU", "BTC-USD", "BLSH", "NVDA", "META", "AAPL", "AMZN", "NFLX", "GOOGL", "WMT")
 
 if ($Symbols.Count -eq 0 -and -not $SkipTrading) {
     $watchlistScript = Join-Path $ScriptDir "watchlist.py"

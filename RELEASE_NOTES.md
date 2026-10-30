@@ -11,6 +11,17 @@
   here on feeds it into narrative extraction, the feed anchors and the report.
 - Known: at `TELEGRAM_MAX_PAGES = 5` the high-volume @marketfeed covers only the newest ~5 h of a long
   window (100 posts), while @tradehaven (~20 posts/day) spans a full 48 h window.
+- **$NVDA** added to the watchlist exports (`watchlists/`, synced into `redhood.db` by `watchlist.py --sync`),
+  the report ticker tape and the `run.ps1` fallback symbols, so it appears in the Quantitative Signal
+  Analysis cards and the trading scan.
+- Ticker tape change is now measured against the prior daily close; it had been a permanent +0.00%
+  because daily chart responses carry no `previousClose`.
+- **Tests can no longer publish.** `tests/conftest.py` blanks `GITHUB_TOKEN` and sets `REDHOOD_NO_PUBLISH`,
+  which the aggregator honours; any test driving the full pipeline had been pushing fixture reports to
+  GitHub Pages whenever `.env` carried a token.
+- Report template: narrative cards show a continuation tag when a narrative carries `prior_mentions`, and
+  the regime panel names the detector when the state reports `detector_version` v2 (no-ops until the
+  v1.4 history layer lands).
 
 ---
 
