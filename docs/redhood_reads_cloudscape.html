@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHood Reads — 2026-10-23 12:58</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f2f3f3; --surface: #ffffff; --surface-alt: #fbfbfb; --sunken: #f2f3f3;
+    --border: #c6c6cd; --border-sub: #e9ebed;
+    --text: #0f141a; --text-sec: #5f6b7a; --text-mut: #8c8c94;
+    --link: #006ce0; --primary: #006ce0;
+    --success: #00802f; --success-bg: #effff1; --success-bd: #b7eac3;
+    --error: #d91515; --error-bg: #fff5f5; --error-bd: #ffcfcf;
+    --warning: #8d6605; --warning-bg: #fffaf0; --warning-bd: #ffe3a0;
+    --info: #006ce0; --info-bg: #f0fbff; --info-bd: #b8e7ff;
+    --nav-bg: #0f141a; --nav-text: #ffffff; --nav-sec: #a4b0bd; --nav-accent: #ff9900;
+    --chart1: #688ae8; --chart2: #8456ce; --chart3: #2ea597;
+    --radius: 16px; --radius-sm: 8px; --radius-xs: 4px;
+    --shadow: 0 1px 1px 0 rgba(0,7,22,.12), 0 1px 8px -2px rgba(0,7,22,.12);
+    --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  html[data-theme="dark"] {
+    --bg: #0f141a; --surface: #161d26; --surface-alt: #1b232d; --sunken: #0f141a;
+    --border: #414750; --border-sub: #273039;
+    --text: #d1d5db; --text-sec: #a4b0bd; --text-mut: #8c99a8;
+    --link: #42b4ff; --primary: #42b4ff;
+    --success: #5dc689; --success-bg: #11291b; --success-bd: #1f5134;
+    --error: #eb6f6f; --error-bg: #2b1414; --error-bd: #5f2626;
+    --warning: #e0ca57; --warning-bg: #2b2411; --warning-bd: #5c4c16;
+    --info: #42b4ff; --info-bg: #11212e; --info-bd: #1f4a66;
+    --nav-bg: #000716; --nav-text: #e9ebed;
+    --shadow: 0 1px 1px 0 rgba(0,0,0,.4), 0 1px 8px -2px rgba(0,0,0,.5);
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font);
+    font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: var(--link); }
+  h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
+
+  /* ---- status / severity tokens (theme-aware, replaces inline hex) ---- */
+  .sev-low, .rg-trending-fg { color: var(--success); }
+  .sev-med, .rg-choppy-fg, .sev-warn { color: var(--warning); }
+  .sev-high, .rg-crisis-fg { color: var(--error); }
+  .rg-transition-fg, .rg-neutral-fg { color: var(--info); }
+  .rg-trending { color: var(--success); background: var(--success-bg); border-color: var(--success-bd); }
+  .rg-choppy { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-bd); }
+  .rg-crisis { color: var(--error); background: var(--error-bg); border-color: var(--error-bd); }
+  .rg-transition, .rg-neutral { color: var(--info); background: var(--info-bg); border-color: var(--info-bd); }
+  .po-ok { color: var(--success); background: var(--success-bg); border-color: var(--success-bd); }
+  .po-warn { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-bd); }
+  .po-crit { color: var(--error); background: var(--error-bg); border-color: var(--error-bd); }
+  .po-info { color: var(--info); background: var(--info-bg); border-color: var(--info-bd); }
+
+  /* ---- TopNavigation ---- */
+  .top-nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
+    justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    background: var(--nav-bg); padding: 0 20px; min-height: 56px; }
+  .tn-left { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  .tn-logo { font-size: 16px; font-weight: 700; color: #fff; }
+  .tn-logo .accent { color: var(--nav-accent); }
+  .tn-title { color: var(--nav-sec); font-size: 13px; white-space: nowrap; }
+  .tn-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; }
+  .tn-meta { color: var(--nav-sec); font-size: 12px; }
+  #dataAge { color: var(--nav-accent); font-variant-numeric: tabular-nums; }
+  .tn-btn { background: transparent; color: var(--nav-text); border: 1px solid #414750;
+    border-radius: 20px; padding: 5px 14px; font-family: var(--font); font-size: 12px;
+    font-weight: 600; cursor: pointer; }
+  .tn-btn:hover { background: rgba(255,255,255,0.08); }
+  .posture-pill { font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border: 1px solid; border-radius: var(--radius-xs); white-space: nowrap; }
+
+  /* ---- ticker ---- */
+  .ticker-wrap { overflow: hidden; background: var(--surface);
+    border-bottom: 1px solid var(--border-sub); padding: 8px 0; }
+  .ticker-inner { display: flex; animation: ticker 44s linear infinite; white-space: nowrap; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .tick-item { display: inline-flex; align-items: baseline; gap: 6px; padding: 0 20px;
+    font-size: 12px; border-right: 1px solid var(--border-sub); }
+  .tick-sym { color: var(--text-sec); font-weight: 700; }
+  .tick-val { color: var(--text); font-variant-numeric: tabular-nums; }
+  .tick-chg { font-size: 11px; font-variant-numeric: tabular-nums; }
+  .up { color: var(--success); } .down { color: var(--error); }
+
+  /* ---- layout + page header ---- */
+  .content { max-width: 1200px; margin: 0 auto; padding: 24px 20px 40px;
+    display: flex; flex-direction: column; gap: 20px; }
+  .ph-crumb { color: var(--text-sec); font-size: 12px; margin-bottom: 6px; }
+  .ph-title { font-size: 24px; line-height: 1.25; }
+  .ph-desc { color: var(--text-sec); font-size: 14px; margin-top: 6px; max-width: 860px; }
+
+  /* ---- Cloudscape container ---- */
+  .container, .synopsis-section, .trading-section, .regime-panel,
+  .links-section, .embeds-section {
+    background: var(--surface); border: 1px solid var(--border-sub);
+    border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .container-header { padding: 16px 20px; border-bottom: 1px solid var(--border-sub); }
+  .container-header h2 { font-size: 18px; }
+  .ch-desc { display: block; color: var(--text-sec); font-size: 13px; margin-top: 2px; }
+  .container-body { padding: 20px; }
+
+  /* ---- metrics (key-value pairs) ---- */
+  .metrics-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
+  .metric { min-width: 0; }
+  .metric-label { color: var(--text-sec); font-size: 12px; font-weight: 700; margin-bottom: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .metric-val { font-size: 22px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .metric-delta { font-size: 12px; margin-top: 2px; color: var(--text-sec); }
+  .metric-delta.up { color: var(--success); }
+  .metric-delta.dn { color: var(--error); }
+  .metric-delta.neutral { color: var(--text-sec); }
+
+  /* ---- narrative cards ---- */
+  .grid-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 16px; }
+  .grid-col { background: var(--surface-alt); border: 1px solid var(--border-sub);
+    border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; }
+  .col-tag { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--info);
+    background: var(--info-bg); border: 1px solid var(--info-bd);
+    border-radius: var(--radius-xs); padding: 2px 8px; margin-bottom: 10px; }
+  .col-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+  .col-body { font-size: 13px; color: var(--text-sec); }
+  .sparkline { margin-top: 12px; height: 28px; display: flex; align-items: flex-end; gap: 3px; }
+  .bar { flex: 1; border-radius: 2px 2px 0 0; background: var(--border-sub); }
+  .bar.hi { background: var(--chart1); }
+  .bar.mid-hi { background: var(--chart2); }
+  .bar.lo { background: var(--chart3); }
+  .bear-label, .thought-bear-label { font-size: 11px; font-weight: 700; color: var(--error);
+    margin-top: 12px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .bear-body, .thought-bear { font-size: 13px; color: var(--text-sec); }
+  .conviction-tag, .thought-conviction { margin-top: 8px; font-size: 12px; font-weight: 700;
+    color: var(--warning); }
+
+  /* ---- synopsis ---- */
+  .synopsis-label { padding: 16px 20px 0; font-size: 18px; font-weight: 700; }
+  .synopsis-byline { padding: 2px 20px 12px; color: var(--text-sec); font-size: 13px;
+    border-bottom: 1px solid var(--border-sub); }
+  .synopsis-body { padding: 20px; column-count: 2; column-gap: 32px; }
+  .synopsis-para { font-size: 14px; line-height: 1.65; margin-bottom: 12px; }
+  @media (max-width: 760px) { .synopsis-body { column-count: 1; } }
+  .feed-link { color: var(--link); text-decoration: none; font-weight: 700; }
+  .feed-link:hover { text-decoration: underline; }
+
+  /* ---- top hypothesis ---- */
+  .thought-q { font-size: 16px; font-weight: 700; line-height: 1.45; margin-bottom: 8px; }
+  .thought-body { font-size: 13px; color: var(--text-sec); }
+
+  /* ---- trading signals ---- */
+  .trading-label { padding: 16px 20px; font-size: 18px; font-weight: 700;
+    border-bottom: 1px solid var(--border-sub); }
+  .trading-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+    gap: 16px; padding: 20px; }
+  .tc-card { background: var(--surface-alt); border: 1px solid var(--border-sub);
+    border-radius: var(--radius-sm); padding: 16px; }
+  .tc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .tc-sym { font-size: 16px; font-weight: 700; }
+  .tc-rec { font-size: 11px; font-weight: 700; padding: 2px 8px; border: 1px solid;
+    border-radius: var(--radius-xs); }
+  .rec-in { color: var(--success); background: var(--success-bg); border-color: var(--success-bd); }
+  .rec-out { color: var(--error); background: var(--error-bg); border-color: var(--error-bd); }
+  .rec-neutral { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-bd); }
+  .tc-price { font-size: 20px; font-weight: 700; margin-bottom: 12px; display: flex;
+    align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+  .tc-trend { font-size: 12px; font-weight: 600; }
+  .tc-row { display: flex; justify-content: space-between; align-items: baseline;
+    padding: 5px 0; border-bottom: 1px solid var(--border-sub); }
+  .tc-lbl { font-size: 12px; color: var(--text-sec); }
+  .tc-val { font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .tc-badge { font-size: 10px; font-weight: 700; color: var(--text-sec); background: var(--sunken);
+    border: 1px solid var(--border-sub); border-radius: var(--radius-xs); padding: 1px 5px; margin-left: 4px; }
+  .tc-ts { font-size: 11px; color: var(--text-mut); margin-top: 8px; text-align: right; }
+
+  /* ---- regime ---- */
+  .regime-panel-label { padding: 16px 20px; font-size: 18px; font-weight: 700;
+    border-bottom: 1px solid var(--border-sub); }
+  .regime-badge-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 20px 0; }
+  .regime-badge { font-size: 13px; font-weight: 700; padding: 4px 12px; border: 1px solid;
+    border-radius: var(--radius-xs); }
+  .regime-desc { font-size: 13px; color: var(--text-sec); }
+  .regime-warn { font-size: 11px; font-weight: 700; color: var(--warning); background: var(--warning-bg);
+    border: 1px solid var(--warning-bd); border-radius: var(--radius-xs); padding: 3px 8px; }
+  .regime-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px; padding: 20px; }
+  .rm { min-width: 0; }
+  .rm-lbl { font-size: 12px; font-weight: 700; color: var(--text-sec); margin-bottom: 4px; }
+  .rm-val { font-size: 20px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .rm-sub { font-size: 11px; color: var(--text-mut); margin-top: 2px; }
+  .regime-strip, .regime-foot { padding: 0 20px 16px; font-size: 12px; color: var(--text-sec); }
+
+  /* ---- collapsible ---- */
+  details.sec > summary { list-style: none; cursor: pointer; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; padding: 16px 20px; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  details.sec[open] > summary { border-bottom: 1px solid var(--border-sub); }
+  details.sec > summary:hover { background: var(--sunken); }
+  .links-header { font-size: 15px; font-weight: 700; color: var(--text); }
+  .sec-chevron { color: var(--text-sec); font-size: 12px; transition: transform .2s; }
+  details.sec[open] > summary .sec-chevron { transform: rotate(180deg); }
+
+  /* ---- command bar ---- */
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 16px 20px;
+    background: var(--sunken); border-bottom: 1px solid var(--border-sub); }
+  .cmd-input { flex: 1; min-width: 180px; background: var(--surface); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--font); font-size: 14px; padding: 7px 11px; }
+  .cmd-input::placeholder { color: var(--text-mut); }
+  .cmd-input:focus { outline: 2px solid var(--primary); outline-offset: -1px; border-color: var(--primary); }
+  .cmd-btn, .cmd-select { background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-family: var(--font); font-size: 13px; padding: 7px 14px; cursor: pointer; }
+  .cmd-btn { border-radius: 20px; font-weight: 700; }
+  .cmd-select { border-radius: var(--radius-sm); }
+  .cmd-btn:hover, .cmd-select:hover { background: var(--sunken); }
+  .cmd-btn.on { color: #fff; background: var(--primary); border-color: var(--primary); }
+  html[data-theme="dark"] .cmd-btn.on { color: #000716; }
+  .cmd-count { font-size: 13px; color: var(--text-sec); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ---- signal cards ---- */
+  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(278px, 1fr));
+    gap: 16px; padding: 20px; align-items: stretch; }
+  .tweet-embed { min-width: 0; display: flex; }
+  .tw-card { display: flex; flex-direction: column; width: 100%; background: var(--surface);
+    border: 1px solid var(--border-sub); border-left: 3px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    transition: box-shadow .15s, border-left-color .15s; }
+  .tw-card:hover { box-shadow: var(--shadow); border-left-color: var(--primary); }
+  .tw-card-cited { border-left-color: var(--warning); background: var(--warning-bg); }
+  .tweet-embed:target .tw-card { outline: 2px solid var(--primary); outline-offset: 1px; }
+  .tw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .tw-handle { font-size: 13px; font-weight: 700; color: var(--link); }
+  .tw-meta { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .tw-cited { font-size: 10px; font-weight: 700; color: var(--warning); background: var(--surface);
+    border: 1px solid var(--warning-bd); border-radius: var(--radius-xs); padding: 1px 6px; }
+  .tw-ts { font-size: 11px; color: var(--text-mut); font-variant-numeric: tabular-nums; }
+  .tw-body { font-size: 13px; line-height: 1.55; flex: 1; }
+  .tw-link { display: inline-block; margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--border-sub); font-size: 12px; font-weight: 700;
+    color: var(--link); text-decoration: none; }
+  .tw-link:hover { text-decoration: underline; }
+
+  /* ---- links table ---- */
+  .links-table { border-collapse: collapse; width: calc(100% - 40px); margin: 0 20px 20px; font-size: 13px; }
+  .links-table th { text-align: left; padding: 8px 12px; color: var(--text-sec); font-size: 12px;
+    font-weight: 700; border-bottom: 1px solid var(--border); }
+  .links-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-sub); vertical-align: top; }
+  .links-table tr:hover td { background: var(--sunken); }
+  .links-table a { color: var(--link); text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; }
+  .ts { color: var(--text-sec); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .author { font-weight: 600; white-space: nowrap; }
+  .feed-num { color: var(--text-mut); width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+  tr:target { background: var(--info-bg); }
+
+  /* ---- footer ---- */
+  .footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    gap: 12px; padding: 16px 4px; color: var(--text-sec); font-size: 12px; }
+  .footer-left span { color: var(--link); font-weight: 700; }
+  .footer-right { display: flex; gap: 8px; flex-wrap: wrap; }
+  .footer-tag { font-size: 11px; font-weight: 700; color: var(--text-sec); background: var(--surface);
+    border: 1px solid var(--border-sub); border-radius: var(--radius-xs); padding: 3px 9px; }
+  .footer-tag.active { color: var(--info); background: var(--info-bg); border-color: var(--info-bd); }
+
+  @media (max-width: 688px) {
+    .content { padding: 16px 16px 32px; }
+    .ph-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<header class="top-nav">
+  <div class="tn-left">
+    <span class="tn-logo">Red<span class="accent">Hood</span></span>
+    <span class="tn-title">Reads &middot; Market Intelligence</span>
+  </div>
+  <div class="tn-right">
+    <span class="posture-pill po-ok">POSTURE &middot; WEAPONS FREE</span>
+    <span class="tn-meta">Friday, 23 October 2026 &nbsp;|&nbsp; Week 43 &middot; <span id="dataAge" data-runts="2026-10-23T12:58:00">live</span></span>
+    <button id="themeToggle" class="tn-btn" type="button">Dark mode</button>
+  </div>
+</header>
+
+<div class="ticker-wrap"><div class="ticker-inner">
+  <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$81,602</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$28.13</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,633</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$102.85</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,014</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.93</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.990</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4011</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$81,602</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val up">$28.13</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val up">7,633</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$102.85</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$4,014</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.93</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">4.990</span><span class="tick-chg up">+0.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4011</span><span class="tick-chg up">+0.00%</span></span>
+</div></div>
+
+<main class="content">
+  <div class="page-header">
+    <div class="ph-crumb">Run &middot; 1.0h window &middot; 2026-10-23 12:58 &middot; Day 23</div>
+    <h1 class="ph-title">European Social Unrest and Fiscal Strain</h1>
+    <p class="ph-desc">Multiple feeds signal escalating unrest in France/Europe coinciding with strain on the welfare state and Keynesian fiscal models. Rising social entropy acts as a phase-transition precursor—small perturbations can cascade into risk repricing…</p>
+  </div>
+
+  <section class="container">
+    <div class="container-header">
+      <h2>Signal overview</h2>
+      <span class="ch-desc">Feed volume and entropy risk across extracted narratives</span>
+    </div>
+    <div class="container-body"><div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">6</div><div class="metric-delta neutral">1.0h window</div></div>
+<div class="metric"><div class="metric-label">European Social Unrest and…</div><div class="metric-val sev-high">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Welfare State and Keynesia…</div><div class="metric-val sev-med">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Energy Doom and Commodity …</div><div class="metric-val sev-med">6/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">AI Agent Swarm Skepticism …</div><div class="metric-val sev-high">9/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Political Radicalization a…</div><div class="metric-val sev-high">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">5</div><div class="metric-delta neutral">Extracted</div></div></div></div>
+  </section>
+
+  <div class="synopsis-section"><div class="synopsis-label">Market Intelligence Synopsis</div><div class="synopsis-byline">Compiled from 6 signal sources &middot; 2026-10-23 12:58 &middot; AI-assisted analysis</div><div class="synopsis-body"><p class="synopsis-para">Multiple feeds signal escalating unrest in France/Europe coinciding with strain on the welfare state and Keynesian fiscal models. Rising social entropy acts as a phase-transition precursor—small perturbations can cascade into risk repricing of peripheral sovereign spreads. In this TRENDING regime (Signal Multiplier 2.33×), the directional OAT-Bund widening is a high-conviction momentum play worth amplifying.</p><p class="synopsis-para">Long TIP vs nominal Treasuries (TLT), long gold (GLD) as fiscal-debasement hedge Market participants are closely monitoring us fiscal deficit/cbo projections, cpi and pce prints.</p><p class="synopsis-para">However, analysts have flagged material downside risks. OAT-Bund spread widening on French political chaos is one of the most consensus macro trades in Europe, and the ECB&#x27;s implicit backstop (TPI, flexible PEPP reinvestments) has repeatedly capped peripheral and semi-core spread blowouts, making a self-reinforcing cascade far less likely than the entropy framing suggests. The &#x27;social unrest&#x27; thesis is a chronic, decades-old feature of French politics that markets routinely digest without repricing sovereign risk, and a no-confidence motion that simply reshuffles a technocratic government can actually compress spreads on relief. Long USD/EUR via the levered EUO ETF additionally carries daily rebalancing decay and fights a Fed that is cutting while the dollar&#x27;s rate advantage narrows.</p></div></div>
+
+  <section class="container">
+    <div class="container-header">
+      <h2>Narratives</h2>
+      <span class="ch-desc">Top themes with adversarial bear cases and conviction sizing</span>
+    </div>
+    <div class="container-body"><div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 8/10</div><div class="col-title">European Social Unrest and Fiscal Strain</div><div class="col-body">Long USD/EUR via EUO ETF, short EWQ (France equities), long German Bunds vs OAT spread wideners</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">OAT-Bund spread widening on French political chaos is one of the most consensus macro trades in Europe, and the ECB&#x27;s implicit backstop (TPI, flexible PEPP reinvestments) has repeatedly capped periphe…</div><div class="conviction-tag">Quarter Size — the spread-widener has merit as a tail hedge but ECB backstops, crowded positioning, and levered FX decay make the amplified 2.33x momentum sizing reckless.</div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 7/10</div><div class="col-title">Welfare State and Keynesian Model Strain</div><div class="col-body">Long TIP vs nominal Treasuries (TLT), long gold (GLD) as fiscal-debasement hedge</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This is a structurally slow-burn macro thesis being traded on tactical instruments: TIP vs TLT is fundamentally a breakeven-inflation bet, and if growth disappoints or a risk-off episode hits, nominal…</div><div class="conviction-tag">Half Size — the debasement thesis has structural tailwinds but stretched gold positioning and the breakeven-vs-duration confusion in the TIP/TLT leg warrant restraint.</div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 6/10</div><div class="col-title">Energy Doom and Commodity Volatility</div><div class="col-body">Long XLE call spreads, long USO calls with defined risk, pair vs short utilities (XLU)</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The structural backdrop is bearish for oil: record US production, OPEC+ unwinding voluntary cuts and defending market share, and soft Chinese demand all argue for oversupply rather than a supply shock…</div><div class="conviction-tag">Quarter Size — defined-risk structure limits downside but oversupply fundamentals, contango decay, and the AI-powered utilities bid make the amplified directional sizing unjustified.</div></div>
+<div class="grid-col"><div class="col-tag">Geopolitical · Risk 9/10</div><div class="col-title">AI Agent Swarm Skepticism and Rerating</div><div class="col-body">Buy QQQ protective puts, short high-multiple unprofitable AI-agent names via PSQ, maintain long NVDA core</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">This is an internally conflicted trade: buying QQQ puts and PSQ while holding long NVDA means paying premium and borrow costs to short the complex while keeping the single most momentum-driven name wh…</div><div class="conviction-tag">Half Size — the dispersion/hedge logic is reasonable but the long-NVDA-vs-short-complex internal conflict and single-pundit catalyst mean the puts should be sized as modest insurance, not conviction.</div></div>
+<div class="grid-col"><div class="col-tag">Canada / FX · Risk 8/10</div><div class="col-title">Political Radicalization and Governance Risk Premium</div><div class="col-body">Long VIX call spreads into election/policy windows, short consumer discretionary (XLY) vs long staples (XLP)</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Long VIX call spreads are a structural money-loser due to persistent volatility risk premium and term-structure contango; buying vol on a thesis of &#x27;rising political entropy&#x27; almost always bleeds beca…</div><div class="conviction-tag">Pass — the structural carry bleed of long VIX call spreads plus a narrative-driven, hard-to-time catalyst makes this a negative-expectancy trade despite the appealing entropy story.</div></div></div></div>
+  </section>
+
+  <section class="container">
+    <div class="container-header">
+      <h2>Top trade hypothesis</h2>
+      <span class="ch-desc">Highest-ranked narrative, after adversarial stress-test</span>
+    </div>
+    <div class="container-body">
+      <div class="thought-q">Long USD/EUR via EUO ETF, short EWQ (France equities), long German Bunds vs OAT spread wideners</div>
+      <div class="thought-body">French budget vote and potential no-confidence motion, ECB rate decision and QT guidance, Eurozone PMI releases</div>
+      <div class="thought-bear-label">Bear case</div>
+      <div class="thought-bear">OAT-Bund spread widening on French political chaos is one of the most consensus macro trades in Europe, and the ECB&#x27;s implicit backstop (TPI, flexible PEPP reinvestments) has repeatedly capped peripheral and semi-core spread blowouts, making a self-reinforcing cascade far less likely than the entropy framing suggests. The &#x27;social unrest&#x27; thesis is a chronic, decades-old feature of French politics that markets routinely digest without repricing sovereign risk, and a no-confidence motion that simply reshuffles a technocratic government can actually compress spreads on relief. Long USD/EUR via the levered EUO ETF additionally carries daily rebalancing decay and fights a Fed that is cutting while the dollar&#x27;s rate advantage narrows.</div>
+      <div class="thought-conviction">Quarter Size — the spread-widener has merit as a tail hedge but ECB backstops, crowded positioning, and levered FX decay make the amplified 2.33x momentum sizing reckless.</div>
+    </div>
+  </section>
+
+  <div class="trading-section"><div class="trading-label">Quantitative Signal Analysis</div><div class="trading-grid"><div class="tc-card"><div class="tc-header"><span class="tc-sym">META</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$648.85<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-12.54%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">30.3</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.43 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.779 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$723.10 / $662.86</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:16</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AAPL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$348.22<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+4.61%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">71.7</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.17 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.727 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$338.57 / $328.62</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:17</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AMZN</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$250.38<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-0.41%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">49.1</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.33 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.645 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$254.51 / $255.99</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:17</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NFLX</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$67.05<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-0.67%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">50.0</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.35 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.831 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$69.42 / $74.52</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:18</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">GOOGL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$324.22<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-6.42%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">32.3</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.21 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.701 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$344.27 / $343.47</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:19</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">WMT</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$121.12<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+15.28%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">91.2</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.23 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.715 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$111.60 / $109.35</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:20</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NU</span><span class="tc-rec rec-neutral">NEUTRAL</span></div><div class="tc-price">$14.73<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-3.00%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">61.2</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.71 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.711 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$14.53 / $14.55</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:21</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">BTC-USD</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$81,315<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-1.49%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">48.7</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.24 <span class="tc-badge">LOW</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.745 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$83,013.10 / $81,782.35</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$2,000</span></div><div class="tc-ts">2026-10-22 16:08:21</div></div></div></div>
+
+  <div class="regime-panel"><div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (T 20-bar &middot; shape 60-bar &middot; detector v2)</div><div class="regime-badge-row"><span class="regime-badge rg-trending">TRENDING</span><span class="regime-desc">Low T &middot; equilibrium &mdash; amplify signals</span></div><div class="regime-metrics"><div class="rm"><div class="rm-lbl">Temperature</div><div class="rm-val rg-trending-fg">9.7%</div><div class="rm-sub">base 15%</div></div><div class="rm"><div class="rm-lbl">Entropy</div><div class="rm-val">1.678</div><div class="rm-sub">eq 1.59 &middot; crisis &gt; 2.03</div></div><div class="rm"><div class="rm-lbl">Departure D</div><div class="rm-val ">0.1049</div><div class="rm-sub">threshold 0.110</div></div><div class="rm"><div class="rm-lbl">Signal Mult</div><div class="rm-val">1.25&times;</div><div class="rm-sub">applied to signals</div></div><div class="rm"><div class="rm-lbl">Heat Budget</div><div class="rm-val">57%</div><div class="rm-sub">heat 2.6% of 6% cap</div></div></div></div>
+
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">Signal cards &middot; 0 of 6 (0 narrative-cited + top 55)</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="Search signals or handles" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">Cited only</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">All accounts</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">Sort: Recent</option>
+        <option value="handle">Sort: Handle</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+    </div>
+    <div class="tweet-grid" id="tweetGrid"></div>
+  </details>
+
+  
+
+  <footer class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &middot; Not financial advice &middot; Generated 2026-10-23 12:58</div>
+    <div class="footer-right">
+      <span class="footer-tag active">AI</span>
+      <span class="footer-tag">Macro</span>
+      <span class="footer-tag">Crypto</span>
+      <span class="footer-tag">Signals</span>
+    </div>
+  </footer>
+</main>
+<script>
+(function(){
+  "use strict";
+  var grid = document.getElementById('tweetGrid');
+  if (grid) {
+    var cards   = Array.prototype.slice.call(grid.querySelectorAll('.tweet-embed'));
+    var search  = document.getElementById('cardSearch');
+    var cited   = document.getElementById('citedToggle');
+    var acct    = document.getElementById('acctFilter');
+    var sortSel = document.getElementById('sortSel');
+    var count   = document.getElementById('cardCount');
+    var citedOnly = false;
+
+    // Populate the account dropdown from the cards present.
+    var seen = {};
+    cards.forEach(function(c){ var h = c.getAttribute('data-handle'); if (h) seen[h] = 1; });
+    Object.keys(seen).sort().forEach(function(h){
+      var o = document.createElement('option'); o.value = h; o.textContent = '@' + h; acct.appendChild(o);
+    });
+
+    function apply(){
+      var q = (search.value || '').toLowerCase().trim();
+      var a = acct.value;
+      var shown = 0;
+      cards.forEach(function(c){
+        var ok = true;
+        if (q && c.getAttribute('data-search').indexOf(q) < 0) ok = false;
+        if (a && c.getAttribute('data-handle') !== a) ok = false;
+        if (citedOnly && c.getAttribute('data-cited') !== '1') ok = false;
+        c.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      count.textContent = shown + ' / ' + cards.length + ' shown';
+    }
+    function sortCards(){
+      var mode = sortSel.value;
+      cards.slice().sort(function(x, y){
+        if (mode === 'handle') return x.getAttribute('data-handle').localeCompare(y.getAttribute('data-handle'));
+        return y.getAttribute('data-ts').localeCompare(x.getAttribute('data-ts'));
+      }).forEach(function(c){ grid.appendChild(c); });
+    }
+
+    search.addEventListener('input', apply);
+    acct.addEventListener('change', apply);
+    cited.addEventListener('click', function(){
+      citedOnly = !citedOnly; cited.classList.toggle('on', citedOnly); apply();
+    });
+    sortSel.addEventListener('change', function(){ sortCards(); apply(); });
+    apply();
+  }
+
+  // Live data-age readout: "T+Xh Ym" since the run timestamp.
+  var age = document.getElementById('dataAge');
+  if (age) {
+    var t0 = new Date(age.getAttribute('data-runts')).getTime();
+    var tick = function(){
+      if (!t0 || isNaN(t0)) { age.textContent = 'live'; return; }
+      var s = Math.max(0, Math.floor((Date.now() - t0) / 1000));
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      age.textContent = 'T+' + (h ? h + 'h ' : '') + m + 'm';
+    };
+    tick(); setInterval(tick, 30000);
+  }
+  // Theme toggle (Cloudscape light / dark tokens)
+  var tBtn = document.getElementById('themeToggle');
+  if (tBtn) {
+    var root = document.documentElement;
+    var saved = null;
+    try { saved = localStorage.getItem('rh-theme'); } catch (e) {}
+    var setTheme = function (t) {
+      if (t === 'dark') { root.setAttribute('data-theme', 'dark'); }
+      else { root.removeAttribute('data-theme'); }
+      tBtn.textContent = (t === 'dark') ? 'Light mode' : 'Dark mode';
+      try { localStorage.setItem('rh-theme', t); } catch (e) {}
+    };
+    setTheme(saved === 'dark' ? 'dark' : 'light');
+    tBtn.addEventListener('click', function () {
+      setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+  }
+})();
+</script>
+</body>
+</html>

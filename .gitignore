@@ -26,6 +26,7 @@ compressed context*.md
 /data/
 *.json
 !paper/data/*.json
+!docs/cards_history.json
 
 # OS
 .DS_Store
