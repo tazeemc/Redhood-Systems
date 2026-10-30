@@ -88,6 +88,22 @@ class TestFetch:
         assert first.url == 'https://t.me/redhoodtrades/100'
         assert second.content == 'Second & final'
 
+    def test_same_second_posts_get_distinct_stable_ids(self, serve_page):
+        # Run 53 lost nine @marketfeed posts this way: two posts in one second
+        # shared the old source_author_epoch id and INSERT OR IGNORE kept one.
+        ts = datetime.now(timezone.utc) - timedelta(minutes=5)
+        serve_page['page'] = _page(
+            _message_block('SWITZERLAND SIGHT DEPOSITS', 'marketfeed/1064096', ts),
+            _message_block('JAPAN AUTO UNION', 'marketfeed/1064097', ts),
+        )
+        first, second = TelegramScraper().fetch(['marketfeed'], hours_back=24)
+        assert first.timestamp == second.timestamp
+        assert first.id == 'telegram_@marketfeed_1064096'
+        assert second.id == 'telegram_@marketfeed_1064097'
+        # The same page re-fetched by an overlapping run yields the same ids.
+        again = TelegramScraper().fetch(['marketfeed'], hours_back=24)
+        assert [i.id for i in again] == [first.id, second.id]
+
     def test_cutoff_filters_old_messages(self, serve_page):
         now = datetime.now(timezone.utc)
         serve_page['page'] = _page(
