@@ -8,6 +8,7 @@ EXPECTED_TABLES = {
     'twitter_accounts', 'runs', 'feeds', 'narratives', 'narrative_feeds',
     'narrative_tickers', 'narrative_grades', 'tickers', 'prices',
     'earnings', 'date_dim', 'regime_history', 'narrative_returns',
+    'analyst_notes',
 }
 
 
