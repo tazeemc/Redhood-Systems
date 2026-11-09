@@ -366,7 +366,12 @@ def _trim(text: str | None, n: int = 420) -> str:
 
 
 def build_tape(conn: sqlite3.Connection, limit: int = TAPE_LIMIT) -> list[dict]:
-    """Newest feed items across RSS + Twitter, newest first."""
+    """Newest feed items across every source, newest first.
+
+    That is Substack RSS and Telegram live, plus the closed X record from
+    `twitter_archive` for anything the feeds table no longer carries. X itself
+    was retired on 2026-11-01, so nothing new arrives on that source.
+    """
     out = [{
         'id': r['id'], 'src': r['source'], 'who': r['author'],
         'txt': _trim(r['content']), 'at': r['published_at'], 'url': r['url'],
@@ -462,16 +467,23 @@ def build_alpha(narratives: list[dict]) -> dict:
 
     best = sorted([r for r in rows if r['h'] == 'to date' and r['exc'] is not None],
                   key=lambda r: r['exc'], reverse=True)
+    # Split the list rather than taking two 12-long slices off either end:
+    # under 24 rows those overlap, and the same narrative would be reported as
+    # both the best and the worst performer.
+    cut = min(12, (len(best) + 1) // 2)
+
+    def _row(r: dict) -> dict:
+        return {'t': r['ticker'], 'nar': r['nar'], 'exc': _r(r['exc'], 6),
+                'raw': _r(r['raw'], 6), 'g': r['grade']}
+
     return {
         'horizons': labels,
         'by_horizon': by_h,
         'by_grade': by_grade,
         'by_band': by_band,
         'scatter': scatter,
-        'leaders': [{'t': r['ticker'], 'nar': r['nar'], 'exc': _r(r['exc'], 6),
-                     'raw': _r(r['raw'], 6), 'g': r['grade']} for r in best[:12]],
-        'laggards': [{'t': r['ticker'], 'nar': r['nar'], 'exc': _r(r['exc'], 6),
-                      'raw': _r(r['raw'], 6), 'g': r['grade']} for r in best[-12:][::-1]],
+        'leaders': [_row(r) for r in best[:cut]],
+        'laggards': [_row(r) for r in best[cut:][::-1][:12]],
     }
 
 

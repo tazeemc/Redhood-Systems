@@ -318,3 +318,52 @@ def test_snippet_survives_an_empty_database(db):
         db.execute(f"DELETE FROM {t}")
     s = T.render_snippet(T.build_preview(db))
     assert 'NO REGIME' in s and 'LAUNCH TERMINAL' in s
+
+
+# ---------------------------------------------------------------------------
+# regressions found reviewing the terminal (PR #31)
+# ---------------------------------------------------------------------------
+
+def _nars_with_excess(n: int) -> list[dict]:
+    """n narratives, one ticker each, only the 'to date' horizon populated."""
+    return [{'id': i, 'g': {'ltr': 'B'}, 'band': 'mid', 'ent': 5, 'conv': 1,
+             'ret': [{'t': f'SYM{i}', 'td': 0.10 - 0.01 * i, 'std': 0.0}]}
+            for i in range(n)]
+
+
+def test_leaders_and_laggards_never_overlap():
+    """Two 12-long slices off either end of one list overlap below 24 rows,
+    which reported the best performer as the worst as well."""
+    for n in (1, 2, 5, 11, 23, 24, 40):
+        a = T.build_alpha(_nars_with_excess(n))
+        lead = {r['t'] for r in a['leaders']}
+        lag = {r['t'] for r in a['laggards']}
+        assert not (lead & lag), f"{n} rows: {sorted(lead & lag)} in both lists"
+        # Every row shows up somewhere until there are more than 24 of them,
+        # at which point the middle drops out of both lists.
+        assert len(lead | lag) == min(n, 24)
+
+
+def test_leaders_are_ranked_best_first_and_laggards_worst_first():
+    a = T.build_alpha(_nars_with_excess(40))
+    assert a['leaders'][0]['exc'] > a['leaders'][-1]['exc']
+    assert a['laggards'][0]['exc'] < a['laggards'][-1]['exc']
+    assert a['leaders'][0]['exc'] > a['laggards'][0]['exc']
+
+
+def test_partial_ohlc_coverage_still_marks_the_series(db):
+    """Over half the bars having an open is enough to set ohlc=1, so the null
+    bars reach the chart; the fallback that keeps them drawable lives in
+    chart.js, and this pins the data shape it has to cope with."""
+    db.execute("DELETE FROM prices WHERE ticker='SPY'")
+    for i in range(10):
+        full = i >= 4
+        db.execute(
+            "INSERT INTO prices (ticker, price_date, open, high, low, close, volume)"
+            " VALUES (?,?,?,?,?,?,?)",
+            ('SPY', f'2026-10-{i + 1:02d}', 100.0 if full else None,
+             101.0 if full else None, 99.0 if full else None, 100.5, 1000))
+    s = T.build_series(db)['SPY']
+    assert s['ohlc'] == 1
+    assert s['o'].count(None) == 4
+    assert len(s['o']) == len(s['c'])

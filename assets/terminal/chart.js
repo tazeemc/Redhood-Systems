@@ -184,7 +184,20 @@
       // Relative mode: both legs indexed to 0% at the left edge of the view.
       const byDay = new Map();
       for (let i = 0; i < this.bench.n; i++) byDay.set(this.bench.d[i], this.bench.c[i]);
-      const base = s.c[this.i0], bBase = byDay.get(s.d[this.i0]) ?? null;
+      /** Latest benchmark close on or before `day`. Bench days are ascending. */
+      const benchAt = (day) => {
+        for (let i = this.bench.n - 1; i >= 0; i--) {
+          if (this.bench.d[i] <= day && this.bench.c[i]) return this.bench.c[i];
+        }
+        return null;
+      };
+      const base = s.c[this.i0];
+      // The benchmark does not necessarily trade on this symbol's left-edge
+      // day - BTC-USD runs through weekends, a .TO listing trades on US
+      // holidays. An exact-day baseline would then be null and null every
+      // plotted point, blanking the whole chart, so fall back to the most
+      // recent benchmark bar at or before that day.
+      const bBase = benchAt(s.d[this.i0]);
       const c = s.c.map((v, i) => {
         const b = byDay.get(s.d[i]);
         if (!v || !base || !b || !bBase) return null;
@@ -197,7 +210,9 @@
       const s = this.series, d = this._plotted();
       let lo = Infinity, hi = -Infinity;
       for (let i = this.i0; i <= this.i1; i++) {
-        const h = d.h[i], l = d.l[i];
+        // Same close-only fallback the candle loop uses, so a bar missing its
+        // high/low still pulls the scale around the price that gets drawn.
+        const c = d.c[i], h = d.h[i] ?? c, l = d.l[i] ?? c;
         if (h !== null && h > hi) hi = h;
         if (l !== null && l < lo) lo = l;
       }
@@ -308,9 +323,14 @@
       ctx.save();
       ctx.lineWidth = 1;
       for (let i = this.i0; i <= this.i1; i++) {
-        const o = d.o[i], h = d.h[i], l = d.l[i], c = d.c[i];
+        const c = d.c[i];
         if (c === null) continue;
-        const up = c >= (o ?? c);
+        // A series is marked ohlc=1 once over half its bars have an open, so
+        // individual bars can still be close-only. Falling back to the close
+        // keeps those drawn as a flat mark; without it null reaches yOf() as 0
+        // and the bar paints a wick across the whole plot.
+        const o = d.o[i] ?? c, h = d.h[i] ?? c, l = d.l[i] ?? c;
+        const up = c >= o;
         const col = up ? P.up : P.down;
         const x = Math.round(this.xOf(i)) + 0.5;
         const yH = this.yOf(h), yL = this.yOf(l), yO = this.yOf(o), yC = this.yOf(c);
