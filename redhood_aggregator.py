@@ -928,7 +928,35 @@ class GitHubPagesPublisher:
         except Exception as e:  # history is a bonus; never fail the report publish
             print(f"   ⚠️  [GitHub Pages] Card history update failed: {e}")
 
+        try:
+            self._publish_terminal(ts)
+        except Exception as e:  # ditto: the terminal must never block the report
+            print(f"   ⚠️  [GitHub Pages] Terminal publish failed: {e}")
+
         return f"{self.BASE_URL}/{filename}"
+
+    def _publish_terminal(self, ts: str):
+        """Rebuild docs/terminal.html from the database and push it.
+
+        Built here rather than uploaded from disk so the published terminal
+        always reflects the run that just finished, even when run.ps1 was not
+        the entry point.
+        """
+        try:
+            import redhood_terminal
+        except ImportError:
+            return
+        conn = redhood_terminal._connect(redhood_terminal.DB_PATH)
+        try:
+            bundle = redhood_terminal.build_bundle(conn)
+        finally:
+            conn.close()
+        page = redhood_terminal.render_page(bundle, mode='static')
+        path = f"{self.DOCS_PATH}/terminal.html"
+        self._put_file(path, page, f"Update RedHood Terminal {ts}", self._get_sha(path))
+        c = bundle['meta']['counts']
+        print(f"📟 [GitHub Pages] Terminal: {c['symbols']} symbols, "
+              f"{c['narratives']} narratives → {self.BASE_URL}/terminal.html")
 
     def _get_text(self, path: str):
         """Return a file's raw text (raw media type handles files over 1 MB), or None."""
@@ -1700,9 +1728,25 @@ class RedHoodAggregator:
                             f'POSTURE&nbsp;&middot;&nbsp;{plabel}</span>')
         run_iso = dt.strftime('%Y-%m-%dT%H:%M:%S')
 
+        # The RedHood Terminal preview block: live numbers from redhood.db plus
+        # a launch link. Never fail the report over it — it is a garnish.
+        try:
+            import redhood_terminal
+            _conn = redhood_terminal._connect(redhood_terminal.DB_PATH)
+            try:
+                terminal_embed = redhood_terminal.render_snippet(
+                    redhood_terminal.build_preview(_conn),
+                    href='terminal.html', embed_src='terminal.html')
+            finally:
+                _conn.close()
+        except Exception as e:                                   # noqa: BLE001
+            print(f"   ⚠️  Terminal preview skipped: {e}")
+            terminal_embed = ''
+
         # Build HTML using string replacement to avoid f-string brace conflicts with CSS
         tpl = self._html_report_template()
         html_out = (tpl
+            .replace('%%TERMINAL_EMBED%%',    terminal_embed)
             .replace('%%POSTURE%%',           posture_html)
             .replace('%%RUN_ISO%%',           run_iso)
             .replace('%%TOPBAR_DATE%%',       f'{run_date_full} &nbsp;|&nbsp; Week {week_num:02d}')
@@ -1791,6 +1835,15 @@ class RedHoodAggregator:
     font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
     color: var(--cream); margin-bottom: 6px; }
   .masthead .red-accent { color: var(--red); font-style: italic; }
+  .site-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 14px;
+              font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.22em;
+              text-transform: uppercase; }
+  .site-nav a { color: var(--text-muted); text-decoration: none; border-bottom: 1px solid transparent;
+                padding-bottom: 2px; transition: color .15s, border-color .15s; }
+  .site-nav a:hover { color: var(--cream); border-bottom-color: var(--gold); }
+  .site-nav .site-nav-cta { color: var(--cream); border: 1px solid var(--red);
+                            padding: 4px 10px; border-radius: 2px; }
+  .site-nav .site-nav-cta:hover { background: var(--red); color: #fff; border-bottom-color: var(--red); }
   .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
     text-transform: uppercase; color: var(--tangerine); margin-bottom: 28px; }
   .headline-block { max-width: 620px; }
@@ -2043,6 +2096,11 @@ class RedHoodAggregator:
     </div>
     <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
     <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
+    <div class="site-nav">
+      <a class="site-nav-cta" href="terminal.html">&#9632; OPEN THE TERMINAL</a>
+      <a href="timeline.html">TIMELINE</a>
+      <a href="cards.html">SIGNAL HISTORY</a>
+    </div>
     <div class="headline-block">
       <div class="headline">%%HEADLINE%%</div>
       <div class="deck">%%DECK%%</div>
@@ -2054,6 +2112,8 @@ class RedHoodAggregator:
   </div>
 
   <div class="metrics-strip">%%METRICS%%</div>
+
+  %%TERMINAL_EMBED%%
 
   <details class="embeds-section sec" open>
     <summary class="sec-summary">

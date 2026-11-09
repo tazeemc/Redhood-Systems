@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RedHood Terminal</title>
+<meta name="description" content="RedHood Systems market terminal — price, narratives, regime and realised alpha in one keyboard-driven surface.">
+<style>/*%%CSS%%*/</style>
+</head>
+<body>
+
+<!-- ───────────────────────── header / command line ───────────────────────── -->
+<header id="hdr">
+  <div class="brand" title="RedHood Systems">
+    <span class="hood"></span><span class="bname">RED<em>HOOD</em></span><span class="bsub">TERMINAL</span>
+  </div>
+
+  <div class="cmdwrap">
+    <label class="cmdlabel" for="cmd">CMD</label>
+    <input id="cmd" type="text" spellcheck="false" autocomplete="off"
+           placeholder="type a symbol or function  ·  NVDA GP  ·  NRTV  ·  REG  ·  ALPH  ·  HELP" aria-label="Command line">
+    <kbd class="cmdhint">GO</kbd>
+    <ul id="ac" class="ac" role="listbox" hidden></ul>
+  </div>
+
+  <nav class="fnbar" id="fnbar" aria-label="Functions"></nav>
+
+  <div class="hdrright">
+    <div id="regimechip" class="chip" title="Current regime state"></div>
+    <div id="clock" class="clock" aria-live="off"></div>
+    <button id="themebtn" class="iconbtn" title="Toggle light / dark (t)">◑</button>
+    <button id="helpbtn" class="iconbtn" title="Keyboard help (?)">?</button>
+  </div>
+</header>
+
+<!-- ───────────────────────────── ticker tape ─────────────────────────────── -->
+<div id="tape" class="tape" aria-label="Ticker tape"><div class="tapetrack" id="tapetrack"></div></div>
+
+<!-- ─────────────────────────────── main grid ─────────────────────────────── -->
+<main id="grid">
+
+  <!-- left: monitor -->
+  <section class="panel" id="p-monitor" data-panel="monitor" tabindex="0">
+    <div class="phead">
+      <h2>Monitor</h2>
+      <div class="pctl">
+        <div class="seg" id="monscope" role="tablist">
+          <button data-scope="wl" class="on" title="Watchlist">WL</button>
+          <button data-scope="nar" title="Symbols carrying a narrative">NAR</button>
+          <button data-scope="all" title="Every symbol with price history">ALL</button>
+        </div>
+        <input id="monfilter" class="mini" type="text" placeholder="filter" spellcheck="false" aria-label="Filter symbols">
+      </div>
+    </div>
+    <div class="ptable">
+      <table id="montable">
+        <thead><tr>
+          <th data-sort="t" class="l">Sym</th>
+          <th data-sort="last">Last</th>
+          <th data-sort="d1">Chg%</th>
+          <th data-sort="d20">20d</th>
+          <th class="nosort">Trend</th>
+        </tr></thead>
+        <tbody id="monbody"></tbody>
+      </table>
+    </div>
+    <div class="pfoot" id="monfoot"></div>
+  </section>
+
+  <!-- centre: chart + lower tabs -->
+  <section class="panel chartpanel" id="p-chart" data-panel="chart" tabindex="0">
+    <div class="phead chead">
+      <div class="symblock">
+        <h2 id="symname">—</h2>
+        <span id="symmeta" class="symmeta"></span>
+      </div>
+      <div id="quote" class="quote"></div>
+      <div class="pctl chartctl">
+        <div class="seg" id="rangeseg" role="tablist">
+          <button data-range="21">1M</button><button data-range="63">3M</button>
+          <button data-range="126">6M</button><button data-range="ytd">YTD</button>
+          <button data-range="252" class="on">1Y</button><button data-range="0">MAX</button>
+        </div>
+        <div class="seg" id="styleseg">
+          <button data-style="candle" class="on" title="Candlesticks (c)">▦</button>
+          <button data-style="line" title="Line (c)">◢</button>
+        </div>
+        <div class="seg" id="ovseg">
+          <button data-ov="ma" class="on" title="Moving averages (m)">MA</button>
+          <button data-ov="bb" title="Bollinger bands (b)">BB</button>
+          <button data-ov="vol" class="on" title="Volume (v)">VOL</button>
+          <button data-ov="pins" class="on" title="Narrative markers (n)">NAR</button>
+          <button data-ov="log" title="Log scale (l)">LOG</button>
+          <button data-ov="rel" title="Relative to SPY (r)">vsSPY</button>
+        </div>
+      </div>
+    </div>
+    <div class="chartbox" id="chartbox">
+      <canvas id="chart"></canvas>
+      <div id="legend" class="legend"></div>
+      <div id="xhair" class="xhair" hidden></div>
+      <div id="chartempty" class="empty" hidden></div>
+    </div>
+
+    <div class="lower">
+      <div class="tabs" id="lowtabs" role="tablist">
+        <button data-tab="returns" class="on">Returns</button>
+        <button data-tab="regime">Regime</button>
+        <button data-tab="alpha">Alpha</button>
+        <button data-tab="tape">Tape</button>
+        <button data-tab="notes">Notes</button>
+        <button data-tab="runs">Runs</button>
+      </div>
+      <div class="tabbody" id="lowbody"></div>
+    </div>
+  </section>
+
+  <!-- right: narrative blotter + detail -->
+  <section class="panel" id="p-blotter" data-panel="blotter" tabindex="0">
+    <div class="phead">
+      <h2>Narrative blotter</h2>
+      <div class="pctl">
+        <select id="gradefilter" class="mini" aria-label="Filter by grade"><option value="">all grades</option></select>
+        <select id="bandfilter" class="mini" aria-label="Filter by entropy band"><option value="">all bands</option></select>
+        <input id="narfilter" class="mini" type="text" placeholder="search" spellcheck="false" aria-label="Search narratives">
+      </div>
+    </div>
+    <div class="ptable">
+      <table id="nartable">
+        <thead><tr>
+          <th data-sort="at" class="l">Date</th>
+          <th data-sort="g" title="Letter grade from narrative_grades">Gr</th>
+          <th data-sort="ent" title="Entropy risk 1-10">Ent</th>
+          <th data-sort="conv" title="Conviction size">Size</th>
+          <th data-sort="title" class="l">Thesis</th>
+        </tr></thead>
+        <tbody id="narbody"></tbody>
+      </table>
+    </div>
+    <div class="pfoot" id="narfoot"></div>
+  </section>
+
+  <section class="panel" id="p-detail" data-panel="detail" tabindex="0">
+    <div class="phead"><h2 id="detailhead">Detail</h2><div class="pctl"><span class="hintkey" id="detailhint"></span></div></div>
+    <div class="pbody" id="detailbody"></div>
+  </section>
+</main>
+
+<!-- ───────────────────────────── status bar ──────────────────────────────── -->
+<footer id="status">
+  <span id="st-left"></span>
+  <span id="st-mid"></span>
+  <span id="st-right"></span>
+</footer>
+
+<!-- ───────────────────────────── help overlay ────────────────────────────── -->
+<div id="help" class="overlay" hidden>
+  <div class="helpcard">
+    <div class="helphead"><h3>RedHood Terminal</h3><button class="iconbtn" id="helpclose">✕</button></div>
+    <div class="helpgrid" id="helpgrid"></div>
+    <p class="helpfoot">Built from <code>redhood.db</code> by <code>redhood_terminal.py</code>. Static page: data is as of the last pipeline run. <code>--serve</code> adds polled quotes.</p>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>/*%%CONFIG%%*/</script>
+<script>/*%%DATA%%*/</script>
+<script>/*%%JS%%*/</script>
+</body>
+</html>
