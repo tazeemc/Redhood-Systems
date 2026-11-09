@@ -42,7 +42,7 @@
     RET:  { desc: 'Realised returns for the loaded symbol', run: () => setTab('returns') },
     REG:  { desc: 'Regime detector: temperature, entropy, KL, heat', run: () => setTab('regime') },
     ALPH: { desc: 'Realised alpha: hit rate and excess vs SPY', run: () => setTab('alpha') },
-    TAPE: { desc: 'Feed tape: RSS and Twitter', run: () => setTab('tape') },
+    TAPE: { desc: 'Feed tape: RSS, Telegram and the archived X record', run: () => setTab('tape') },
     NOTE: { desc: 'Analyst notes and memos', run: () => setTab('notes') },
     RUNS: { desc: 'Pipeline run history', run: () => setTab('runs') },
     TOP:  { desc: 'Highest-graded recent narrative', run: () => {

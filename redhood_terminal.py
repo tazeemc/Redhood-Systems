@@ -366,7 +366,12 @@ def _trim(text: str | None, n: int = 420) -> str:
 
 
 def build_tape(conn: sqlite3.Connection, limit: int = TAPE_LIMIT) -> list[dict]:
-    """Newest feed items across RSS + Twitter, newest first."""
+    """Newest feed items across every source, newest first.
+
+    That is Substack RSS and Telegram live, plus the closed X record from
+    `twitter_archive` for anything the feeds table no longer carries. X itself
+    was retired on 2026-11-01, so nothing new arrives on that source.
+    """
     out = [{
         'id': r['id'], 'src': r['source'], 'who': r['author'],
         'txt': _trim(r['content']), 'at': r['published_at'], 'url': r['url'],
