@@ -271,8 +271,19 @@ class TestPagination:
 
 
 class TestConfig:
-    def test_both_telegram_channels_configured(self):
-        assert Config.TELEGRAM_CHANNELS == ["marketfeed", "tradehaven"]
+    def test_core_telegram_channels_configured(self):
+        # The two original wires must stay; the list grew to cover crypto and
+        # geopolitics, so assert membership rather than freezing the whole list.
+        assert {"marketfeed", "tradehaven"} <= set(Config.TELEGRAM_CHANNELS)
+
+    def test_telegram_channels_are_bare_handles(self):
+        # The scraper builds t.me/s/<channel>, so a stray '@' or full url would
+        # silently 404 the whole channel.
+        for channel in Config.TELEGRAM_CHANNELS:
+            assert channel == channel.strip()
+            assert not channel.startswith('@')
+            assert '/' not in channel
+        assert len(set(Config.TELEGRAM_CHANNELS)) == len(Config.TELEGRAM_CHANNELS)
 
     def test_page_ceiling_covers_a_busy_48h_window(self):
         # 5 pages (100 posts) covered ~5 h of @marketfeed; the ceiling must be

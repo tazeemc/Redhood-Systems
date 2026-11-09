@@ -1,7 +1,14 @@
 """
 RedHood Systems - Twitter Accounts Database
 =============================================
-SQLite store for managing tracked X/Twitter accounts.
+SQLite store for the tracked X/Twitter account roster.
+
+RETIRED 2026-11-01. X was read through Nitter RSS, which depended on X's guest
+access tokens; once those were withdrawn every public instance shut down and the
+scraper was removed from redhood_aggregator. Nothing reads this roster any more
+and every row is marked inactive -- adding or toggling a handle here will NOT
+bring tweets back. The table is kept as the record of which accounts were
+tracked; the tweets themselves live in twitter_archive (see archive_twitter.py).
 
 Usage:
     python accounts_db.py                  # init DB and seed defaults

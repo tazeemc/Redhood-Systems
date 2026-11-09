@@ -8,6 +8,8 @@ from ticker_extraction import (
     NON_TICKER_TOKENS,
     RETIRED_SYMBOLS,
     _FORCE_KEEP,
+    _VALID_SUFFIXES,
+    _normalize_token,
 )
 
 
@@ -126,3 +128,48 @@ class TestNonTickerStoplist:
     def test_retired_symbols_stay_in_star_schema(self):
         # Historical mentions keep their symbol; only the ledger rejects them.
         assert _as_map(extract_tickers("short SQ, long RTN")) == {'SQ': 'Short', 'RTN': 'Long'}
+
+
+class TestExchangeSuffixes:
+    """Run 58 (2026-11-09) warned on CPX because "CPX.TO" was truncated to a
+    base that does not price on Yahoo Finance."""
+
+    def test_tsx_suffix_is_kept(self):
+        got = _as_map(extract_tickers(
+            "Long Canadian power for AI datacenters - prefer CPX.TO "
+            "(Capital Power) or AQN"))
+        assert got == {'CPX.TO': 'Long', 'AQN': 'Long'}
+
+    def test_class_share_suffix_is_kept(self):
+        assert _as_map(extract_tickers("Long BRK.B")) == {'BRK.B': 'Long'}
+
+    def test_european_and_asian_suffixes_are_kept(self):
+        got = _as_map(extract_tickers("Long ASML.AS and short 9988.HK via BABA"))
+        assert got['ASML.AS'] == 'Long'
+        assert got['BABA'] == 'Short'
+
+    def test_non_exchange_dotted_tokens_are_rejected(self):
+        # "U.S", "P.E" and "A.I" are prose, not symbols.
+        assert _normalize_token("U.S") is None
+        assert _normalize_token("P.E") is None
+        assert _normalize_token("A.I") is None
+
+    def test_trailing_dot_is_stripped(self):
+        assert _normalize_token("AQN.") == 'AQN'
+
+    def test_stoplisted_base_stays_rejected_with_a_suffix(self):
+        assert _normalize_token("GPU.TO") is None
+        assert _normalize_token("NO.TO") is None
+
+    def test_dot_inside_ticker_does_not_reset_side(self):
+        # The dot in CPX.TO must not strand AQN on default_long.
+        got = _as_map(extract_tickers("Short CPX.TO or AQN"))
+        assert got == {'CPX.TO': 'Short', 'AQN': 'Short'}
+
+    def test_sentence_end_still_resets_side(self):
+        got = _as_map(extract_tickers("Short CPX.TO. Long AQN"))
+        assert got == {'CPX.TO': 'Short', 'AQN': 'Long'}
+
+    def test_suffix_sets_do_not_collide_with_stoplist(self):
+        # A suffix is only ever read after a dot, but keep the sets honest.
+        assert 'TO' in _VALID_SUFFIXES and 'B' in _VALID_SUFFIXES

@@ -31,8 +31,10 @@ from typing import List, Dict, Set, Tuple
 # Token rules
 # ---------------------------------------------------------------------------
 
-# 1–5 char uppercase symbols. Allow a single dot for class shares (BRK.B).
-_TICKER_RE = re.compile(r"\b([A-Z]{1,5}(?:\.[A-Z])?)\b")
+# 1–5 char uppercase symbols. A dotted tail of 1–2 chars is kept when it
+# is a real exchange or share-class suffix (CPX.TO, BRK.B) - see
+# _normalize_token, which validates it against _VALID_SUFFIXES.
+_TICKER_RE = re.compile(r"\b([A-Z]{1,5}(?:\.[A-Z]{1,2})?)\b")
 
 # Paren groups: capture body so we can split it.
 _PAREN_RE = re.compile(r"\(([^()]*)\)")
@@ -144,6 +146,29 @@ RETIRED_SYMBOLS: frozenset = frozenset({
 })
 
 
+# Exchange suffixes Yahoo Finance uses for non-US listings. A hypothesis that
+# says "CPX.TO" means Capital Power on the TSX, and the bare base ("CPX") does
+# not price on Yahoo - run 58 (2026-11-09) warned on CPX for exactly this
+# reason, because the old 1-char suffix rule truncated ".TO" to nothing.
+_EXCHANGE_SUFFIXES: frozenset = frozenset({
+    # Canada
+    "TO", "V", "NE", "CN",
+    # UK / Europe
+    "L", "DE", "F", "PA", "AS", "BR", "MC", "MI", "LS", "VI", "SW",
+    "ST", "OL", "CO", "HE", "IR", "WA", "PR", "AT", "IS",
+    # Asia-Pacific
+    "HK", "SS", "SZ", "TW", "KS", "KQ", "T", "SI", "JK", "BK",
+    "NS", "BO", "AX", "NZ",
+    # Americas / EMEA ex-US
+    "SA", "MX", "TA", "JO", "BD",
+})
+
+# Share-class and unit suffixes on US listings (BRK.B, and warrant/unit tails).
+_CLASS_SUFFIXES: frozenset = frozenset({"A", "B", "C", "U", "WS", "RT", "WT"})
+
+_VALID_SUFFIXES: frozenset = _EXCHANGE_SUFFIXES | _CLASS_SUFFIXES
+
+
 LONG, SHORT, HEDGE, PAIR = "Long", "Short", "Hedge", "Pair"
 
 
@@ -162,8 +187,21 @@ def _find_side_events(text: str) -> List[Tuple[int, str]]:
 
 
 def _find_reset_positions(text: str) -> List[int]:
-    """Return positions where current-side state should reset."""
-    return [m.start() for m in _RESET_RE.finditer(text)]
+    """Return positions where current-side state should reset.
+
+    A dot wedged between two alphanumerics belongs to a token - an exchange
+    suffix ("CPX.TO", "9988.HK") or an abbreviation ("U.S") - not to a
+    sentence boundary, so it does not reset. Without this, the dot in
+    "Short CPX.TO or AQN" stranded AQN on default_long.
+    """
+    out: List[int] = []
+    for m in _RESET_RE.finditer(text):
+        pos = m.start()
+        if text[pos] == "." and 0 < pos < len(text) - 1:
+            if text[pos - 1].isalnum() and text[pos + 1].isalnum():
+                continue
+        out.append(pos)
+    return out
 
 
 def _side_at(pos: int,
@@ -193,18 +231,44 @@ def _side_at(pos: int,
 # Ticker token scanner
 # ---------------------------------------------------------------------------
 
-def _is_ticker_token(tok: str) -> bool:
-    if not tok or not tok[0].isalpha():
-        return False
-    upper = tok.upper()
+def _normalize_token(tok: str) -> str | None:
+    """Canonical ticker for a raw token, or None when it is not a ticker.
+
+    Keeps a valid exchange/class suffix attached ("CPX.TO", "BRK.B") so the
+    symbol stays priceable, and strips punctuation the scanners may capture
+    ("AQN." -> "AQN"). Returns None for stopwords and for dotted tokens whose
+    suffix is not a real exchange or share class ("U.S", "P.E").
+    """
+    if not tok:
+        return None
+    upper = tok.upper().strip().strip(".")
+    if not upper or not upper[0].isalpha():
+        return None
+
+    if "." in upper:
+        base, _, suffix = upper.partition(".")
+        if "." in suffix:
+            return None
+        if not (2 <= len(base) <= 5) or not base.isalpha():
+            return None
+        if suffix not in _VALID_SUFFIXES:
+            return None
+        if base in _STOPWORDS and base not in _FORCE_KEEP:
+            return None
+        return f"{base}.{suffix}"
+
     if upper in _FORCE_KEEP:
-        return True
+        return upper
     if upper in _STOPWORDS:
-        return False
+        return None
     # Single letters are almost always false-positive (sentence "I", etc.)
     if len(upper) == 1:
-        return False
-    return True
+        return None
+    return upper
+
+
+def _is_ticker_token(tok: str) -> bool:
+    return _normalize_token(tok) is not None
 
 
 def _scan_paren_tickers(text: str) -> List[Tuple[str, int, int]]:
@@ -216,9 +280,10 @@ def _scan_paren_tickers(text: str) -> List[Tuple[str, int, int]]:
         # Split on comma/slash/space
         for piece_match in re.finditer(r"[A-Z][A-Z0-9.]*", body):
             tok = piece_match.group(0)
-            if _is_ticker_token(tok):
+            norm = _normalize_token(tok)
+            if norm is not None:
                 out.append((
-                    tok,
+                    norm,
                     body_start + piece_match.start(),
                     body_start + piece_match.end(),
                 ))
@@ -237,8 +302,9 @@ def _scan_bare_tickers(text: str) -> List[Tuple[str, int, int]]:
     out: List[Tuple[str, int, int]] = []
     for m in _TICKER_RE.finditer(masked):
         tok = m.group(1)
-        if _is_ticker_token(tok):
-            out.append((tok, m.start(1), m.end(1)))
+        norm = _normalize_token(tok)
+        if norm is not None:
+            out.append((norm, m.start(1), m.end(1)))
     return out
 
 

@@ -7,10 +7,16 @@
 #   .\run.ps1 -SkipTrading             # skip trading analysis, run RedHood only
 #   .\run.ps1 -SkipRedHood             # skip RedHood, run trading analysis only
 #   .\run.ps1 -Timeline                # after the run, print page 1 of the historical timeline
+#   .\run.ps1 -SkipTerminal            # skip rebuilding docs/terminal.html
+#   .\run.ps1 -Candles                 # also top up OHLCV bars before building the terminal
 #
 # After each aggregation the Python side closes the loop automatically:
 # grades + long-ticker extraction, yfinance top-up (if installed), realised
 # forward returns (narrative_returns), regime_history row, docs/timeline.html.
+#
+# This runner then rebuilds docs/terminal.html - the RedHood Terminal, a
+# self-contained multi-panel terminal over everything in redhood.db
+# (redhood_terminal.py). Open it locally, or publish docs/ to GitHub Pages.
 #
 # Symbols: when -Symbols is not passed, the list is pulled from your merged
 # TradingView + Yahoo Finance watchlist (watchlist.py, backed by redhood.db).
@@ -28,7 +34,9 @@ param(
     [double]$InitialEquity  = 100000.0,
     [switch]$SkipTrading,
     [switch]$SkipRedHood,
-    [switch]$Timeline
+    [switch]$Timeline,
+    [switch]$SkipTerminal,                       # don't rebuild docs/terminal.html
+    [switch]$Candles                             # top up OHLCV bars first (needs network)
 )
 
 # Guard against the percentage/decimal confusion that silently saturated the sizer.
@@ -379,5 +387,25 @@ if (-not $SkipRedHood) {
     if ($Timeline) {
         Write-Host "`n=== Historical Timeline (page 1) ===" -ForegroundColor Green
         python "$ScriptDir\redhood_timeline.py" --page 1 --size 5
+    }
+}
+
+# --- RedHood Terminal -------------------------------------------------------
+# Rebuilt from redhood.db on every run so the published page always matches the
+# database. Independent of -SkipRedHood: the terminal is a view over stored
+# history, so it is worth refreshing even on a trading-only run.
+if (-not $SkipTerminal) {
+    if ($Candles) {
+        Write-Host "`nTopping up OHLCV bars..." -ForegroundColor Cyan
+        python "$ScriptDir\backfill_ohlcv.py" --period 2y --quiet
+    }
+    Write-Host "`nBuilding the RedHood Terminal..." -ForegroundColor Cyan
+    python "$ScriptDir\redhood_terminal.py" --html
+    if ($LASTEXITCODE -eq 0) {
+        $terminalPath = Join-Path $ScriptDir "docs\terminal.html"
+        Write-Host "  Terminal: $terminalPath" -ForegroundColor Green
+        Write-Host "  Live mode: python redhood_terminal.py --serve" -ForegroundColor DarkGray
+    } else {
+        Write-Warning "Terminal build failed (exit $LASTEXITCODE); docs\terminal.html left as-is."
     }
 }

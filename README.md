@@ -33,9 +33,10 @@
 - **Star-Schema Persistence:** Runs, feeds, narratives, tickers, grades, prices, earnings + Power BI views in `redhood.db`
 - **Power BI Export:** SQLite → Power BI pipeline with Power Query (M), DAX measures, and report layout (`powerbi/`)
 - **RedHood Reads HTML Report:** Styled editorial card report generated every run
-- **Account Management:** CLI tool to manage tracked X/Twitter accounts
+- **RedHood Terminal:** Keyboard-driven multi-panel terminal over the whole database — candlestick charts with volume and overlays, a sortable monitor, the narrative blotter, regime and realised-alpha analytics, and ▲ markers on the price showing where the system actually had a thesis and what it earned (`redhood_terminal.py`, `docs/terminal.html`)
+- **X/Twitter Archive:** the closed X record (2026-02 .. 2026-08) preserved in `twitter_archive` after Nitter's shutdown (`archive_twitter.py`)
 - **Trading System Analysis:** Thermodynamic position-sizing model via `run.ps1`
-- **Multi-Source Aggregation:** X/Twitter (via Nitter RSS, no API key required), Substack RSS, and public Telegram channels (via the `t.me/s/` web preview, no bot token required, paged back via `?before=` for high-volume channels — currently [@marketfeed](https://t.me/marketfeed) and [@tradehaven](https://t.me/tradehaven))
+- **Multi-Source Aggregation:** Substack RSS and public Telegram channels (via the `t.me/s/` web preview, no bot token required, paged back via `?before=` for high-volume channels — currently [@marketfeed](https://t.me/marketfeed), [@tradehaven](https://t.me/tradehaven), [@financefeeds](https://t.me/financefeeds), [@WatcherGuru](https://t.me/WatcherGuru), [@walterbloomberg](https://t.me/walterbloomberg), [@financialjuice](https://t.me/financialjuice) and [@ahboyashreads](https://t.me/ahboyashreads)). X/Twitter was dropped on 2026-11-01 when Nitter shut down; [@walterbloomberg](https://t.me/walterbloomberg) and [@financialjuice](https://t.me/financialjuice) are the Telegram mirrors of the X accounts that carried the most signal
 
 ---
 
@@ -43,7 +44,7 @@
 
 ```
 ┌─────────────────────────────────┐
-│  Data Sources                   │  Nitter RSS (X/Twitter), Substack RSS,
+│  Data Sources                   │  Substack RSS,
 └─────────────┬───────────────────┘  Telegram (t.me/s/ preview), Yahoo Finance
               │
               ▼
@@ -142,30 +143,91 @@ python redhood_timeline.py --html                # docs/timeline.html (paginated
 python redhood_timeline.py --flag                # recompute "seen N× before" flags
 ```
 
+### The RedHood Terminal
+
+A dense, keyboard-driven terminal over everything in `redhood.db` — price,
+narratives, regime and realised alpha on one surface. `run.ps1` rebuilds it
+after every run; `-SkipTerminal` opts out.
+
+```bash
+python redhood_terminal.py --html            # docs/terminal.html (self-contained, ~3.9 MB)
+python redhood_terminal.py --html --open     # ...and open it
+python redhood_terminal.py --serve           # live mode on :8787, with polled quotes
+python redhood_terminal.py --json out.json   # just the data bundle
+python redhood_terminal.py --stats           # what's in the bundle
+```
+
+**Panels.** A monitor (watchlist / narrative universe / all symbols, sortable,
+with sparklines); a candlestick chart with volume, SMA 20/50/200, Bollinger
+bands, log scale and a relative-to-SPY mode; the narrative blotter, filterable
+by grade and entropy band; a dossier panel showing either the full narrative
+(hypothesis, bear case, catalysts, disconfirming signals, realised return vs
+SPY) or the symbol's own narrative history; and six lower tabs — Returns,
+Regime, Alpha, Tape, Notes, Runs.
+
+**Narrative markers.** The ▲ markers under the price are the runs where the
+system actually had a thesis on that name, coloured by letter grade. Hover for
+the thesis and its excess return; click to open it. This is the thing a generic
+charting tool cannot show you: where the pipeline spoke, and what happened next.
+
+**Commands.** `/` focuses the command line. Type a symbol (`NVDA`), a symbol
+plus a function (`NVDA GP`, `SPY DES`), a function alone (`REG`, `ALPH`,
+`TAPE`, `NOTE`, `RUNS`, `TOP`), or free text to search narratives. `?` lists
+every key; `F1`–`F4` move between panels, `Z` full-screens one, `t` toggles
+light/dark.
+
+**Static vs live.** The static page bakes the bundle in, needs no server and no
+CDN, and publishes to GitHub Pages with the rest of `docs/`. `--serve` hands the
+identical page the same bundle over HTTP plus `/api/quotes` for polled quotes —
+one data adapter, so the UI is the same either way.
+
+### Candlestick data
+
+`redhood_pnl.py` caches closes only. To draw candles, fill the OHLCV columns:
+
+```bash
+python backfill_ohlcv.py                  # 2y of daily bars for every known symbol
+python backfill_ohlcv.py --missing-only   # only symbols that have no bars yet
+python backfill_ohlcv.py --symbols SPY NVDA --period 5y
+```
+
+`run.ps1 -Candles` does this before rebuilding the terminal. Symbols without
+OHLC still chart — they fall back to a line.
+
 ### Run Tests & Static Analysis
 
 ```bash
 pip install pytest ruff
 
-# Unit tests (47 tests — extraction, grading, Telegram scraper, DB schema)
+# Unit tests (141 tests — extraction, grading, Telegram scraper, DB schema, terminal bundle)
 pytest
 
 # Static analysis (also runs in CI on every push/PR)
 ruff check .
 ```
 
-### Manage Tracked Accounts
+### The X/Twitter Archive
+
+X was read through Nitter RSS, which needed no API key but relied on X's guest
+access tokens. Once those were withdrawn every public instance shut down
+(`nitter.net` answers 410 Gone, `nitter.privacydev.net` resolves to a null
+route, `nitter.poast.org` lost its DNS record), and the scraper was removed on
+2026-11-01. The last tweet collected was 2026-08-21.
+
+The 2,892 tweets gathered over the X era are preserved in `twitter_archive`:
 
 ```bash
-# List all tracked Twitter accounts
-python accounts_db.py --list
+# Re-file the archive (idempotent) and print a summary
+python archive_twitter.py
 
-# Add an account
-python accounts_db.py --add SomeHandle --category macro --notes "Description"
-
-# Toggle active/inactive
-python accounts_db.py --toggle FirstSquawk
+# Summary only
+python archive_twitter.py --summary
 ```
+
+The source rows deliberately stay in `feeds`. 1,265 `narrative_feeds` links
+reference them `ON DELETE CASCADE`, so deleting them would silently destroy the
+sourcing of every past narrative that cited a tweet. `twitter_accounts` keeps
+the tracked-handle roster, all rows marked inactive.
 
 ### Example Output
 
@@ -173,13 +235,9 @@ python accounts_db.py --toggle FirstSquawk
 📰 Fetching RSS feeds...
    ✅ Found 18 RSS items
 
-🐦 Fetching Twitter feeds...
-   📋 Active accounts from DB: @unusual_whales, @FirstSquawk, @AutismCapital...
-   ✅ Found 12 tweets
-
 📢 Fetching Telegram channels...
-   📋 Channels: @marketfeed, @tradehaven
-   ✅ Found 9 Telegram messages
+   📋 Channels: @marketfeed, @tradehaven, @financefeeds, @WatcherGuru, @walterbloomberg...
+   ✅ Found 73 Telegram messages
 
 📊 Total feeds collected: 39
 
@@ -211,12 +269,22 @@ Redhood-Systems/
 ├── redhood_aggregator.py       # Main aggregator + RedHood Reads HTML generator
 ├── redhood_regime_detector.py  # Thermodynamic regime detection v2 (calibrated; CRISIS reachable)
 ├── redhood_timeline.py         # Paginated history: prompt context, continuation flags, docs/timeline.html
+├── redhood_terminal.py         # The RedHood Terminal: data bundle + docs/terminal.html + --serve live mode
+├── backfill_ohlcv.py           # Fill open/high/low/volume on `prices` so the terminal can draw candles
+├── assets/terminal/            # Terminal front end (inlined into the single-file page at build time)
+│   ├── index.html              #   panel skeleton
+│   ├── terminal.css            #   theme + layout (dark/light, validated chart palette)
+│   ├── util.js                 #   formatting, static/live data adapter, indicator maths
+│   ├── chart.js                #   candlestick engine + the lower panels' small multiples
+│   ├── panels.js               #   monitor, blotter, dossier, the six lower tabs
+│   └── app.js                  #   state, command language, keyboard model
 ├── ticker_extraction.py        # Extract tickers + Long/Short/Hedge sides from hypotheses
 ├── redhood_grader.py           # Hypothesis grader (0–20 / A–F) + long-ticker extraction
 ├── score_narratives.py         # CLI: grade narratives → narrative_tickers + narrative_grades
 ├── redhood_pnl.py              # CLI: long-only P&L ledger via yfinance
 ├── backfill.py                 # Backfill narrative_tickers from historical narratives
-├── accounts_db.py             # CLI: manage tracked X/Twitter accounts in SQLite
+├── accounts_db.py             # CLI: the retired X/Twitter account roster
+├── archive_twitter.py          # CLI: file the closed X record into twitter_archive
 ├── models.py                  # SQLite star schema (tables + Power BI views) + init helpers
 ├── demo.py                    # Demo mode with sample data (no API key required)
 ├── run.ps1                    # PowerShell runner: trading analysis + aggregator
@@ -231,7 +299,7 @@ Redhood-Systems/
 │   ├── power_query.m          #   Power Query (M) source
 │   ├── dax_measures.dax       #   DAX measures
 │   └── report_layout.md       #   Report layout spec
-├── docs/                      # Published RedHood Reads + Power BI integration guide
+├── docs/                      # Published pages: latest.html, terminal.html, timeline.html, cards.html
 ├── PRD_RedHood_Systems.md    # Product Requirements Document
 ├── Market_Research_Analysis.md# Competitive analysis & market sizing
 ├── CASE_STUDY.md              # Portfolio case study
@@ -270,7 +338,7 @@ This repository contains key documents demonstrating PM skills:
 **Backend:**
 - Python 3.9+
 - Anthropic Claude API (claude-opus-4-8)
-- feedparser (RSS + Nitter RSS parsing)
+- feedparser (RSS parsing)
 - urllib + regex (public Telegram channel scraping via `t.me/s/`)
 - python-dotenv (environment config)
 - yfinance (optional — long-only P&L tracking)
@@ -297,11 +365,11 @@ This repository contains key documents demonstrating PM skills:
 
 ### Phase 1: MVP (Complete)
 - [x] RSS feed aggregation (Substack)
-- [x] X/Twitter via Nitter RSS (no API key required)
+- [x] X/Twitter via Nitter RSS — retired 2026-11-01, archived in `twitter_archive`
 - [x] Claude AI narrative extraction
 - [x] Entropy risk scoring
 - [x] SQLite persistence (runs, feeds, narratives)
-- [x] Account management CLI (accounts_db.py)
+- [x] Account management CLI (accounts_db.py) — roster retired with the X source
 - [x] RedHood Reads HTML report (generated each run)
 - [x] Trading system analysis with thermodynamic sizing (run.ps1)
 - [x] .env support for API key management
@@ -394,8 +462,8 @@ As a trader and market analyst, I was spending 3+ hours daily across Twitter, Su
 
 **AI & APIs:**
 - [Anthropic Claude API](https://docs.anthropic.com/)
-- [Nitter](https://nitter.net/) — Twitter RSS proxy (no API key required)
-- [Telegram web preview](https://t.me/s/marketfeed) — public channel scraping (no bot token required; also [@tradehaven](https://t.me/s/tradehaven))
+- [Nitter](https://nitter.net/) — Twitter RSS proxy, used until its 2026 shutdown
+- [Telegram web preview](https://t.me/s/marketfeed) — public channel scraping (no bot token required; also [@tradehaven](https://t.me/s/tradehaven), [@financefeeds](https://t.me/s/financefeeds), [@WatcherGuru](https://t.me/s/WatcherGuru) and [@ahboyashreads](https://t.me/s/ahboyashreads))
 - [Yahoo Finance API](https://query1.finance.yahoo.com/) — market data for trading analysis (incl. `$BLSH` / Bullish)
 
 ---

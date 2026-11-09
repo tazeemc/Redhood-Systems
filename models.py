@@ -24,6 +24,8 @@ History additions (paper v3, October 2026 — closing the loop):
                         (narrative, ticker) pair vs SPY (5 / 20 / 60 days, to date)
     narratives.prior_mentions / continuation_of - how often the narrative's theme
                         had already appeared, and which earlier narrative it continues
+    analyst_notes     - fact: human/AI TL;DR summaries and alpha verdicts attached to a
+                        run (and optionally to the narrative / regime row they discuss)
 
 Power BI compatibility views (consumed directly by the .pbix):
     dim_runs, fact_narratives, fact_narratives_ticker,
@@ -112,6 +114,39 @@ CREATE TABLE IF NOT EXISTS narrative_feeds (
     feed_id         TEXT    NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
     PRIMARY KEY (narrative_id, feed_id)
 );
+
+-- -----------------------------------------------------------------------
+-- twitter_archive
+--   Closed record of the X/Twitter era (2026-02-22 .. 2026-08-21).
+--
+--   X was read through Nitter RSS, which required no API key. Nitter depended
+--   on X's guest access tokens; when those were withdrawn the public instances
+--   shut down (nitter.net now answers 410 Gone, nitter.privacydev.net resolves
+--   to a null route, nitter.poast.org lost its DNS record) and the scraper was
+--   removed. No tweet has been collected since 2026-08-21T03:08:01.
+--
+--   This is a FLAT, STANDALONE snapshot: it denormalises run_at and the
+--   narrative citation count so the X record stays readable on its own once
+--   the live pipeline no longer knows what a tweet is. The source rows are
+--   deliberately LEFT IN feeds -- 1,265 of them are cited by narrative_feeds
+--   (ON DELETE CASCADE), so deleting them would silently destroy the sourcing
+--   of past narratives. Treat this table as append-only history, not a feed.
+-- -----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS twitter_archive (
+    feed_id         TEXT    PRIMARY KEY,
+    run_id          INTEGER NOT NULL,
+    run_at          TEXT,
+    handle          TEXT    NOT NULL,
+    content         TEXT,
+    published_at    TEXT    NOT NULL,
+    url             TEXT,
+    nitter_instance TEXT,
+    narrative_count INTEGER NOT NULL DEFAULT 0,
+    archived_at     TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_twarchive_handle    ON twitter_archive(handle);
+CREATE INDEX IF NOT EXISTS idx_twarchive_published ON twitter_archive(published_at);
 """
 
 
@@ -314,6 +349,31 @@ CREATE TABLE IF NOT EXISTS narrative_returns (
     computed_at     TEXT    NOT NULL,
     PRIMARY KEY (narrative_id, ticker)
 );
+
+-- -----------------------------------------------------------------------
+-- analyst_notes  (fact)
+--   TL;DR summaries and alpha verdicts baked into the ledger after a run:
+--   the "what did we conclude" record that sits next to the regime state and
+--   the narratives it discusses. One row per note; `tldr` is the short form
+--   (2-4 sentences), `body` the full Markdown. alpha_verdict is a controlled
+--   label (positive | near_zero | negative | hedge_only); alpha_score a
+--   subjective -1..+1 scalar for sorting. Written by models.insert_analyst_note.
+-- -----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS analyst_notes (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id          INTEGER REFERENCES runs(id) ON DELETE CASCADE,
+    narrative_id    TEXT    REFERENCES narratives(id) ON DELETE SET NULL,
+    regime_id       INTEGER REFERENCES regime_history(id) ON DELETE SET NULL,
+    created_at      TEXT    NOT NULL,                 -- ISO-8601 UTC
+    author          TEXT    NOT NULL,                 -- e.g. "claude-fable-5-1" | "ctazeem"
+    kind            TEXT    NOT NULL DEFAULT 'tldr',  -- tldr | postmortem | memo
+    title           TEXT    NOT NULL,
+    tldr            TEXT    NOT NULL,                 -- short form
+    body            TEXT    NOT NULL,                 -- full Markdown
+    alpha_verdict   TEXT,                             -- positive | near_zero | negative | hedge_only
+    alpha_score     REAL,                             -- -1..+1
+    tags            TEXT    NOT NULL DEFAULT '[]'     -- JSON array of strings
+);
 """
 
 
@@ -336,6 +396,8 @@ CREATE INDEX IF NOT EXISTS idx_earnings_report_date     ON earnings(report_date)
 CREATE INDEX IF NOT EXISTS idx_regime_history_run       ON regime_history(run_id);
 CREATE INDEX IF NOT EXISTS idx_regime_history_time      ON regime_history(computed_at);
 CREATE INDEX IF NOT EXISTS idx_narrative_returns_ticker ON narrative_returns(ticker);
+CREATE INDEX IF NOT EXISTS idx_analyst_notes_run       ON analyst_notes(run_id);
+CREATE INDEX IF NOT EXISTS idx_analyst_notes_time      ON analyst_notes(created_at);
 """
 
 
@@ -516,6 +578,29 @@ SELECT
 FROM narrative_returns r
 JOIN narratives n ON n.id = r.narrative_id;
 
+DROP VIEW IF EXISTS fact_analyst_notes;
+CREATE VIEW fact_analyst_notes AS
+SELECT
+    a.id,
+    a.run_id,
+    DATE(a.created_at)    AS created_date,
+    a.created_at,
+    a.author,
+    a.kind,
+    a.title,
+    a.tldr,
+    a.alpha_verdict,
+    a.alpha_score,
+    a.tags,
+    a.narrative_id,
+    n.title               AS narrative_title,
+    a.regime_id,
+    g.label               AS regime_label,
+    g.signal_multiplier
+FROM analyst_notes a
+LEFT JOIN narratives      n ON n.id = a.narrative_id
+LEFT JOIN regime_history  g ON g.id = a.regime_id;
+
 DROP VIEW IF EXISTS dim_watchlist;
 CREATE VIEW dim_watchlist AS
 SELECT
@@ -597,6 +682,38 @@ def init_schema(db_path: str = DB_PATH):
     finally:
         conn.close()
     print(f"Schema applied: {db_path}")
+
+
+def insert_analyst_note(run_id, title, tldr, body, *, author, kind='tldr',
+                        narrative_id=None, regime_id=None, alpha_verdict=None,
+                        alpha_score=None, tags=(), created_at=None,
+                        db_path: str = DB_PATH) -> int:
+    """Append one row to analyst_notes and return its id.
+
+    regime_id defaults to the latest regime_history row for run_id, so a note
+    is pinned to the regime state the report was generated under.
+    """
+    import json
+    from datetime import datetime, timezone
+    created_at = created_at or datetime.now(timezone.utc).isoformat()
+    conn = sqlite3.connect(db_path)
+    try:
+        if regime_id is None and run_id is not None:
+            row = conn.execute(
+                "SELECT id FROM regime_history WHERE run_id = ? ORDER BY id DESC LIMIT 1",
+                (run_id,)).fetchone()
+            regime_id = row[0] if row else None
+        cur = conn.execute(
+            """INSERT INTO analyst_notes
+               (run_id, narrative_id, regime_id, created_at, author, kind, title,
+                tldr, body, alpha_verdict, alpha_score, tags)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (run_id, narrative_id, regime_id, created_at, author, kind, title,
+             tldr, body, alpha_verdict, alpha_score, json.dumps(list(tags))))
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
 
 
 def describe(db_path: str = DB_PATH):
