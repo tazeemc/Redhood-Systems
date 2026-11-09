@@ -90,6 +90,11 @@ pip install -r requirements.txt
 echo ANTHROPIC_API_KEY=sk-ant-your-key-here > .env
 ```
 
+`redhood.db` is local state, not versioned: the first run applies the schema and
+builds it up from there, so a fresh clone starts with an empty history. Keep your
+own copy out of harm's way — the paper's analysis scripts under `paper/analysis/`
+read it, and `backfill.py` brings an older database up to the current schema.
+
 ### Run via PowerShell (Recommended)
 
 ```powershell
@@ -288,7 +293,7 @@ Redhood-Systems/
 ├── models.py                  # SQLite star schema (tables + Power BI views) + init helpers
 ├── demo.py                    # Demo mode with sample data (no API key required)
 ├── run.ps1                    # PowerShell runner: trading analysis + aggregator
-├── redhood.db                 # SQLite database (star schema)
+├── redhood.db                 # SQLite database (star schema) — local, not versioned
 ├── requirements.txt           # Python dependencies
 ├── pyproject.toml             # pytest + ruff configuration
 ├── tests/                     # Unit test suite (pytest, network-free)
