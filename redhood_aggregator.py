@@ -36,7 +36,6 @@ import feedparser
 from anthropic import Anthropic
 from dotenv import load_dotenv
 import card_history
-from accounts_db import get_active_handles, init_db
 from models import DB_PATH, init_schema
 
 from ticker_extraction import (
@@ -81,21 +80,15 @@ class Config:
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
 
     # Feed Sources (customize these!)
-    TWITTER_ACCOUNTS = [
-        'unusual_whales',
-        'FirstSquawk',
-        'AutismCapital',
-        'Mayhem4Markets',
-        'BasedBiohacker',
-        'financialjuice',
-    ]
-
-    # Nitter instances to try in order (free, no API key required)
-    NITTER_INSTANCES = [
-        'nitter.poast.org',
-        'nitter.privacydev.net',
-        'nitter.net',
-    ]
+    #
+    # X/Twitter was dropped on 2026-11-01. It was read through Nitter RSS, which
+    # needed no API key but depended on X's guest access tokens; once those were
+    # withdrawn every public instance shut down (nitter.net answers 410 Gone,
+    # nitter.privacydev.net resolves to a null route, nitter.poast.org lost its
+    # DNS record), and no tweet had been collected since 2026-08-21. The closed
+    # record lives in the twitter_archive table -- see archive_twitter.py.
+    # @DeItaone and @financialjuice are still covered, via their Telegram
+    # mirrors @walterbloomberg and @financialjuice below.
 
     SUBSTACK_FEEDS = [
         'https://arbitrageandy.substack.com/feed',
@@ -107,10 +100,16 @@ class Config:
     ]
 
     # Public Telegram channels (scraped via the t.me/s/ web preview — no API key
-    # or bot token required, mirroring the Nitter approach for X/Twitter).
+    # or bot token required). This is now the pipeline's only social source.
     TELEGRAM_CHANNELS = [
-        'marketfeed',     # high-volume macro/markets headline wire
-        'tradehaven',     # macro / geopolitics / rates-FX wire with a daily KEY DATA calendar
+        'marketfeed',      # high-volume macro/markets headline wire
+        'tradehaven',      # macro / geopolitics / rates-FX wire with a daily KEY DATA calendar
+        'financefeeds',    # markets + macro headlines, equities and crypto mixed
+        'WatcherGuru',     # breaking crypto/markets wire, very high volume
+        # Mirrors of X accounts the pipeline lost when Nitter shut down.
+        'walterbloomberg',  # terminal headlines; the mirror of X's @DeItaone
+        'financialjuice',   # macro squawk; the mirror of X's @financialjuice
+        'ahboyashreads',   # on-chain security, exploit and protocol-risk reads
     ]
     # Each t.me/s/ page holds ~20 posts. Paging back (via ?before=<id>) stops
     # once a channel reaches the window's cutoff; this ceiling is only a safety
@@ -304,89 +303,12 @@ class RSSFeedScraper:
         return items
 
 
-class NitterScraper:
-    """Scraper for X/Twitter via Nitter RSS (no API key required)"""
-
-    def __init__(self, instances: list[str]):
-        self.instances = instances
-
-    def _rss_url(self, instance: str, account: str) -> str:
-        return f"https://{instance}/{account}/rss"
-
-    def fetch(self, accounts: list[str], hours_back: float = 24) -> list[FeedItem]:
-        """Fetch recent tweets via Nitter RSS, trying each instance per account."""
-        items = []
-        cutoff_time = datetime.now() - timedelta(hours=hours_back)
-
-        for account in accounts:
-            fetched = False
-            reasons = []
-            for instance in self.instances:
-                url = self._rss_url(instance, account)
-                try:
-                    feed = feedparser.parse(url)
-                    if not feed.entries:
-                        # No entries means no fetch, whether the body was
-                        # malformed or a valid-but-empty 200 (which rate-limited
-                        # instances return). Previously only the malformed case
-                        # was caught, so an empty 200 counted as success, ended
-                        # the failover loop and silently dropped the account.
-                        reasons.append(
-                            f"{instance}: no entries "
-                            f"({'malformed' if feed.bozo else 'empty response'})"
-                        )
-                        continue
-
-                    # Filter by the requested window rather than truncating to a
-                    # fixed slice: a fixed head-slice applied before the cutoff
-                    # capped busy accounts far short of long -hours windows.
-                    added = 0
-                    for entry in feed.entries:
-                        if not entry.get('published_parsed'):
-                            continue
-                        pub_date = datetime(*entry.published_parsed[:6])
-                        if pub_date < cutoff_time:
-                            continue
-                        # Nitter links point back to nitter; rewrite to x.com
-                        link = entry.get('link', '')
-                        link = link.replace(f'https://{instance}', 'https://x.com')
-                        item = FeedItem(
-                            source='twitter',
-                            author=f"@{account}",
-                            content=entry.get('summary', entry.get('title', '')),
-                            timestamp=pub_date,
-                            url=link,
-                            metadata={'nitter_instance': instance}
-                        )
-                        items.append(item)
-                        added += 1
-
-                    # A real feed with nothing inside the window is a genuine
-                    # fetch; another instance would serve the same tweets.
-                    fetched = True
-                    if added:
-                        print(f"   ✅ @{account}: {added} tweets via {instance}")
-                    else:
-                        print(f"   ℹ️  @{account}: fetched via {instance}, "
-                              f"but no tweets in the last {hours_back:g}h")
-                    break
-                except Exception as e:
-                    reasons.append(f"{instance}: {e}")
-
-            if not fetched:
-                print(f"⚠️  Could not fetch @{account} from any Nitter instance")
-                for reason in reasons:
-                    print(f"      - {reason}")
-
-        return items
-
-
 class TelegramScraper:
     """Scraper for public Telegram channels via the t.me web preview.
 
     Public channels expose a read-only HTML preview at ``https://t.me/s/<channel>``
     that lists recent messages without requiring an API key or bot token — the
-    same "no credentials" philosophy used for X/Twitter via Nitter.
+    "no credentials" philosophy the retired Nitter scraper also followed.
     """
 
     _PREVIEW_URL = 'https://t.me/s/{channel}'
@@ -998,11 +920,9 @@ class RedHoodAggregator:
     def __init__(self):
         self.config = Config()
         init_schema()  # ensure all tables exist (runs, feeds, narratives, etc.)
-        init_db()      # seed default twitter accounts if not present
 
         # Initialize scrapers
         self.rss_scraper = RSSFeedScraper()
-        self.twitter_scraper = NitterScraper(self.config.NITTER_INSTANCES)
         self.telegram_scraper = TelegramScraper()
 
         # Initialize AI engine
@@ -1082,13 +1002,6 @@ class RedHoodAggregator:
         rss_feeds = self.rss_scraper.fetch(self.config.SUBSTACK_FEEDS, hours_back)
         all_feeds.extend(rss_feeds)
         print(f"   ✅ Found {len(rss_feeds)} RSS items\n")
-
-        print("🐦 Fetching Twitter feeds...")
-        accounts = get_active_handles() or self.config.TWITTER_ACCOUNTS
-        print(f"   📋 Active accounts from DB: {', '.join('@' + a for a in accounts)}")
-        twitter_feeds = self.twitter_scraper.fetch(accounts, hours_back)
-        all_feeds.extend(twitter_feeds)
-        print(f"   ✅ Found {len(twitter_feeds)} tweets\n")
 
         print("📢 Fetching Telegram channels...")
         channels = self.config.TELEGRAM_CHANNELS
@@ -1239,6 +1152,16 @@ class RedHoodAggregator:
                         tickers = [r[0] for r in conn.execute(
                             "SELECT DISTINCT nt.ticker FROM narrative_tickers nt JOIN narratives n ON n.id = nt.narrative_id "
                             "WHERE nt.is_long_equity = 1 AND n.created_at >= ?", (cutoff,)).fetchall()]
+                        # Rows stored before a stoplist/suffix fix can still name
+                        # a non-symbol (run 53 stored GPU as a long equity), and
+                        # every later run would re-request it from Yahoo and warn.
+                        # Skip them here so old data cannot cost a network call.
+                        from ticker_extraction import NON_TICKER_TOKENS
+                        skipped = sorted({t for t in tickers if t.upper() in NON_TICKER_TOKENS})
+                        if skipped:
+                            print("   ⚠️  Skipping %d non-symbol ticker row(s) from earlier runs: %s"
+                                  % (len(skipped), ", ".join(skipped)))
+                        tickers = [t for t in tickers if t.upper() not in NON_TICKER_TOKENS]
                         n_rows = 0
                         for t in tickers + [redhood_pnl.BENCHMARK]:
                             n_rows += redhood_pnl.update_cache(conn, t, since='2026-01-01')
@@ -1472,7 +1395,7 @@ class RedHoodAggregator:
         EMBED_LIMIT = 55
 
         def _tweet_text(s, limit=280):
-            t = _re.sub(r'<[^>]+>', ' ', s or '')   # strip Nitter HTML
+            t = _re.sub(r'<[^>]+>', ' ', s or '')   # strip feed HTML
             t = H.unescape(t)
             t = _re.sub(r'\s+', ' ', t).strip()
             return t[:limit] + ('…' if len(t) > limit else '')
@@ -2254,11 +2177,10 @@ class RedHoodAggregator:
             for feed in all_feeds:
                 new_feeds += conn.execute(
                     """INSERT OR IGNORE INTO feeds
-                       (id, run_id, source, author, content, published_at, url, nitter_instance)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                       (id, run_id, source, author, content, published_at, url)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
                     (feed.id, run_id, feed.source, feed.author, feed.content,
-                     feed.timestamp.isoformat(), feed.url,
-                     feed.metadata.get('nitter_instance'))
+                     feed.timestamp.isoformat(), feed.url)
                 ).rowcount
 
             ticker_rows_total = 0

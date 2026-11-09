@@ -45,7 +45,8 @@ class _FakeMessages:
 
 def _feeds():
     now = datetime.now()
-    return [FeedItem('twitter', '@a', f'headline {i}', now - timedelta(minutes=i), url=f'https://x.com/a/{i}')
+    return [FeedItem('telegram', '@a', f'headline {i}', now - timedelta(minutes=i),
+                     url=f'https://t.me/a/{i}')
             for i in range(3)]
 
 
@@ -74,8 +75,7 @@ def pipeline(tmp_path, monkeypatch):
     import os
     os.makedirs(a.config.OUTPUT_DIR, exist_ok=True)
     a.rss_scraper = type('S', (), {'fetch': lambda self, *_a, **_k: []})()
-    a.twitter_scraper = type('S', (), {'fetch': lambda self, *_a, **_k: _feeds()})()
-    a.telegram_scraper = type('S', (), {'fetch': lambda self, *_a, **_k: []})()
+    a.telegram_scraper = type('S', (), {'fetch': lambda self, *_a, **_k: _feeds()})()
     extractor = NarrativeExtractor.__new__(NarrativeExtractor)
     extractor.model = 'test'
     extractor.client = type('Client', (), {})()

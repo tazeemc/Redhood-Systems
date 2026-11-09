@@ -114,6 +114,39 @@ CREATE TABLE IF NOT EXISTS narrative_feeds (
     feed_id         TEXT    NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
     PRIMARY KEY (narrative_id, feed_id)
 );
+
+-- -----------------------------------------------------------------------
+-- twitter_archive
+--   Closed record of the X/Twitter era (2026-02-22 .. 2026-08-21).
+--
+--   X was read through Nitter RSS, which required no API key. Nitter depended
+--   on X's guest access tokens; when those were withdrawn the public instances
+--   shut down (nitter.net now answers 410 Gone, nitter.privacydev.net resolves
+--   to a null route, nitter.poast.org lost its DNS record) and the scraper was
+--   removed. No tweet has been collected since 2026-08-21T03:08:01.
+--
+--   This is a FLAT, STANDALONE snapshot: it denormalises run_at and the
+--   narrative citation count so the X record stays readable on its own once
+--   the live pipeline no longer knows what a tweet is. The source rows are
+--   deliberately LEFT IN feeds -- 1,265 of them are cited by narrative_feeds
+--   (ON DELETE CASCADE), so deleting them would silently destroy the sourcing
+--   of past narratives. Treat this table as append-only history, not a feed.
+-- -----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS twitter_archive (
+    feed_id         TEXT    PRIMARY KEY,
+    run_id          INTEGER NOT NULL,
+    run_at          TEXT,
+    handle          TEXT    NOT NULL,
+    content         TEXT,
+    published_at    TEXT    NOT NULL,
+    url             TEXT,
+    nitter_instance TEXT,
+    narrative_count INTEGER NOT NULL DEFAULT 0,
+    archived_at     TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_twarchive_handle    ON twitter_archive(handle);
+CREATE INDEX IF NOT EXISTS idx_twarchive_published ON twitter_archive(published_at);
 """
 
 
