@@ -1,0 +1,1 @@
+Correction: redhood.db is not in this commit. The preceding commit 0ced534 picked up the same working-tree file first, so git dropped it here as a no-op. The OHLCV backfill is in history, one commit earlier.
