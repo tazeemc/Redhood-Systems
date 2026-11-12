@@ -9,6 +9,7 @@
 #   .\run.ps1 -Timeline                # after the run, print page 1 of the historical timeline
 #   .\run.ps1 -SkipTerminal            # skip rebuilding docs/terminal.html
 #   .\run.ps1 -Candles                 # also top up OHLCV bars before building the terminal
+#   .\run.ps1 -Edition "Special Nightly Edition"   # relabel the report masthead for a one-off run
 #
 # After each aggregation the Python side closes the loop automatically:
 # grades + long-ticker extraction, yfinance top-up (if installed), realised
@@ -36,7 +37,8 @@ param(
     [switch]$SkipRedHood,
     [switch]$Timeline,
     [switch]$SkipTerminal,                       # don't rebuild docs/terminal.html
-    [switch]$Candles                             # top up OHLCV bars first (needs network)
+    [switch]$Candles,                            # top up OHLCV bars first (needs network)
+    [string]$Edition        = ''                 # masthead label; empty => "Live Edition"
 )
 
 # Guard against the percentage/decimal confusion that silently saturated the sizer.
@@ -378,11 +380,13 @@ if (-not $SkipRedHood) {
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
     $latestTradingJson = Join-Path $ScriptDir "data\latest_trading.json"
+    # Splat the optional args so an empty -Edition doesn't pass --edition "".
+    $aggArgs = @("--hours", $Hours)
     if (-not $SkipTrading -and (Test-Path $latestTradingJson)) {
-        python "$ScriptDir\redhood_aggregator.py" --hours $Hours --trading-json $latestTradingJson
-    } else {
-        python "$ScriptDir\redhood_aggregator.py" --hours $Hours
+        $aggArgs += @("--trading-json", $latestTradingJson)
     }
+    if ($Edition) { $aggArgs += @("--edition", $Edition) }
+    python "$ScriptDir\redhood_aggregator.py" @aggArgs
 
     if ($Timeline) {
         Write-Host "`n=== Historical Timeline (page 1) ===" -ForegroundColor Green
