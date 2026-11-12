@@ -22,6 +22,7 @@ Dependencies:
 
 import os
 import re
+import http.client
 import json
 import time
 import base64
@@ -782,6 +783,12 @@ class GitHubPagesPublisher:
     BRANCH    = "main"
     DOCS_PATH = "docs"
     BASE_URL  = "https://tazeemc.github.io/Redhood-Systems"
+    # The terminal is multi-megabyte and cards_history.json grows every run, so
+    # a single flat 20s budget timed both of them out. Reads get room for a slow
+    # body; writes get more, because the payload is base64 and uploaded whole.
+    GET_TIMEOUT = 60
+    PUT_TIMEOUT = 180
+    GET_RETRIES = 3
 
     def __init__(self, token: str):
         self._headers = {
@@ -796,7 +803,7 @@ class GitHubPagesPublisher:
                f"/contents/{path}?ref={self.BRANCH}")
         req = urllib.request.Request(url, headers=self._headers)
         try:
-            with urllib.request.urlopen(req, timeout=10) as r:
+            with urllib.request.urlopen(req, timeout=self.GET_TIMEOUT) as r:
                 return json.loads(r.read()).get("sha")
         except urllib.error.HTTPError as e:
             if e.code == 404:
@@ -820,7 +827,7 @@ class GitHubPagesPublisher:
             headers={**self._headers, "Content-Type": "application/json"},
             method="PUT",
         )
-        with urllib.request.urlopen(req, timeout=20) as r:
+        with urllib.request.urlopen(req, timeout=self.PUT_TIMEOUT) as r:
             return json.loads(r.read())
 
     def publish(self, html_path: str) -> str:
@@ -886,13 +893,22 @@ class GitHubPagesPublisher:
                f"/contents/{path}?ref={self.BRANCH}")
         req = urllib.request.Request(
             url, headers={**self._headers, "Accept": "application/vnd.github.raw"})
-        try:
-            with urllib.request.urlopen(req, timeout=20) as r:
-                return r.read().decode("utf-8")
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                return None
-            raise
+        for attempt in range(1, self.GET_RETRIES + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=self.GET_TIMEOUT) as r:
+                    return r.read().decode("utf-8")
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    return None
+                raise
+            except (TimeoutError, http.client.IncompleteRead, urllib.error.URLError) as e:
+                # A large blob sometimes arrives truncated; that is transient and
+                # worth another go rather than silently losing the run's cards.
+                if attempt == self.GET_RETRIES:
+                    raise
+                print(f"   ... re-reading {path} after {type(e).__name__} "
+                      f"(attempt {attempt}/{self.GET_RETRIES})")
+        return None
 
     def _publish_card_history(self, html: str, filename: str, ts: str):
         """Fold this report's signal cards into docs/cards_history.json and re-render docs/cards.html."""
@@ -917,8 +933,17 @@ class GitHubPagesPublisher:
 class RedHoodAggregator:
     """Main orchestrator for feed aggregation and analysis"""
 
-    def __init__(self):
+    DEFAULT_EDITION = 'Live Edition'
+    # Class-level default so the label resolves even on instances built
+    # without __init__ - the report tests construct one that way.
+    edition = DEFAULT_EDITION
+
+    def __init__(self, edition: str | None = None):
         self.config = Config()
+        # Masthead label in the report topbar. Every ordinary run is the "Live
+        # Edition"; a one-off (an after-hours wrap, a holiday run) can say so
+        # without the page pretending it was scheduled.
+        self.edition = (edition or '').strip() or self.DEFAULT_EDITION
         init_schema()  # ensure all tables exist (runs, feeds, narratives, etc.)
 
         # Initialize scrapers
@@ -1672,6 +1697,7 @@ class RedHoodAggregator:
             .replace('%%TERMINAL_EMBED%%',    terminal_embed)
             .replace('%%POSTURE%%',           posture_html)
             .replace('%%RUN_ISO%%',           run_iso)
+            .replace('%%EDITION%%',           H.escape(self.edition))
             .replace('%%TOPBAR_DATE%%',       f'{run_date_full} &nbsp;|&nbsp; Week {week_num:02d}')
             .replace('%%ISSUE_NUM%%',         f'Run &middot; {window_label} &middot; {run_time_short}')
             .replace('%%VOL_NUM%%',           str(dt.strftime('%d')))
@@ -1996,7 +2022,7 @@ class RedHoodAggregator:
   <div class="topbar">
     <div class="topbar-left">
       <div class="pulse"></div>
-      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+      <span class="topbar-label">RedHood Reads &middot; %%EDITION%%</span>
       %%POSTURE%%
     </div>
     <span class="topbar-date">%%TOPBAR_DATE%% &middot; <span id="dataAge" data-runts="%%RUN_ISO%%">live</span></span>
@@ -2337,6 +2363,12 @@ def main():
         default=None,
         help='Path to latest_trading.json produced by run.ps1'
     )
+    parser.add_argument(
+        '--edition',
+        type=str,
+        default=None,
+        help=f'Masthead edition label in the report topbar (default: {RedHoodAggregator.DEFAULT_EDITION})'
+    )
 
     args = parser.parse_args()
 
@@ -2360,7 +2392,7 @@ def main():
         return
 
     # Run aggregator
-    aggregator = RedHoodAggregator()
+    aggregator = RedHoodAggregator(edition=args.edition)
     results = aggregator.run(hours_back=args.hours, trading_json=args.trading_json)
 
     print("\n✅ Pipeline complete!")
