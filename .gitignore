@@ -32,7 +32,11 @@ compressed context*.md
 .DS_Store
 Thumbs.db
 
-# Local database backups
+# Local database (per-run state; the pipeline applies the schema on startup)
+redhood.db
+redhood.db-journal
+redhood.db-wal
+redhood.db-shm
 redhood.db.bak-*
 
 # Stray wheel downloads
