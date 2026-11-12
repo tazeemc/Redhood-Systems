@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHood Reads — 2026-11-12 17:55</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
+    --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
+    --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
+    --purple: #7B4FD6; --pink: #E8517A; --tangerine: #F47B3A;
+  }
+  body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6; }
+  .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
+    border: 1px solid rgba(123,79,214,0.3); z-index: 1; overflow: hidden;
+    box-shadow: 0 0 40px rgba(123,79,214,0.06), 0 0 80px rgba(232,81,122,0.03); }
+  .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
+    height: 200px; background: linear-gradient(135deg, var(--purple), var(--pink));
+    transform: rotate(45deg); opacity: 0.1; }
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px; border-bottom: 1px solid rgba(123,79,214,0.15);
+    background: rgba(123,79,214,0.04); }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--pink);
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,81,122,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(232,81,122,0); }
+  }
+  .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); font-weight: 500; }
+  .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
+    background: var(--mid); padding: 7px 0; }
+  .ticker-inner { display: flex; gap: 0; animation: ticker 28s linear infinite; white-space: nowrap; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
+    font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
+  .tick-sym { color: var(--tangerine); font-weight: 500; }
+  .tick-val { color: var(--cream); }
+  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
+  .up { color: #4CAF50; } .down { color: var(--red); }
+  .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
+  .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .issue-num { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); }
+  .issue-rule { flex: 1; height: 1px; background: linear-gradient(to right, var(--wire), transparent); }
+  .masthead { font-family: "Playfair Display", serif; font-weight: 900;
+    font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
+    color: var(--cream); margin-bottom: 6px; }
+  .masthead .red-accent { color: var(--red); font-style: italic; }
+  .site-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 14px;
+              font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.22em;
+              text-transform: uppercase; }
+  .site-nav a { color: var(--text-muted); text-decoration: none; border-bottom: 1px solid transparent;
+                padding-bottom: 2px; transition: color .15s, border-color .15s; }
+  .site-nav a:hover { color: var(--cream); border-bottom-color: var(--gold); }
+  .site-nav .site-nav-cta { color: var(--cream); border: 1px solid var(--red);
+                            padding: 4px 10px; border-radius: 2px; }
+  .site-nav .site-nav-cta:hover { background: var(--red); color: #fff; border-bottom-color: var(--red); }
+  .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--tangerine); margin-bottom: 28px; }
+  .headline-block { max-width: 620px; }
+  .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
+    line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
+  .deck { font-size: 10.5px; line-height: 1.7; color: var(--text-muted);
+    letter-spacing: 0.03em; max-width: 540px; }
+  .corner-deco { position: absolute; top: 44px; right: 40px; text-align: right; }
+  .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
+    text-transform: uppercase; }
+  .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
+    font-weight: 900; color: rgba(123,79,214,0.15); line-height: 1; letter-spacing: -0.04em; }
+  .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--wire); }
+  .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
+  .grid-col:last-child { border-right: none; }
+  .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 10px; font-weight: 500; }
+  .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
+    line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
+  .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
+  .bar { flex: 1; background: var(--wire); border-radius: 1px; }
+  .bar.hi { background: rgba(244,123,58,0.55); }
+  .bar.lo { background: rgba(193,18,31,0.5); }
+  .bar.mid-hi { background: rgba(232,81,122,0.45); }
+  .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--wire); }
+  .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
+  .metric:last-child { border-right: none; }
+  .metric-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .metric-val { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
+  .metric-delta.up { color: #4CAF50; }
+  .metric-delta.dn { color: var(--red); }
+  .metric-delta.neutral { color: var(--tangerine); }
+  .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
+    display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
+  .thought-rule { background: linear-gradient(to bottom, var(--purple), var(--pink), transparent);
+    height: 100%; min-height: 60px; }
+  .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 8px; font-weight: 500; }
+  .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
+    line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
+  .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 14px; font-weight: 500; }
+  .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
+  .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
+    border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
+  .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top; }
+  .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
+  .author { color: var(--tangerine); white-space: nowrap; width: 140px; }
+  .links-table a { color: var(--pink); text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; color: var(--cream); }
+  .feed-num { color: var(--text-muted); width: 28px; text-align: right; padding-right: 14px; font-size: 8px; letter-spacing: 0.05em; }
+  .feed-link { color: var(--purple) !important; text-decoration: none !important; border-bottom: 1px solid rgba(123,79,214,0.4); }
+  .feed-link:hover { color: var(--cream) !important; }
+  tr:target { background: rgba(123,79,214,0.08); outline: 1px solid rgba(123,79,214,0.3); }
+  .embeds-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  /* ---- SIGINT signal cards (tactical trade-reference look) ---- */
+  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+    gap: 14px; align-items: stretch; }
+  .tweet-embed { min-width: 0; display: flex; }
+  .tweet-embed:target .tw-card { outline: 1px solid rgba(184,151,90,0.55); outline-offset: 2px; }
+  .tw-card { position: relative; display: flex; flex-direction: column; width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+    border: 1px solid var(--wire); border-left: 2px solid var(--tangerine);
+    padding: 12px 14px; font-size: 10px; line-height: 1.65;
+    color: rgba(245,240,232,0.78); transition: border-color .15s, transform .15s; }
+  .tw-card::before, .tw-card::after { content: ""; position: absolute; width: 7px; height: 7px;
+    border-color: rgba(244,123,58,0.5); pointer-events: none; }
+  .tw-card::before { top: 4px; right: 4px; border-top: 1px solid; border-right: 1px solid; }
+  .tw-card::after  { bottom: 4px; left: 4px; border-bottom: 1px solid; border-left: 1px solid; }
+  .tw-card:hover { border-left-color: var(--cream); transform: translateY(-1px); }
+  .tw-card-cited { border-left: 2px solid var(--gold);
+    background: linear-gradient(180deg, rgba(184,151,90,0.10), rgba(184,151,90,0.02));
+    box-shadow: inset 0 0 0 1px rgba(184,151,90,0.15); }
+  .tw-card-cited::before, .tw-card-cited::after { border-color: rgba(184,151,90,0.7); }
+  .tw-head { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 8px; margin-bottom: 7px; }
+  .tw-handle { color: var(--tangerine); font-weight: 500; letter-spacing: 0.05em; }
+  .tw-meta { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .tw-cited { font-size: 7px; letter-spacing: 0.18em; color: var(--gold); font-weight: 600;
+    border: 1px solid rgba(184,151,90,0.45); padding: 1px 5px; background: rgba(184,151,90,0.08); }
+  .tw-ts { color: var(--text-muted); font-size: 8px; letter-spacing: 0.04em; }
+  .tw-body { color: rgba(245,240,232,0.82); flex: 1; }
+  .tw-link { display: inline-block; margin-top: 10px; font-size: 8px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--pink); text-decoration: none;
+    border-top: 1px solid var(--wire); padding-top: 7px; }
+  .tw-link:hover { color: var(--cream); }
+  .footer { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: rgba(193,18,31,0.04); }
+  .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .footer-left span { color: var(--pink); }
+  .footer-right { display: flex; align-items: center; gap: 18px; }
+  .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
+  .footer-tag.active { border-color: rgba(123,79,214,0.5); color: var(--purple); }
+  .scanline { position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
+  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .synopsis-section { padding: 28px 40px; border-bottom: 1px solid var(--wire);
+    background: rgba(123,79,214,0.03); }
+  .synopsis-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 6px; font-weight: 500; }
+  .synopsis-byline { font-size: 8px; color: var(--text-muted); letter-spacing: 0.08em;
+    margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wire); }
+  .synopsis-body { column-count: 2; column-gap: 36px; }
+  .synopsis-para { font-size: 10px; line-height: 1.8; color: var(--cream);
+    margin-bottom: 14px; letter-spacing: 0.02em; text-align: justify; }
+  .synopsis-para:first-child::first-letter { font-family: "Playfair Display", serif;
+    font-size: 2.8em; font-weight: 900; float: left; line-height: 0.8;
+    margin: 4px 8px 0 0; color: var(--purple); }
+  @media (max-width: 600px) { .synopsis-body { column-count: 1; } }
+  .trading-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .trading-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--tangerine); margin-bottom: 14px; font-weight: 500; }
+  .trading-grid { display: flex; gap: 14px; flex-wrap: wrap; }
+  .tc-card { flex: 1; min-width: 180px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--wire); padding: 14px 16px; }
+  .tc-header { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; }
+  .tc-sym { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); }
+  .tc-rec { font-size: 8px; letter-spacing: 0.2em; font-weight: 600;
+    padding: 3px 8px; border: 1px solid; }
+  .rec-in  { color: #4CAF50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.07); }
+  .rec-out { color: var(--red); border-color: rgba(193,18,31,0.4); background: rgba(193,18,31,0.07); }
+  .rec-neutral { color: var(--tangerine); border-color: rgba(244,123,58,0.4); background: rgba(244,123,58,0.07); }
+  .tc-price { font-size: 15px; font-weight: 500; color: var(--cream);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .tc-trend { font-size: 9px; letter-spacing: 0.05em; }
+  .tc-row { display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .tc-lbl { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .tc-val { font-size: 8.5px; color: var(--cream); text-align: right; }
+  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--tangerine);
+    border: 1px solid rgba(244,123,58,0.35); padding: 1px 4px; margin-left: 4px; }
+  .tc-ts { font-size: 7px; color: var(--text-muted); margin-top: 8px;
+    letter-spacing: 0.05em; text-align: right; }
+  .regime-panel { padding: 22px 28px; border-bottom: 1px solid var(--wire);
+    background: rgba(0,229,160,0.015); }
+  .regime-panel-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: #00e5a0; margin-bottom: 12px; font-weight: 500; }
+  .regime-badge-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    flex-wrap: wrap; }
+  .regime-badge { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.2em; padding: 5px 14px; border: 1px solid; }
+  .regime-desc { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; }
+  .regime-warn { font-size: 8px; color: #ff9a3c; letter-spacing: 0.1em;
+    border: 1px solid rgba(255,154,60,0.4); padding: 3px 8px; background: rgba(255,154,60,0.07); }
+  .regime-metrics { display: flex; gap: 0; border: 1px solid var(--wire); }
+  .rm { flex: 1; padding: 10px 14px; border-right: 1px solid var(--wire); }
+  .rm:last-child { border-right: none; }
+  .rm-lbl { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .rm-val { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .rm-sub { font-size: 7.5px; color: var(--text-muted); letter-spacing: 0.05em; }
+  /* ---- Tactical framing: reticle corners + classification banner ---- */
+  .reticle { position: absolute; width: 16px; height: 16px; z-index: 3; pointer-events: none;
+    border-color: rgba(244,123,58,0.55); }
+  .reticle.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
+  .reticle.tr { top: 6px; right: 6px; border-top: 1px solid; border-right: 1px solid; }
+  .reticle.bl { bottom: 6px; left: 6px; border-bottom: 1px solid; border-left: 1px solid; }
+  .reticle.br { bottom: 6px; right: 6px; border-bottom: 1px solid; border-right: 1px solid; }
+  .classbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 28px; background: repeating-linear-gradient(45deg,
+      rgba(193,18,31,0.12) 0 10px, rgba(193,18,31,0.04) 10px 20px);
+    border-bottom: 1px solid rgba(193,18,31,0.25);
+    font-size: 7.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+  .classbar .cb-mid { color: rgba(245,240,232,0.55); letter-spacing: 0.2em; }
+  @media (max-width: 600px) { .classbar .cb-mid { display: none; } }
+  .posture-pill { font-size: 7.5px; letter-spacing: 0.18em; font-weight: 600;
+    padding: 2px 8px; border: 1px solid; margin-left: 6px; }
+  #dataAge { color: var(--tangerine); }
+  /* ---- collapsible sections (native <details>) ---- */
+  details.sec { padding: 0; border-bottom: 1px solid var(--wire); }
+  details.sec > summary { list-style: none; cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px 0; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  .sec-summary .links-header { margin-bottom: 0; }
+  .sec-chevron { color: var(--text-muted); font-size: 10px; transition: transform .2s; }
+  details.sec[open] > summary .sec-chevron { transform: rotate(180deg); }
+  details.sec > .tweet-grid, details.sec > .cmdbar { margin: 14px 28px 22px; }
+  details.sec > table.links-table { margin: 8px 28px 20px; width: calc(100% - 56px); }
+  /* ---- command bar (signal filter HUD) ---- */
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--wire); background: rgba(255,255,255,0.02); }
+  .cmd-input { flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--cream); font-family: "IBM Plex Mono", monospace; font-size: 9px;
+    letter-spacing: 0.1em; padding: 6px 9px; }
+  .cmd-input::placeholder { color: var(--text-muted); letter-spacing: 0.18em; }
+  .cmd-input:focus { outline: none; border-color: rgba(244,123,58,0.6); }
+  .cmd-btn, .cmd-select { background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--text-muted); font-family: "IBM Plex Mono", monospace; font-size: 8px;
+    letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 10px; cursor: pointer; }
+  .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
+  .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
+  .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
+  .cmd-link { text-decoration: none; }
+  .seen-tag { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #a78bfa; margin: 2px 0 6px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scanline"></div>
+  <div class="reticle tl"></div><div class="reticle tr"></div>
+  <div class="reticle bl"></div><div class="reticle br"></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pulse"></div>
+      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+      <span class="posture-pill" style="color:#f5a623;border-color:#f5a62355;background:#f5a62314">POSTURE&nbsp;&middot;&nbsp;TIGHTENED</span>
+    </div>
+    <span class="topbar-date">Thursday, 12 November 2026 &nbsp;|&nbsp; Week 46 &middot; <span id="dataAge" data-runts="2026-11-12T17:55:26">live</span></span>
+  </div>
+
+  <div class="classbar">
+    <span>// SIGNAL INTELLIGENCE</span>
+    <span class="cb-mid">TRADE REFERENCE &middot; HANDLE WITH DISCRETION</span>
+    <span>NOT FINANCIAL ADVICE //</span>
+  </div>
+
+  <div class="ticker-wrap"><div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val down">$71,351</span><span class="tick-chg down">-3.53%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val down">$23.17</span><span class="tick-chg down">-1.53%</span></span>
+    <span class="tick-item"><span class="tick-sym">$NVDA</span><span class="tick-val down">$166.19</span><span class="tick-chg down">-4.34%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val down">7,592</span><span class="tick-chg down">-0.35%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$88.70</span><span class="tick-chg up">+2.51%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val down">$3,882</span><span class="tick-chg down">-2.97%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">18.70</span><span class="tick-chg up">+6.92%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">5.103</span><span class="tick-chg up">+2.10%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4253</span><span class="tick-chg up">+0.47%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val down">$71,351</span><span class="tick-chg down">-3.53%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val down">$23.17</span><span class="tick-chg down">-1.53%</span></span>
+    <span class="tick-item"><span class="tick-sym">$NVDA</span><span class="tick-val down">$166.19</span><span class="tick-chg down">-4.34%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val down">7,592</span><span class="tick-chg down">-0.35%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val up">$88.70</span><span class="tick-chg up">+2.51%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val down">$3,882</span><span class="tick-chg down">-2.97%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">18.70</span><span class="tick-chg up">+6.92%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">5.103</span><span class="tick-chg up">+2.10%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4253</span><span class="tick-chg up">+0.47%</span></span>
+  </div></div>
+
+  <div class="hero">
+    <div class="issue-line">
+      <span class="issue-num">Run &middot; 9.0h window &middot; 2026-11-12 17:55</span>
+      <div class="issue-rule"></div>
+    </div>
+    <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
+    <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
+    <div class="site-nav">
+      <a class="site-nav-cta" href="terminal.html">&#9632; OPEN THE TERMINAL</a>
+      <a href="timeline.html">TIMELINE</a>
+      <a href="cards.html">SIGNAL HISTORY</a>
+    </div>
+    <div class="headline-block">
+      <div class="headline">Nvidia Governance Shock and Huang Ouster</div>
+      <div class="deck">The Huang ouster plus a DOJ probe, Chinese-spy allegations and &#x27;AI fully compromised&#x27; claims is maximal information disorder — a high-temperature state where a single node (NVDA, the system&#x27;s partition function) is being repriced, radiating…</div>
+    </div>
+    <div class="corner-deco">
+      <div class="vol-label">Day</div>
+      <div class="vol-num">12</div>
+    </div>
+  </div>
+
+  <div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">777</div><div class="metric-delta neutral">9.0h window</div></div>
+<div class="metric"><div class="metric-label">Nvidia Governance Shock an…</div><div class="metric-val" style="color:#C1121F">9/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">AI Capex Durability and Ne…</div><div class="metric-val" style="color:#C1121F">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Iran Strike and Oil Risk P…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Crypto Theft Seizure and B…</div><div class="metric-val" style="color:#B8975A">6/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">SpaceX-Tesla Merger and SE…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">5</div><div class="metric-delta neutral">Extracted</div></div></div>
+
+  
+<section class="rh-term" aria-label="RedHood Terminal preview">
+  <style>
+  .rh-term { --rh-ink:#F5F0E8; --rh-mut:rgba(245,240,232,0.45); --rh-wire:rgba(255,255,255,0.09);
+    --rh-red:#C1121F; --rh-gold:#B8975A; --rh-bg:#0C0C0C; --rh-panel:#131313;
+    font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace; color:var(--rh-ink);
+    background:var(--rh-bg); border:1px solid var(--rh-wire); border-radius:3px;
+    margin:28px 0; overflow:hidden; font-variant-numeric:tabular-nums; }
+  .rh-term * { box-sizing:border-box; }
+  .rh-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:7px 12px; background:linear-gradient(180deg,#171717,var(--rh-panel));
+    border-bottom:1px solid var(--rh-wire); }
+  .rh-hood { width:10px; height:10px; background:var(--rh-red); flex:none;
+    clip-path:polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%); }
+  .rh-name { font-size:11px; font-weight:700; letter-spacing:0.16em; }
+  .rh-name em { font-style:normal; color:var(--rh-red); }
+  .rh-tag { font-size:8.5px; letter-spacing:0.22em; color:var(--rh-mut); }
+  .rh-chip { display:flex; align-items:center; gap:6px; margin-left:auto;
+    border:1px solid var(--rh-wire); padding:2px 8px; font-size:9px; letter-spacing:0.08em; }
+  .rh-dot { width:6px; height:6px; border-radius:50%; background:#D9B870; flex:none; }
+  .rh-strip { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    padding:5px 12px; font-size:8.5px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--rh-gold); border-bottom:1px solid var(--rh-wire); }
+  .rh-strip .rh-dim { color:var(--rh-mut); letter-spacing:0.06em; text-transform:none;
+    font-size:9px; margin-left:auto; }
+  .rh-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
+    gap:1px; background:var(--rh-wire); }
+  .rh-tile { display:block; padding:7px 10px 6px; background:var(--rh-panel);
+    text-decoration:none; color:inherit; transition:background .15s; }
+  .rh-tile:hover { background:#1B1B1B; }
+  .rh-sym { display:block; font-size:10px; font-weight:600; letter-spacing:0.06em;
+    color:var(--rh-gold); margin-bottom:2px; }
+  .rh-spark { display:block; width:100%; height:26px; margin:1px 0 3px; }
+  .rh-px { font-size:13px; font-weight:600; margin-right:6px; }
+  .rh-chg { font-size:10px; }
+  .rh-term .up { color:#2AA198; } .rh-term .dn { color:#D83A3A; }
+  .rh-term .flat { color:var(--rh-mut); }
+  .rh-body { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:0;
+    border-top:1px solid var(--rh-wire); }
+  @media (max-width:640px) { .rh-body { grid-template-columns:minmax(0,1fr); } }
+  .rh-col { padding:9px 12px; min-width:0; }
+  .rh-col + .rh-col { border-left:1px solid var(--rh-wire); }
+  @media (max-width:640px) { .rh-col + .rh-col { border-left:0; border-top:1px solid var(--rh-wire); } }
+  .rh-h { font-size:8.5px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--rh-mut); margin:0 0 6px; }
+  .rh-term ul { list-style:none; margin:0; padding:0; }
+  .rh-term li { display:flex; align-items:baseline; gap:7px; padding:2px 0;
+    border-bottom:1px solid rgba(255,255,255,0.045); font-size:10.5px; }
+  .rh-term li:last-child { border-bottom:0; }
+  .rh-grade { flex:none; width:17px; text-align:center; font-size:9px; font-weight:700;
+    color:#0C0C0C; background:var(--rh-gold); border-radius:2px; }
+  .rh-g-A,.rh-g-A- { background:#F0D9A8; } .rh-g-B { background:#D9B870; }
+  .rh-g-C { background:#B8975A; } .rh-g-D { background:#8E7342; }
+  .rh-g-na { background:rgba(255,255,255,0.14); color:var(--rh-ink); }
+  .rh-nt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rh-nm { margin-left:auto; color:var(--rh-mut); font-size:9px; flex:none; }
+  .rh-kv { font-size:10px; color:var(--rh-mut); line-height:1.7; }
+  .rh-kv b { color:var(--rh-ink); font-weight:600; }
+  .rh-foot { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:9px 12px; border-top:1px solid var(--rh-wire); background:var(--rh-panel); }
+  .rh-cta { display:inline-flex; align-items:center; gap:7px; background:var(--rh-red);
+    color:#fff; text-decoration:none; font-size:10px; font-weight:700; letter-spacing:0.14em;
+    padding:7px 14px; border-radius:2px; transition:filter .15s; }
+  .rh-cta:hover { filter:brightness(1.18); }
+  .rh-ghost { background:none; border:1px solid var(--rh-wire); color:var(--rh-mut);
+    font:inherit; font-size:9.5px; letter-spacing:0.1em; padding:6px 11px; border-radius:2px;
+    cursor:pointer; }
+  .rh-ghost:hover { color:var(--rh-ink); border-color:var(--rh-gold); }
+  .rh-note { font-size:9px; color:var(--rh-mut); margin-left:auto; }
+  .rh-frame { width:100%; height:78vh; min-height:460px; border:0;
+    border-top:1px solid var(--rh-wire); display:block; background:var(--rh-bg); }
+  </style>
+
+  <div class="rh-bar">
+    <span class="rh-hood"></span>
+    <span class="rh-name">RED<em>HOOD</em></span>
+    <span class="rh-tag">TERMINAL</span>
+    <span class="rh-chip"><span class="rh-dot"></span>CHOPPY
+      &middot; T +22.6% &middot; x0.00
+      </span>
+  </div>
+
+  <div class="rh-strip">
+    <span>Watchlist</span>
+    <span class="rh-dim">sparkline = last 60 sessions &middot; price &amp; change = latest close</span>
+  </div>
+  <div class="rh-grid"><a class="rh-tile" href="terminal.html" title="Open NVDA in the terminal"><span class="rh-sym">NVDA</span><svg class="rh-spark" viewBox="0 0 108 26" width="108" height="26" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,8.8 L1.8,9.0 L3.7,9.7 L5.5,11.6 L7.3,10.2 L9.2,11.3 L11.0,5.5 L12.8,8.8 L14.6,7.8 L16.5,8.8 L18.3,6.6 L20.1,5.4 L22.0,4.8 L23.8,6.2 L25.6,6.9 L27.5,8.5 L29.3,8.6 L31.1,10.8 L32.9,10.5 L34.8,9.9 L36.6,8.2 L38.4,7.3 L40.3,5.7 L42.1,5.2 L43.9,6.3 L45.8,6.6 L47.6,6.4 L49.4,5.2 L51.3,5.8 L53.1,5.4 L54.9,4.6 L56.7,3.7 L58.6,2.1 L60.4,2.0 L62.2,2.6 L64.1,4.7 L65.9,5.1 L67.7,6.0 L69.6,5.4 L71.4,7.6 L73.2,8.9 L75.1,9.9 L76.9,8.9 L78.7,9.1 L80.5,7.4 L82.4,10.5 L84.2,10.8 L86.0,9.3 L87.9,8.7 L89.7,9.5 L91.5,10.0 L93.4,12.8 L95.2,13.6 L97.0,12.2 L98.8,14.2 L100.7,20.0 L102.5,18.4 L104.3,20.9 L106.2,24.0 L108.0,22.5 L108.0,26.0 L0,26.0 Z" fill="#D83A3A" opacity="0.13"/><path d="M0.0,8.8 L1.8,9.0 L3.7,9.7 L5.5,11.6 L7.3,10.2 L9.2,11.3 L11.0,5.5 L12.8,8.8 L14.6,7.8 L16.5,8.8 L18.3,6.6 L20.1,5.4 L22.0,4.8 L23.8,6.2 L25.6,6.9 L27.5,8.5 L29.3,8.6 L31.1,10.8 L32.9,10.5 L34.8,9.9 L36.6,8.2 L38.4,7.3 L40.3,5.7 L42.1,5.2 L43.9,6.3 L45.8,6.6 L47.6,6.4 L49.4,5.2 L51.3,5.8 L53.1,5.4 L54.9,4.6 L56.7,3.7 L58.6,2.1 L60.4,2.0 L62.2,2.6 L64.1,4.7 L65.9,5.1 L67.7,6.0 L69.6,5.4 L71.4,7.6 L73.2,8.9 L75.1,9.9 L76.9,8.9 L78.7,9.1 L80.5,7.4 L82.4,10.5 L84.2,10.8 L86.0,9.3 L87.9,8.7 L89.7,9.5 L91.5,10.0 L93.4,12.8 L95.2,13.6 L97.0,12.2 L98.8,14.2 L100.7,20.0 L102.5,18.4 L104.3,20.9 L106.2,24.0 L108.0,22.5" fill="none" stroke="#D83A3A" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="rh-px">173.73</span><span class="rh-chg up">&#9650; +2.87%</span></a><a class="rh-tile" href="terminal.html" title="Open GOOGL in the terminal"><span class="rh-sym">GOOGL</span><svg class="rh-spark" viewBox="0 0 108 26" width="108" height="26" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,5.0 L1.8,6.1 L3.7,4.9 L5.5,4.0 L7.3,4.3 L9.2,5.8 L11.0,6.1 L12.8,4.4 L14.6,6.5 L16.5,7.8 L18.3,7.2 L20.1,5.6 L22.0,6.8 L23.8,6.8 L25.6,9.0 L27.5,8.5 L29.3,6.8 L31.1,3.6 L32.9,4.9 L34.8,5.5 L36.6,4.2 L38.4,3.6 L40.3,2.0 L42.1,3.1 L43.9,7.0 L45.8,5.7 L47.6,5.2 L49.4,5.5 L51.3,6.1 L53.1,5.2 L54.9,6.8 L56.7,5.3 L58.6,4.5 L60.4,4.1 L62.2,3.3 L64.1,3.9 L65.9,3.0 L67.7,2.7 L69.6,2.3 L71.4,4.1 L73.2,3.7 L75.1,6.2 L76.9,5.1 L78.7,6.3 L80.5,7.9 L82.4,10.9 L84.2,12.1 L86.0,13.1 L87.9,12.0 L89.7,10.7 L91.5,22.6 L93.4,23.8 L95.2,24.0 L97.0,23.7 L98.8,21.1 L100.7,23.0 L102.5,22.3 L104.3,21.3 L106.2,21.6 L108.0,19.8 L108.0,26.0 L0,26.0 Z" fill="#D83A3A" opacity="0.13"/><path d="M0.0,5.0 L1.8,6.1 L3.7,4.9 L5.5,4.0 L7.3,4.3 L9.2,5.8 L11.0,6.1 L12.8,4.4 L14.6,6.5 L16.5,7.8 L18.3,7.2 L20.1,5.6 L22.0,6.8 L23.8,6.8 L25.6,9.0 L27.5,8.5 L29.3,6.8 L31.1,3.6 L32.9,4.9 L34.8,5.5 L36.6,4.2 L38.4,3.6 L40.3,2.0 L42.1,3.1 L43.9,7.0 L45.8,5.7 L47.6,5.2 L49.4,5.5 L51.3,6.1 L53.1,5.2 L54.9,6.8 L56.7,5.3 L58.6,4.5 L60.4,4.1 L62.2,3.3 L64.1,3.9 L65.9,3.0 L67.7,2.7 L69.6,2.3 L71.4,4.1 L73.2,3.7 L75.1,6.2 L76.9,5.1 L78.7,6.3 L80.5,7.9 L82.4,10.9 L84.2,12.1 L86.0,13.1 L87.9,12.0 L89.7,10.7 L91.5,22.6 L93.4,23.8 L95.2,24.0 L97.0,23.7 L98.8,21.1 L100.7,23.0 L102.5,22.3 L104.3,21.3 L106.2,21.6 L108.0,19.8" fill="none" stroke="#D83A3A" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="rh-px">293.45</span><span class="rh-chg up">&#9650; +2.11%</span></a><a class="rh-tile" href="terminal.html" title="Open META in the terminal"><span class="rh-sym">META</span><svg class="rh-spark" viewBox="0 0 108 26" width="108" height="26" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,19.7 L1.8,21.6 L3.7,24.0 L5.5,23.8 L7.3,23.8 L9.2,23.4 L11.0,22.6 L12.8,21.5 L14.6,20.9 L16.5,21.4 L18.3,20.8 L20.1,21.3 L22.0,20.7 L23.8,19.4 L25.6,17.7 L27.5,17.1 L29.3,17.4 L31.1,13.7 L32.9,14.5 L34.8,14.2 L36.6,12.5 L38.4,12.1 L40.3,11.8 L42.1,11.0 L43.9,12.5 L45.8,5.4 L47.6,5.9 L49.4,5.1 L51.3,2.0 L53.1,4.4 L54.9,7.8 L56.7,5.6 L58.6,6.9 L60.4,6.9 L62.2,6.7 L64.1,5.4 L65.9,5.6 L67.7,7.3 L69.6,7.3 L71.4,7.5 L73.2,5.3 L75.1,3.4 L76.9,5.8 L78.7,5.8 L80.5,8.4 L82.4,8.8 L84.2,9.8 L86.0,9.5 L87.9,14.1 L89.7,14.7 L91.5,15.8 L93.4,16.8 L95.2,17.5 L97.0,16.4 L98.8,17.3 L100.7,18.1 L102.5,16.7 L104.3,15.9 L106.2,18.2 L108.0,16.8 L108.0,26.0 L0,26.0 Z" fill="#2AA198" opacity="0.13"/><path d="M0.0,19.7 L1.8,21.6 L3.7,24.0 L5.5,23.8 L7.3,23.8 L9.2,23.4 L11.0,22.6 L12.8,21.5 L14.6,20.9 L16.5,21.4 L18.3,20.8 L20.1,21.3 L22.0,20.7 L23.8,19.4 L25.6,17.7 L27.5,17.1 L29.3,17.4 L31.1,13.7 L32.9,14.5 L34.8,14.2 L36.6,12.5 L38.4,12.1 L40.3,11.8 L42.1,11.0 L43.9,12.5 L45.8,5.4 L47.6,5.9 L49.4,5.1 L51.3,2.0 L53.1,4.4 L54.9,7.8 L56.7,5.6 L58.6,6.9 L60.4,6.9 L62.2,6.7 L64.1,5.4 L65.9,5.6 L67.7,7.3 L69.6,7.3 L71.4,7.5 L73.2,5.3 L75.1,3.4 L76.9,5.8 L78.7,5.8 L80.5,8.4 L82.4,8.8 L84.2,9.8 L86.0,9.5 L87.9,14.1 L89.7,14.7 L91.5,15.8 L93.4,16.8 L95.2,17.5 L97.0,16.4 L98.8,17.3 L100.7,18.1 L102.5,16.7 L104.3,15.9 L106.2,18.2 L108.0,16.8" fill="none" stroke="#2AA198" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="rh-px">620.31</span><span class="rh-chg up">&#9650; +2.52%</span></a><a class="rh-tile" href="terminal.html" title="Open AAPL in the terminal"><span class="rh-sym">AAPL</span><svg class="rh-spark" viewBox="0 0 108 26" width="108" height="26" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,23.8 L1.8,24.0 L3.7,21.8 L5.5,18.4 L7.3,21.1 L9.2,22.1 L11.0,21.6 L12.8,21.8 L14.6,20.1 L16.5,19.5 L18.3,16.9 L20.1,18.4 L22.0,14.2 L23.8,14.3 L25.6,12.7 L27.5,16.8 L29.3,18.7 L31.1,19.1 L32.9,13.5 L34.8,10.6 L36.6,10.2 L38.4,11.1 L40.3,10.6 L42.1,8.3 L43.9,8.7 L45.8,7.3 L47.6,6.9 L49.4,8.3 L51.3,8.8 L53.1,6.2 L54.9,7.6 L56.7,12.1 L58.6,10.3 L60.4,11.6 L62.2,9.9 L64.1,10.3 L65.9,10.0 L67.7,8.4 L69.6,6.6 L71.4,8.4 L73.2,6.3 L75.1,6.1 L76.9,5.3 L78.7,5.8 L80.5,5.0 L82.4,5.3 L84.2,7.0 L86.0,4.8 L87.9,2.6 L89.7,2.9 L91.5,4.8 L93.4,3.2 L95.2,4.8 L97.0,2.3 L98.8,4.4 L100.7,7.6 L102.5,10.8 L104.3,2.0 L106.2,4.7 L108.0,4.8 L108.0,26.0 L0,26.0 Z" fill="#2AA198" opacity="0.13"/><path d="M0.0,23.8 L1.8,24.0 L3.7,21.8 L5.5,18.4 L7.3,21.1 L9.2,22.1 L11.0,21.6 L12.8,21.8 L14.6,20.1 L16.5,19.5 L18.3,16.9 L20.1,18.4 L22.0,14.2 L23.8,14.3 L25.6,12.7 L27.5,16.8 L29.3,18.7 L31.1,19.1 L32.9,13.5 L34.8,10.6 L36.6,10.2 L38.4,11.1 L40.3,10.6 L42.1,8.3 L43.9,8.7 L45.8,7.3 L47.6,6.9 L49.4,8.3 L51.3,8.8 L53.1,6.2 L54.9,7.6 L56.7,12.1 L58.6,10.3 L60.4,11.6 L62.2,9.9 L64.1,10.3 L65.9,10.0 L67.7,8.4 L69.6,6.6 L71.4,8.4 L73.2,6.3 L75.1,6.1 L76.9,5.3 L78.7,5.8 L80.5,5.0 L82.4,5.3 L84.2,7.0 L86.0,4.8 L87.9,2.6 L89.7,2.9 L91.5,4.8 L93.4,3.2 L95.2,4.8 L97.0,2.3 L98.8,4.4 L100.7,7.6 L102.5,10.8 L104.3,2.0 L106.2,4.7 L108.0,4.8" fill="none" stroke="#2AA198" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="rh-px">344.01</span><span class="rh-chg dn">&#9660; -0.05%</span></a><a class="rh-tile" href="terminal.html" title="Open WMT in the terminal"><span class="rh-sym">WMT</span><svg class="rh-spark" viewBox="0 0 108 26" width="108" height="26" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,13.5 L1.8,14.3 L3.7,13.6 L5.5,14.3 L7.3,23.0 L9.2,23.1 L11.0,20.8 L12.8,21.7 L14.6,22.6 L16.5,24.0 L18.3,23.6 L20.1,22.1 L22.0,21.3 L23.8,21.1 L25.6,19.2 L27.5,20.3 L29.3,21.2 L31.1,21.3 L32.9,21.4 L34.8,20.3 L36.6,18.7 L38.4,19.5 L40.3,20.0 L42.1,20.6 L43.9,20.6 L45.8,20.0 L47.6,17.8 L49.4,17.5 L51.3,19.9 L53.1,19.6 L54.9,18.9 L56.7,20.5 L58.6,22.9 L60.4,22.6 L62.2,22.6 L64.1,22.0 L65.9,20.2 L67.7,19.4 L69.6,17.4 L71.4,16.8 L73.2,15.3 L75.1,16.0 L76.9,12.8 L78.7,11.4 L80.5,10.6 L82.4,10.7 L84.2,11.4 L86.0,11.4 L87.9,8.7 L89.7,9.7 L91.5,9.4 L93.4,10.2 L95.2,10.6 L97.0,8.6 L98.8,6.7 L100.7,3.2 L102.5,5.6 L104.3,2.0 L106.2,3.2 L108.0,4.7 L108.0,26.0 L0,26.0 Z" fill="#2AA198" opacity="0.13"/><path d="M0.0,13.5 L1.8,14.3 L3.7,13.6 L5.5,14.3 L7.3,23.0 L9.2,23.1 L11.0,20.8 L12.8,21.7 L14.6,22.6 L16.5,24.0 L18.3,23.6 L20.1,22.1 L22.0,21.3 L23.8,21.1 L25.6,19.2 L27.5,20.3 L29.3,21.2 L31.1,21.3 L32.9,21.4 L34.8,20.3 L36.6,18.7 L38.4,19.5 L40.3,20.0 L42.1,20.6 L43.9,20.6 L45.8,20.0 L47.6,17.8 L49.4,17.5 L51.3,19.9 L53.1,19.6 L54.9,18.9 L56.7,20.5 L58.6,22.9 L60.4,22.6 L62.2,22.6 L64.1,22.0 L65.9,20.2 L67.7,19.4 L69.6,17.4 L71.4,16.8 L73.2,15.3 L75.1,16.0 L76.9,12.8 L78.7,11.4 L80.5,10.6 L82.4,10.7 L84.2,11.4 L86.0,11.4 L87.9,8.7 L89.7,9.7 L91.5,9.4 L93.4,10.2 L95.2,10.6 L97.0,8.6 L98.8,6.7 L100.7,3.2 L102.5,5.6 L104.3,2.0 L106.2,3.2 L108.0,4.7" fill="none" stroke="#2AA198" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="rh-px">125.89</span><span class="rh-chg dn">&#9660; -1.43%</span></a><a class="rh-tile" href="terminal.html" title="Open AMZN in the terminal"><span class="rh-sym">AMZN</span><svg class="rh-spark" viewBox="0 0 108 26" width="108" height="26" preserveAspectRatio="none" aria-hidden="true"><path d="M0.0,5.2 L1.8,6.3 L3.7,7.9 L5.5,2.5 L7.3,7.3 L9.2,8.6 L11.0,5.7 L12.8,6.5 L14.6,7.2 L16.5,10.6 L18.3,2.0 L20.1,7.6 L22.0,11.7 L23.8,11.7 L25.6,8.4 L27.5,8.7 L29.3,10.0 L31.1,13.8 L32.9,14.3 L34.8,10.1 L36.6,12.9 L38.4,17.2 L40.3,19.3 L42.1,14.9 L43.9,12.7 L45.8,8.7 L47.6,11.7 L49.4,16.5 L51.3,16.4 L53.1,16.1 L54.9,19.1 L56.7,18.7 L58.6,16.6 L60.4,17.4 L62.2,14.6 L64.1,14.7 L65.9,10.6 L67.7,7.5 L69.6,12.4 L71.4,5.4 L73.2,7.8 L75.1,8.6 L76.9,12.4 L78.7,11.8 L80.5,15.9 L82.4,5.4 L84.2,5.2 L86.0,5.4 L87.9,15.5 L89.7,17.5 L91.5,16.6 L93.4,13.2 L95.2,12.0 L97.0,21.1 L98.8,24.0 L100.7,19.5 L102.5,15.3 L104.3,2.3 L106.2,7.2 L108.0,5.5 L108.0,26.0 L0,26.0 Z" fill="#D83A3A" opacity="0.13"/><path d="M0.0,5.2 L1.8,6.3 L3.7,7.9 L5.5,2.5 L7.3,7.3 L9.2,8.6 L11.0,5.7 L12.8,6.5 L14.6,7.2 L16.5,10.6 L18.3,2.0 L20.1,7.6 L22.0,11.7 L23.8,11.7 L25.6,8.4 L27.5,8.7 L29.3,10.0 L31.1,13.8 L32.9,14.3 L34.8,10.1 L36.6,12.9 L38.4,17.2 L40.3,19.3 L42.1,14.9 L43.9,12.7 L45.8,8.7 L47.6,11.7 L49.4,16.5 L51.3,16.4 L53.1,16.1 L54.9,19.1 L56.7,18.7 L58.6,16.6 L60.4,17.4 L62.2,14.6 L64.1,14.7 L65.9,10.6 L67.7,7.5 L69.6,12.4 L71.4,5.4 L73.2,7.8 L75.1,8.6 L76.9,12.4 L78.7,11.8 L80.5,15.9 L82.4,5.4 L84.2,5.2 L86.0,5.4 L87.9,15.5 L89.7,17.5 L91.5,16.6 L93.4,13.2 L95.2,12.0 L97.0,21.1 L98.8,24.0 L100.7,19.5 L102.5,15.3 L104.3,2.3 L106.2,7.2 L108.0,5.5" fill="none" stroke="#D83A3A" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="rh-px">262.24</span><span class="rh-chg up">&#9650; +0.78%</span></a></div>
+
+  <div class="rh-body">
+    <div class="rh-col">
+      <p class="rh-h">Latest narratives</p>
+      <ul><li><span class="rh-grade rh-g-C">C</span><span class="rh-nt">UK Growth Surprise and European Divergence</span><span class="rh-nm">EWU EWU</span></li><li><span class="rh-grade rh-g-C">C</span><span class="rh-nt">Crypto Infrastructure Stress and ETF Setbacks</span><span class="rh-nm">GLD GLD</span></li><li><span class="rh-grade rh-g-C">C</span><span class="rh-nt">Iran War Risk and Oil Premium</span><span class="rh-nm">BNO BNO CRAK</span></li></ul>
+    </div>
+    <div class="rh-col">
+      <p class="rh-h">What's inside</p>
+      <p class="rh-kv">
+        <b>187</b> symbols &middot; <b>93,516</b> daily bars<br>
+        <b>223</b> narratives over <b>58</b> runs<br>
+        Realised: 267 windows &middot; +42% hit &middot; -8.8% mean excess vs SPY
+      </p>
+    </div>
+  </div>
+
+  <div class="rh-foot">
+    <a class="rh-cta" href="terminal.html">&#9632; LAUNCH TERMINAL</a>
+    <button class="rh-ghost" type="button" data-rh-embed="terminal.html">Run it inline</button>
+    <span class="rh-note">charts &middot; narrative markers &middot; regime &middot; alpha
+      &mdash; data as of 2026-11-11</span>
+  </div>
+</section>
+<script>
+(function () {
+  var b = document.querySelector('.rh-term [data-rh-embed]');
+  if (!b) return;
+  b.addEventListener('click', function () {
+    var f = document.createElement('iframe');
+    f.className = 'rh-frame';
+    f.src = b.getAttribute('data-rh-embed');
+    f.title = 'RedHood Terminal';
+    f.loading = 'lazy';
+    b.closest('.rh-term').appendChild(f);
+    b.remove();
+  });
+})();
+</script>
+
+
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">SIGINT &mdash; Signal Cards &middot; 50 of 777 &middot; 38 narrative-cited + top 55 &middot; 2026-11-12 17:55</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">SORT &middot; RECENT</option>
+        <option value="handle">SORT &middot; HANDLE</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+      <a class="cmd-btn cmd-link" href="cards.html">HISTORY &rarr;</a>
+    </div>
+    <div class="tweet-grid" id="tweetGrid"><div class="tweet-embed" id="feed-1" data-handle="marketfeed" data-cited="1" data-ts="2026-11-12T17:49:59" data-search="@marketfeed trump nominates kristin johnson and steven levine to the sec, nathan anonick and matthew rowland to the cftc, first commissioner picks in over a year ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:49</span></span></div><div class="tw-body">TRUMP NOMINATES KRISTIN JOHNSON AND STEVEN LEVINE TO THE SEC, NATHAN ANONICK AND MATTHEW ROWLAND TO THE CFTC, FIRST COMMISSIONER PICKS IN OVER A YEAR ...</div><a class="tw-link" href="https://t.me/marketfeed/1076849" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-2" data-handle="tradehaven" data-cited="1" data-ts="2026-11-12T17:48:09" data-search="@tradehaven bbg - a leadership crisis at nvidia corp. curbed the appetite for riskier corners on wall street, with stocks also declining as a rally in oil prices lifted treasury yields. the company at the heart of the ai boom sank 4.3% as chief executive officer jensen huang was ousted. the us is probing alice huang, the woman officials suspect as a possible spy, over whether entities linked to her were involved in efforts to smuggle super micro computer inc.’s products to china. anthropic pbc’s ipo was said to be about six times oversubscribed. spacex and tesla inc.’s merger talks were said to progress. most s&amp;p 500 firms fell as the s&amp;p 500 fell 0.4%. the nasdaq 100 fell 0.3%. the bloomberg dollar spot index rose 0.2%. wti crude rose 2.9%. spot gold fell 2.8% to $3,874.38 an ounce. bitcoin fell 4% to $71,324.85. also weighing on sentiment was an increase in energy costs. president donald trump said the us doesn’t need a deal with iran and instructed vice president jd vance to focus on domestic issues. bond yields climbed as traders brace for the federal reserve to step up the pace of its rate hikes in an effort to cool inflation. trump suggested that apple inc.’s tim cook take over as ceo of nvidia after the ouster of huang, whom the president called a “legend.” it’s unclear how serious his suggestion is or if cook has any interest. nvidia corp.’s leadership turmoil is boosting potential beneficiaries, with advanced micro devices inc. and broadcom inc. gaining on bets they may win business from the chip giant. anthropic pbc’s plans for a record initial public offering are under fresh scrutiny after nvidia corp.’s ceo was unexpectedly ousted, highlighting the links between the two artificial intelligence giants. the ai chipmaker has agreed to buy about $10 billion worth of shares in anthropic as part of a $26 billion private placement concurrent with its ipo, the claude chatbot maker’s filings show. anthropic counts nvidia as a strategic partner, and has committed tens of billions of dollars to deals securing access to its most advanced chips. of course, there’s another wild card for investors next week: nvidia’s earnings report on nov. 17. wall street expects the tech behemoth’s profit growth to slow down, further testing dip buyers’ resolve."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:48</span></span></div><div class="tw-body">BBG - A leadership crisis at Nvidia Corp. curbed the appetite for riskier corners on Wall Street, with stocks also declining as a rally in oil prices lifted Treasury yields. The company at the heart of the AI boom sank 4.3% as Chief Executive Officer Jensen Huang was ousted. The …</div><a class="tw-link" href="https://t.me/tradehaven/80889" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-3" data-handle="financialjuice" data-cited="1" data-ts="2026-11-12T17:34:05" data-search="@financialjuice nscale limited as of sept. 30 expects total capital spending of about $19 billion to $21 billion to finish development of contracted data center sites|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:34</span></span></div><div class="tw-body">nscale limited as of Sept. 30 expects total capital spending of about $19 billion to $21 billion to finish development of contracted data center sites|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/146832" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-4" data-handle="marketfeed" data-cited="1" data-ts="2026-11-12T17:33:57" data-search="@marketfeed nscale limited as of sept. 30 expects total capital spending of about $19 billion to $21 billion to finish development of contracted data center sites ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:33</span></span></div><div class="tw-body">NSCALE LIMITED AS OF SEPT. 30 EXPECTS TOTAL CAPITAL SPENDING OF ABOUT $19 BILLION TO $21 BILLION TO FINISH DEVELOPMENT OF CONTRACTED DATA CENTER SITES ...</div><a class="tw-link" href="https://t.me/marketfeed/1076848" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-5" data-handle="watcherguru" data-cited="1" data-ts="2026-11-12T17:32:37" data-search="@watcherguru today, jensen huang announced he is stepping down as ceo of nvidia. he founded $nvda when he was 30 years old to transform gaming by making powerful 3d graphics accessible to everyone. 33 years later, it is now the backbone of the ai revolution, worth over $4,000,000,000,000"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:32</span></span></div><div class="tw-body">Today, Jensen Huang announced he is stepping down as CEO of Nvidia. He founded $NVDA when he was 30 years old to transform gaming by making powerful 3D graphics accessible to everyone. 33 years later, it is now the backbone of the AI revolution, worth over $4,000,000,000,000</div><a class="tw-link" href="https://t.me/WatcherGuru/15992" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-6" data-handle="marketfeed" data-cited="1" data-ts="2026-11-12T17:30:58" data-search="@marketfeed nscale limited: expands cloud in h2 2026 with multiple multi-billion dollar deals involving ai native and frontier model lab clients ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:30</span></span></div><div class="tw-body">NSCALE LIMITED: EXPANDS CLOUD IN H2 2026 WITH MULTIPLE MULTI-BILLION DOLLAR DEALS INVOLVING AI NATIVE AND FRONTIER MODEL LAB CLIENTS ...</div><a class="tw-link" href="https://t.me/marketfeed/1076847" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-7" data-handle="financialjuice" data-cited="1" data-ts="2026-11-12T17:30:47" data-search="@financialjuice nscale limited: expands cloud in h2 2026 with multiple multi-billion dollar deals involving ai native and frontier model lab clients|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:30</span></span></div><div class="tw-body">Nscale Limited: expands cloud in H2 2026 with multiple multi-billion dollar deals involving AI native and Frontier Model Lab clients|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/146831" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-8" data-handle="marketfeed" data-cited="1" data-ts="2026-11-12T17:29:12" data-search="@marketfeed today, jensen huang announced he is stepping down as ceo of nvidia. he founded $nvda when he was 30 years old to transform gaming by making powerful 3d graphics accessible to everyone. 33 years later, it is now the backbone of the ai revolution, worth over $4,000,000,000,000 ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 17:29</span></span></div><div class="tw-body">TODAY, JENSEN HUANG ANNOUNCED HE IS STEPPING DOWN AS CEO OF NVIDIA. HE FOUNDED $NVDA WHEN HE WAS 30 YEARS OLD TO TRANSFORM GAMING BY MAKING POWERFUL 3D GRAPHICS ACCESSIBLE TO EVERYONE. 33 YEARS LATER, IT IS NOW THE BACKBONE OF THE AI REVOLUTION, WORTH OVER $4,000,000,000,000 ...</div><a class="tw-link" href="https://t.me/marketfeed/1076846" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-9" data-handle="marketfeed" data-cited="0" data-ts="2026-11-12T17:09:11" data-search="@marketfeed drone debris sparks fire at industrial plant in russia&#x27;s volgograd: russian newswires quote governor ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-11-12 17:09</span></span></div><div class="tw-body">DRONE DEBRIS SPARKS FIRE AT INDUSTRIAL PLANT IN RUSSIA&#x27;S VOLGOGRAD: RUSSIAN NEWSWIRES QUOTE GOVERNOR ...</div><a class="tw-link" href="https://t.me/marketfeed/1076845" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-10" data-handle="financialjuice" data-cited="0" data-ts="2026-11-12T17:09:09" data-search="@financialjuice drone debris sparks fire at industrial plant in russia&#x27;s volgograd: russian newswires quote governor|fj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-11-12 17:09</span></span></div><div class="tw-body">Drone debris sparks fire at industrial plant in Russia&#x27;s Volgograd: Russian newswires quote governor|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/146830" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-11" data-handle="marketfeed" data-cited="0" data-ts="2026-11-12T17:06:57" data-search="@marketfeed zelenskiy: we will have more meetings, hope to work on de-escalation and ceasefires ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-11-12 17:06</span></span></div><div class="tw-body">ZELENSKIY: WE WILL HAVE MORE MEETINGS, HOPE TO WORK ON DE-ESCALATION AND CEASEFIRES ...</div><a class="tw-link" href="https://t.me/marketfeed/1076844" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-12" data-handle="financialjuice" data-cited="0" data-ts="2026-11-12T17:06:48" data-search="@financialjuice zelenskiy: we will have more meetings, hope to work on de-escalation and ceasefires|fj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-11-12 17:06</span></span></div><div class="tw-body">Zelenskiy: we will have more meetings, hope to work on de-escalation and ceasefires|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/146829" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-13" data-handle="marketfeed" data-cited="1" data-ts="2026-11-12T16:59:12" data-search="@marketfeed rwa perpetual trading volume surged 122x year-over-year to reach $2.23 trillion in q3 2026 ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:59</span></span></div><div class="tw-body">RWA PERPETUAL TRADING VOLUME SURGED 122X YEAR-OVER-YEAR TO REACH $2.23 TRILLION IN Q3 2026 ...</div><a class="tw-link" href="https://t.me/marketfeed/1076843" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-14" data-handle="financefeeds" data-cited="1" data-ts="2026-11-12T16:53:42" data-search="@financefeeds nebius stock falls 18% despite q3 beat as 2026 outlook weakens nebius stock fell 17.72% to $127.58 at 2:57 p.m. et on thursday, november 12, despite reporting third-quarter revenue well above wall street expectations. the ai… https://financefeeds.com/nebius-stock-falls-18-despite-q3-beat-as-2026-outlook-weakens/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:53</span></span></div><div class="tw-body">Nebius Stock Falls 18% Despite Q3 Beat as 2026 Outlook Weakens Nebius stock fell 17.72% to $127.58 at 2:57 p.m. ET on Thursday, November 12, despite reporting third-quarter revenue well above Wall Street expectations. The AI… https://financefeeds.com/nebius-stock-falls-18-despite…</div><a class="tw-link" href="https://t.me/financefeeds/36360" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-15" data-handle="financefeeds" data-cited="0" data-ts="2026-11-12T16:48:48" data-search="@financefeeds 6 top web3 digital identity solutions in 2026 crypto exchanges, defi platforms, and tokenized asset providers need to verify users and block fake accounts without collecting excess personal data. web3 digital identity now… https://financefeeds.com/6-top-web3-digital-identity-solutions-in-2026/"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-ts">2026-11-12 16:48</span></span></div><div class="tw-body">6 Top Web3 Digital Identity Solutions in 2026 Crypto exchanges, DeFi platforms, and tokenized asset providers need to verify users and block fake accounts without collecting excess personal data. Web3 digital identity now… https://financefeeds.com/6-top-web3-digital-identity-solu…</div><a class="tw-link" href="https://t.me/financefeeds/36359" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-16" data-handle="marketfeed" data-cited="1" data-ts="2026-11-12T16:47:56" data-search="@marketfeed #oott | oil supertanker squeeze is crimping us crude exports, texas port ceo says - bbg ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:47</span></span></div><div class="tw-body">#OOTT | OIL SUPERTANKER SQUEEZE IS CRIMPING US CRUDE EXPORTS, TEXAS PORT CEO SAYS - BBG ...</div><a class="tw-link" href="https://t.me/marketfeed/1076842" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-17" data-handle="ahboyashreads" data-cited="1" data-ts="2026-11-12T16:39:50" data-search="@ahboyashreads the doj says north korea stole over $400m in crypto over 18 months by using deepfake video calls: press release source"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:39</span></span></div><div class="tw-body">The DOJ Says North Korea Stole Over $400M In Crypto Over 18 Months By Using Deepfake Video Calls: Press Release Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25725" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-18" data-handle="financialjuice" data-cited="1" data-ts="2026-11-12T16:38:11" data-search="@financialjuice the doj to seize $1.2b worth of cryptocurrency stolen from binance|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:38</span></span></div><div class="tw-body">The DOJ to seize $1.2b worth of cryptocurrency stolen from Binance|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/146828" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-19" data-handle="financialjuice" data-cited="1" data-ts="2026-11-12T16:37:08" data-search="@financialjuice the doj reports actions to disrupt north korea’s cryptocurrency theft.|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:37</span></span></div><div class="tw-body">The DoJ reports actions to disrupt North Korea’s cryptocurrency theft.|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/146827" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-20" data-handle="ahboyashreads" data-cited="1" data-ts="2026-11-12T16:36:52" data-search="@ahboyashreads the doj seizes $1.2b from north korea, dismantles deepfake scheme linked to $6b binance hack: press release source"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:36</span></span></div><div class="tw-body">The DOJ Seizes $1.2B From North Korea, Dismantles Deepfake Scheme Linked To $6B Binance Hack: Press Release Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25724" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-21" data-handle="ahboyashreads" data-cited="1" data-ts="2026-11-12T16:35:26" data-search="@ahboyashreads doj seizes $1.2bln in north korea-linked crypto theft, dismantles &quot;facestealer&quot; deepfake scheme tied to $6bln binance hack: website source"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:35</span></span></div><div class="tw-body">DOJ seizes $1.2BLN in North Korea-linked crypto theft, dismantles &quot;facestealer&quot; deepfake scheme tied to $6BLN Binance hack: Website Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25723" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-22" data-handle="financialjuice" data-cited="1" data-ts="2026-11-12T16:34:27" data-search="@financialjuice texas port ceo: supertanker squeeze crimps us oil exports|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:34</span></span></div><div class="tw-body">Texas Port CEO: Supertanker squeeze crimps US oil exports|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/146826" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-23" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-12T16:11:21" data-search="@walterbloomberg anthropic ipo is 6 times oversubscribed as valuation targets $1.4 trillion anthropic’s ($ant) ipo has attracted roughly six times more orders than available shares, according to bloomberg sources. the claude ai developer is seeking $64.4 billion through its ipo, plus a $26 billion private placement, potentially raising a combined $90.4 billion in a record-breaking offering. nvidia ($nvda) has committed approximately $10 billion to the private placement, despite its recent stock selloff. anthropic’s annualized revenue run rate surged to $81 billion in october, up from $71 billion in september and $65 billion in july. demand is soaring even at a targeted $1.4 trillion valuation, with some investors expected to receive reduced allocations. (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:11</span></span></div><div class="tw-body">ANTHROPIC IPO IS 6 TIMES OVERSUBSCRIBED AS VALUATION TARGETS $1.4 TRILLION Anthropic’s ($ANT) IPO has attracted roughly six times more orders than available shares, according to Bloomberg sources. The Claude AI developer is seeking $64.4 billion through its IPO, plus a $26 billio…</div><a class="tw-link" href="https://t.me/WalterBloomberg/38358" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-24" data-handle="financefeeds" data-cited="1" data-ts="2026-11-12T16:09:53" data-search="@financefeeds nvidia stock drops further on jensen huang’s third affair, alice’s huawei ties nvidia shares plunged as much as 13% on thursday, november 12, after co-founder jensen huang resigned as chief executive and president following allegations involving multiple… https://financefeeds.com/nvidia-stock-drops-further-on-jensen-huangs-third-affair-alices-huawei-ties/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:09</span></span></div><div class="tw-body">Nvidia Stock Drops Further on Jensen Huang’s Third Affair, Alice’s Huawei Ties Nvidia shares plunged as much as 13% on Thursday, November 12, after co-founder Jensen Huang resigned as chief executive and president following allegations involving multiple… https://financefeeds.com…</div><a class="tw-link" href="https://t.me/financefeeds/36358" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-25" data-handle="ahboyashreads" data-cited="1" data-ts="2026-11-12T16:00:03" data-search="@ahboyashreads anthropic&#x27;s ipo said to be six times oversubscribed: bbg source"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 16:00</span></span></div><div class="tw-body">Anthropic&#x27;s IPO Said To Be Six Times Oversubscribed: BBG Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25722" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-26" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-12T15:56:50" data-search="@walterbloomberg nvidia will continue investigation into former ceo and alleged chinese spy - the information (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 15:56</span></span></div><div class="tw-body">NVIDIA WILL CONTINUE INVESTIGATION INTO FORMER CEO AND ALLEGED CHINESE SPY - THE INFORMATION (@WalterBloomberg)</div><a class="tw-link" href="https://t.me/WalterBloomberg/38357" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-27" data-handle="ahboyashreads" data-cited="1" data-ts="2026-11-12T15:52:06" data-search="@ahboyashreads nvidia to continue investigating ex-ceo jensen huang, statement to be issued soon: the information source"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 15:52</span></span></div><div class="tw-body">Nvidia To Continue Investigating Ex-CEO Jensen Huang, Statement To Be Issued Soon: The Information Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25721" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-28" data-handle="financefeeds" data-cited="1" data-ts="2026-11-12T15:44:18" data-search="@financefeeds new york regulator issues new crypto advertising rules with may 2027 deadline the new york state department of financial services (nydfs) has issued new guidance requiring regulated cryptocurrency firms to strengthen oversight of advertising and marketing, with… https://financefeeds.com/new-york-regulator-issues-new-crypto-advertising-rules-with-may-2027-deadline/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 15:44</span></span></div><div class="tw-body">New York Regulator Issues New Crypto Advertising Rules With May 2027 Deadline The New York State Department of Financial Services (NYDFS) has issued new guidance requiring regulated cryptocurrency firms to strengthen oversight of advertising and marketing, with… https://financefe…</div><a class="tw-link" href="https://t.me/financefeeds/36357" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-29" data-handle="ahboyashreads" data-cited="0" data-ts="2026-11-12T15:41:57" data-search="@ahboyashreads us ag blanche : justice department has not yet reached conclusion on whehter alice huang was chinese spy: rtrs source"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-ts">2026-11-12 15:41</span></span></div><div class="tw-body">US ag blanche : justice department has not yet reached conclusion on whehter alice huang was Chinese spy: RTRS Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25720" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-30" data-handle="ahboyashreads" data-cited="0" data-ts="2026-11-12T15:30:31" data-search="@ahboyashreads trump: would consider a weeklong campaign against cuba source"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-ts">2026-11-12 15:30</span></span></div><div class="tw-body">Trump: would consider a weeklong campaign against cuba Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25719" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-31" data-handle="watcherguru" data-cited="1" data-ts="2026-11-12T15:14:37" data-search="@watcherguru just in: elon musk&#x27;s spacex $spcx and tesla $tsla could announce merger as early as december. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 15:14</span></span></div><div class="tw-body">JUST IN: Elon Musk&#x27;s SpaceX $SPCX and Tesla $TSLA could announce merger as early as December. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/15990" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-32" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-12T15:09:18" data-search="@walterbloomberg *spacex and tesla merger discussions are said to progress (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 15:09</span></span></div><div class="tw-body">*SPACEX AND TESLA MERGER DISCUSSIONS ARE SAID TO PROGRESS (@WalterBloomberg)</div><a class="tw-link" href="https://t.me/WalterBloomberg/38356" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-33" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-12T15:02:26" data-search="@walterbloomberg ousted nvidia ceo jensen huang linked to third affair, reuters reports former nvidia ($nvda) ceo jensen huang had an intimate relationship with another company employee, according to two sources cited by reuters. the revelation follows two previously reported affairs involving nvidia healthcare vp kimberly powell and alice huang, a chinese executive suspected by us intelligence of espionage. the earlier scandals reportedly led to huang’s resignation on november 12. nvidia declined to comment, while huang and the company’s board did not respond to reuters’ requests. (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 15:02</span></span></div><div class="tw-body">OUSTED NVIDIA CEO JENSEN HUANG LINKED TO THIRD AFFAIR, REUTERS REPORTS Former Nvidia ($NVDA) CEO Jensen Huang had an intimate relationship with another company employee, according to two sources cited by Reuters. The revelation follows two previously reported affairs involving Nv…</div><a class="tw-link" href="https://t.me/WalterBloomberg/38355" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-34" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-12T14:54:12" data-search="@walterbloomberg former nvidia ceo jensen huang had an intimate relationship with a second employee, sources say (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 14:54</span></span></div><div class="tw-body">FORMER NVIDIA CEO JENSEN HUANG HAD AN INTIMATE RELATIONSHIP WITH A SECOND EMPLOYEE, SOURCES SAY (@WalterBloomberg)</div><a class="tw-link" href="https://t.me/WalterBloomberg/38354" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-35" data-handle="financefeeds" data-cited="1" data-ts="2026-11-12T14:37:47" data-search="@financefeeds thailand proposes $148,000 daily stablecoin transfer cap thailand’s securities and exchange commission (sec) has proposed limiting daily stablecoin deposits and withdrawals to 5 million baht ($148,000) each per customer at regulated digital… https://financefeeds.com/thailand-proposes-148000-daily-stablecoin-transfer-cap/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 14:37</span></span></div><div class="tw-body">Thailand Proposes $148,000 Daily Stablecoin Transfer Cap Thailand’s Securities and Exchange Commission (SEC) has proposed limiting daily stablecoin deposits and withdrawals to 5 million baht ($148,000) each per customer at regulated digital… https://financefeeds.com/thailand-prop…</div><a class="tw-link" href="https://t.me/financefeeds/36356" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-36" data-handle="watcherguru" data-cited="1" data-ts="2026-11-12T14:30:12" data-search="@watcherguru just in: former nvidia $nvda ceo jensen huang had an intimate relationship with a second employee, bringing his total number of affairs to 3, reuters reports. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 14:30</span></span></div><div class="tw-body">JUST IN: Former Nvidia $NVDA CEO Jensen Huang had an intimate relationship with a second employee, bringing his total number of affairs to 3, Reuters reports. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/15989" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-37" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-12T14:15:51" data-search="@walterbloomberg oil futures extend gains after iran&#x27;s state news agency irna reports enemy strike on iran; wti last up 2.36%, brent last up 3% (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 14:15</span></span></div><div class="tw-body">OIL FUTURES EXTEND GAINS AFTER IRAN&#x27;S STATE NEWS AGENCY IRNA REPORTS ENEMY STRIKE ON IRAN; WTI LAST UP 2.36%, BRENT LAST UP 3% (@WalterBloomberg)</div><a class="tw-link" href="https://t.me/WalterBloomberg/38353" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-38" data-handle="watcherguru" data-cited="1" data-ts="2026-11-12T14:14:25" data-search="@watcherguru just in: 🇺🇸🇨🇳 experts warn us artificial intelligence is &quot;fully compromised&quot; by china following jensen huang&#x27;s affair with a chinese spy. &quot;our data centers, compromised. all of our models, stolen.&quot; @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 14:14</span></span></div><div class="tw-body">JUST IN: 🇺🇸🇨🇳 Experts warn US artificial intelligence is &quot;fully compromised&quot; by China following Jensen Huang&#x27;s affair with a Chinese Spy. &quot;Our data centers, compromised. All of our models, stolen.&quot; @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/15988" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-39" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-12T14:12:15" data-search="@walterbloomberg jensen huang&#x27;s alleged affair was introduced by the woman&#x27;s husband chinese businessman kang wei reportedly introduced nvidia ($nvda) co-founder jensen huang to his wife, alice huang, with whom the former ceo later had an affair. according to the report, kang allegedly knew about the relationship for two years while the couple expanded megaspeed, a singapore-based nvidia cloud partner suspected of diverting restricted ai chips to china. us officials suspect alice huang was recruited by chinese intelligence, an allegation beijing denies. singapore says it found insufficient evidence to charge her over megaspeed and did not investigate her for espionage. the revelations deepen scrutiny of nvidia&#x27;s china exposure and huang&#x27;s business relationships. (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 14:12</span></span></div><div class="tw-body">JENSEN HUANG&#x27;S ALLEGED AFFAIR WAS INTRODUCED BY THE WOMAN&#x27;S HUSBAND Chinese businessman Kang Wei reportedly introduced Nvidia ($NVDA) co-founder Jensen Huang to his wife, Alice Huang, with whom the former CEO later had an affair. According to the report, Kang allegedly knew about…</div><a class="tw-link" href="https://t.me/WalterBloomberg/38352" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-40" data-handle="financefeeds" data-cited="1" data-ts="2026-11-12T13:59:40" data-search="@financefeeds nvidia’s $286b ai backstop book passes to colette kress the nvidia backstop book now belongs to colette kress, and by one account she never wanted one of its biggest lines. the interim chief inherits… https://financefeeds.com/nvidia-backstop-286-billion-colette-kress-openai-neoclouds/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 13:59</span></span></div><div class="tw-body">Nvidia’s $286B AI Backstop Book Passes to Colette Kress The Nvidia backstop book now belongs to Colette Kress, and by one account she never wanted one of its biggest lines. The interim chief inherits… https://financefeeds.com/nvidia-backstop-286-billion-colette-kress-openai-neocl…</div><a class="tw-link" href="https://t.me/financefeeds/36355" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-41" data-handle="financefeeds" data-cited="1" data-ts="2026-11-12T13:05:52" data-search="@financefeeds visa to support western union’s usdpt stablecoin for native settlement on visanet visa and anchorage digital are expanding their stablecoin settlement partnership to support western union’s u.s. dollar payment token (usdpt) as a native settlement asset on… https://financefeeds.com/visa-to-support-western-unions-usdpt-stablecoin-for-native-settlement-on-visanet/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 13:05</span></span></div><div class="tw-body">Visa to Support Western Union’s USDPT Stablecoin for Native Settlement on VisaNet Visa and Anchorage Digital are expanding their stablecoin settlement partnership to support Western Union’s U.S. Dollar Payment Token (USDPT) as a native settlement asset on… https://financefeeds.co…</div><a class="tw-link" href="https://t.me/financefeeds/36354" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-42" data-handle="watcherguru" data-cited="1" data-ts="2026-11-12T12:05:42" data-search="@watcherguru just in: 🇺🇸 former nvidia $nvda ceo jensen huang agrees to testify before congress over his affair with chinese spy. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 12:05</span></span></div><div class="tw-body">JUST IN: 🇺🇸 Former Nvidia $NVDA CEO Jensen Huang agrees to testify before Congress over his affair with Chinese spy. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/15987" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-43" data-handle="watcherguru" data-cited="1" data-ts="2026-11-12T11:49:28" data-search="@watcherguru just in: 88% of nvidia $nvda employees surveyed wanted jensen huang to remain ceo. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 11:49</span></span></div><div class="tw-body">JUST IN: 88% of Nvidia $NVDA employees surveyed wanted Jensen Huang to remain CEO. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/15986" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-44" data-handle="watcherguru" data-cited="1" data-ts="2026-11-12T11:39:16" data-search="@watcherguru just in: 🇺🇸 us justice department launches investigation into nvidia $nvda following ceo jensen huang&#x27;s resignation. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 11:39</span></span></div><div class="tw-body">JUST IN: 🇺🇸 US Justice Department launches investigation into Nvidia $NVDA following CEO Jensen Huang&#x27;s resignation. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/15985" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-45" data-handle="tradehaven" data-cited="0" data-ts="2026-11-12T10:08:30" data-search="@tradehaven https://mothership.sg/2026/11/cyclist-tipper-truck-dies/ friend’s relative 🤦🏻‍♂️🤦🏻‍♂️🤦🏻‍♂️ cycling is dangerous ! cars are expensive !! play pickleball instead ???"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-11-12 10:08</span></span></div><div class="tw-body">https://mothership.sg/2026/11/cyclist-tipper-truck-dies/ Friend’s relative 🤦🏻‍♂️🤦🏻‍♂️🤦🏻‍♂️ Cycling is dangerous ! Cars are expensive !! Play pickleball instead ???</div><a class="tw-link" href="https://t.me/tradehaven/80888" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-46" data-handle="tradehaven" data-cited="0" data-ts="2026-11-12T09:38:37" data-search="@tradehaven t+2 today rally on bad news tomorrow 🤷🏼‍♂️🤷🏼‍♂️🤷🏼‍♂️"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-11-12 09:38</span></span></div><div class="tw-body">T+2 Today rally on bad news Tomorrow 🤷🏼‍♂️🤷🏼‍♂️🤷🏼‍♂️</div><a class="tw-link" href="https://t.me/tradehaven/80887" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-47" data-handle="tradehaven" data-cited="1" data-ts="2026-11-12T09:35:58" data-search="@tradehaven coreweave lower than nvidia !"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-12 09:35</span></span></div><div class="tw-body">CoreWeave lower than Nvidia !</div><a class="tw-link" href="https://t.me/tradehaven/80886" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-48" data-handle="tradehaven" data-cited="0" data-ts="2026-11-12T09:14:58" data-search="@tradehaven 1 we have too many ai’s 2 jensen was trying to feed them all 3 do we need so many ai’s?"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-11-12 09:14</span></span></div><div class="tw-body">1 we have too many AI’s 2 Jensen was trying to feed them all 3 do we need so many AI’s?</div><a class="tw-link" href="https://t.me/tradehaven/80885" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-49" data-handle="tradehaven" data-cited="0" data-ts="2026-11-12T09:08:08" data-search="@tradehaven or jensen resigns after anthropic ipo?"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-11-12 09:08</span></span></div><div class="tw-body">Or Jensen resigns after Anthropic IPO?</div><a class="tw-link" href="https://t.me/tradehaven/80884" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-50" data-handle="tradehaven" data-cited="0" data-ts="2026-11-12T09:06:09" data-search="@tradehaven after this we will find out there is no chip shortage minus china ?"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-11-12 09:06</span></span></div><div class="tw-body">After this we will find out there is no chip shortage minus China ?</div><a class="tw-link" href="https://t.me/tradehaven/80882" target="_blank">View on Telegram &rarr;</a></div></div></div>
+  </details>
+
+  <div class="synopsis-section"><div class="synopsis-label">Market Intelligence Synopsis</div><div class="synopsis-byline">Compiled from 777 signal sources &middot; 2026-11-12 17:55 &middot; AI-assisted analysis</div><div class="synopsis-body"><p class="synopsis-para">The Huang ouster plus a DOJ probe, Chinese-spy allegations and &#x27;AI fully compromised&#x27; claims is maximal information disorder — a high-temperature state where a single node (NVDA, the system&#x27;s partition function) is being repriced, radiating heat into all AI-adjacent names. With portfolio heat budget at 0% and signal multiplier 0.00×, this is a hedge-only expression; XLP has recurred as the defensive long across prior CHOPPY runs, so size at quarter. SMH is crowded (2+ mentions) so we avoid a new direct AI long and lean defensive.</p><p class="synopsis-para">Long XLP as defensive proxy; avoid new longs in NVDA/SMH/GOOGL neocloud chain Market participants are closely monitoring neocloud q4 guidance revisions, anthropic ipo pricing/allocation.</p><p class="synopsis-para">Long CRAK (refiners) as a fresh instrument; avoid crowded BNO/OIH direct crude longs</p></div></div>
+
+  <div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 9/10</div><div class="col-title">Nvidia Governance Shock and Huang Ouster</div><div class="seen-tag">&#8635; seen 2&times; in the last 30 days</div><div class="col-body">Long XLP vs short SMH (defensive hedge pair), no new NVDA long</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 8/10</div><div class="col-title">AI Capex Durability and Neocloud Credit Stress</div><div class="col-body">Long XLP as defensive proxy; avoid new longs in NVDA/SMH/GOOGL neocloud chain</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 7/10</div><div class="col-title">Iran Strike and Oil Risk Premium</div><div class="seen-tag">&#8635; seen 5&times; in the last 30 days</div><div class="col-body">Long CRAK (refiners) as a fresh instrument; avoid crowded BNO/OIH direct crude longs</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div></div>
+<div class="grid-col"><div class="col-tag">Geopolitical · Risk 6/10</div><div class="col-title">Crypto Theft Seizure and Binance Hack Resolution</div><div class="col-body">Long GLD as risk-off store-of-value hedge; no new crypto-exchange long</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div></div>
+<div class="grid-col"><div class="col-tag">Canada / FX · Risk 7/10</div><div class="col-title">SpaceX-Tesla Merger and SEC/CFTC Reshuffle</div><div class="col-body">Small long TSLA call spread as event-driven lottery; size at most quarter</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div></div></div>
+
+  <div class="thought-block">
+    <div class="thought-rule"></div>
+    <div>
+      <div class="thought-label">Top Trade Hypothesis</div>
+      <div class="thought-q">Long XLP vs short SMH (defensive hedge pair), no new NVDA long</div>
+      <div class="thought-body">Nvidia formal statement / investigation update, Huang Congressional testimony, DOJ probe developments</div>
+      <div class="thought-bear-label">Bear Case</div>
+      <div class="thought-bear"></div>
+      <div class="thought-conviction"></div>
+    </div>
+  </div>
+
+  <div class="trading-section"><div class="trading-label">Quantitative Signal Analysis</div><div class="trading-grid"><div class="tc-card"><div class="tc-header"><span class="tc-sym">META</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$623.61<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-1.10%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">44.1</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.41 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.777 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$640.44 / $679.19</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$92</span></div><div class="tc-ts">2026-11-12 17:53:10</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AAPL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$354.88<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-in">IN</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+3.19%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">54.7</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.28 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.727 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$345.51 / $338.48</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$208</span></div><div class="tc-ts">2026-11-12 17:53:11</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AMZN</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$267.44<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+7.37%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">63.7</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.43 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.658 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$256.50 / $254.66</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$96</span></div><div class="tc-ts">2026-11-12 17:53:12</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NFLX</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$62.69<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-1.89%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">39.9</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.38 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.846 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$64.76 / $69.60</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$100</span></div><div class="tc-ts">2026-11-12 17:53:12</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">GOOGL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$298.70<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-5.71%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">38.2</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.52 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.663 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$305.66 / $329.12</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$57</span></div><div class="tc-ts">2026-11-12 17:53:13</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">WMT</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$126.19<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-in">IN</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+4.90%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">64.0</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.26 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.716 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$122.77 / $114.14</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$253</span></div><div class="tc-ts">2026-11-12 17:53:14</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NU</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$11.83<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-6.04%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">22.2</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.71 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.642 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$12.86 / $13.81</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$31</span></div><div class="tc-ts">2026-11-12 17:53:15</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">BTC-USD</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$71,309<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-7.63%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">31.8</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.34 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.763 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$77,210.83 / $80,857.15</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$125</span></div><div class="tc-ts">2026-11-12 17:53:15</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NVDA</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$166.19<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-23.06%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">24.5</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.53 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.797 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$201.25 / $215.96</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$44</span></div><div class="tc-ts">2026-11-12 17:53:16</div></div></div></div>
+
+  <div class="regime-panel"><div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (T 20-bar &middot; shape 60-bar &middot; detector v2)</div><div class="regime-badge-row"><span class="regime-badge" style="color:#f5a623;border-color:#f5a62340;background:#f5a62312">CHOPPY</span><span class="regime-desc">High T &middot; Low S &mdash; reduce size</span></div><div class="regime-metrics"><div class="rm"><div class="rm-lbl">Temperature</div><div class="rm-val" style="color:#f5a623">22.6%</div><div class="rm-sub">base 15%</div></div><div class="rm"><div class="rm-lbl">Entropy</div><div class="rm-val">1.844</div><div class="rm-sub">base 2.50</div></div><div class="rm"><div class="rm-lbl">KL Divergence</div><div class="rm-val" style="color:#c8d4f0">0.0434</div><div class="rm-sub">within bounds</div></div><div class="rm"><div class="rm-lbl">Signal Mult</div><div class="rm-val">0.00&times;</div><div class="rm-sub">applied to signals</div></div><div class="rm"><div class="rm-lbl">Heat Budget</div><div class="rm-val">0%</div><div class="rm-sub">remaining</div></div></div></div>
+
+  
+
+  <div class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
+    <div class="footer-right">
+      <span class="footer-tag active">AI</span>
+      <span class="footer-tag">MACRO</span>
+      <span class="footer-tag">CRYPTO</span>
+      <span class="footer-tag">SIGNALS</span>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var grid = document.getElementById('tweetGrid');
+  if (grid) {
+    var cards   = Array.prototype.slice.call(grid.querySelectorAll('.tweet-embed'));
+    var search  = document.getElementById('cardSearch');
+    var cited   = document.getElementById('citedToggle');
+    var acct    = document.getElementById('acctFilter');
+    var sortSel = document.getElementById('sortSel');
+    var count   = document.getElementById('cardCount');
+    var citedOnly = false;
+
+    // Populate the account dropdown from the cards present.
+    var seen = {};
+    cards.forEach(function(c){ var h = c.getAttribute('data-handle'); if (h) seen[h] = 1; });
+    Object.keys(seen).sort().forEach(function(h){
+      var o = document.createElement('option'); o.value = h; o.textContent = '@' + h; acct.appendChild(o);
+    });
+
+    function apply(){
+      var q = (search.value || '').toLowerCase().trim();
+      var a = acct.value;
+      var shown = 0;
+      cards.forEach(function(c){
+        var ok = true;
+        if (q && c.getAttribute('data-search').indexOf(q) < 0) ok = false;
+        if (a && c.getAttribute('data-handle') !== a) ok = false;
+        if (citedOnly && c.getAttribute('data-cited') !== '1') ok = false;
+        c.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      count.textContent = shown + ' / ' + cards.length + ' shown';
+    }
+    function sortCards(){
+      var mode = sortSel.value;
+      cards.slice().sort(function(x, y){
+        if (mode === 'handle') return x.getAttribute('data-handle').localeCompare(y.getAttribute('data-handle'));
+        return y.getAttribute('data-ts').localeCompare(x.getAttribute('data-ts'));
+      }).forEach(function(c){ grid.appendChild(c); });
+    }
+
+    search.addEventListener('input', apply);
+    acct.addEventListener('change', apply);
+    cited.addEventListener('click', function(){
+      citedOnly = !citedOnly; cited.classList.toggle('on', citedOnly); apply();
+    });
+    sortSel.addEventListener('change', function(){ sortCards(); apply(); });
+    apply();
+  }
+
+  // Live data-age readout: "T+Xh Ym" since the run timestamp.
+  var age = document.getElementById('dataAge');
+  if (age) {
+    var t0 = new Date(age.getAttribute('data-runts')).getTime();
+    var tick = function(){
+      if (!t0 || isNaN(t0)) { age.textContent = 'live'; return; }
+      var s = Math.max(0, Math.floor((Date.now() - t0) / 1000));
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      age.textContent = 'T+' + (h ? h + 'h ' : '') + m + 'm';
+    };
+    tick(); setInterval(tick, 30000);
+  }
+})();
+</script>
+</body>
+</html>
