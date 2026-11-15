@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHood Reads — 2026-11-15 14:01</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #C1121F; --red-dim: #8B0D16; --cream: #F5F0E8; --gold: #B8975A;
+    --dark: #0A0A0A; --charcoal: #111111; --mid: #1C1C1C;
+    --wire: rgba(255,255,255,0.06); --text-muted: rgba(245,240,232,0.45);
+    --purple: #7B4FD6; --pink: #E8517A; --tangerine: #F47B3A;
+  }
+  body { background: var(--dark); font-family: "IBM Plex Mono", monospace; color: var(--cream);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6; }
+  .card { position: relative; width: 100%; max-width: 900px; background: var(--charcoal);
+    border: 1px solid rgba(123,79,214,0.3); z-index: 1; overflow: hidden;
+    box-shadow: 0 0 40px rgba(123,79,214,0.06), 0 0 80px rgba(232,81,122,0.03); }
+  .card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 200px;
+    height: 200px; background: linear-gradient(135deg, var(--purple), var(--pink));
+    transform: rotate(45deg); opacity: 0.1; }
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px; border-bottom: 1px solid rgba(123,79,214,0.15);
+    background: rgba(123,79,214,0.04); }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--pink);
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,81,122,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(232,81,122,0); }
+  }
+  .topbar-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); font-weight: 500; }
+  .topbar-date { font-size: 9px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .ticker-wrap { overflow: hidden; border-bottom: 1px solid var(--wire);
+    background: var(--mid); padding: 7px 0; }
+  .ticker-inner { display: flex; gap: 0; animation: ticker 28s linear infinite; white-space: nowrap; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 24px;
+    font-size: 9.5px; letter-spacing: 0.08em; border-right: 1px solid var(--wire); }
+  .tick-sym { color: var(--tangerine); font-weight: 500; }
+  .tick-val { color: var(--cream); }
+  .tick-chg { font-size: 8.5px; color: var(--text-muted); }
+  .up { color: #4CAF50; } .down { color: var(--red); }
+  .hero { padding: 44px 40px 36px; position: relative; border-bottom: 1px solid var(--wire); }
+  .issue-line { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .issue-num { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); }
+  .issue-rule { flex: 1; height: 1px; background: linear-gradient(to right, var(--wire), transparent); }
+  .masthead { font-family: "Playfair Display", serif; font-weight: 900;
+    font-size: clamp(48px, 8vw, 80px); line-height: 0.9; letter-spacing: -0.02em;
+    color: var(--cream); margin-bottom: 6px; }
+  .masthead .red-accent { color: var(--red); font-style: italic; }
+  .site-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 14px;
+              font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.22em;
+              text-transform: uppercase; }
+  .site-nav a { color: var(--text-muted); text-decoration: none; border-bottom: 1px solid transparent;
+                padding-bottom: 2px; transition: color .15s, border-color .15s; }
+  .site-nav a:hover { color: var(--cream); border-bottom-color: var(--gold); }
+  .site-nav .site-nav-cta { color: var(--cream); border: 1px solid var(--red);
+                            padding: 4px 10px; border-radius: 2px; }
+  .site-nav .site-nav-cta:hover { background: var(--red); color: #fff; border-bottom-color: var(--red); }
+  .sub-masthead { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--tangerine); margin-bottom: 28px; }
+  .headline-block { max-width: 620px; }
+  .headline { font-family: "DM Serif Display", serif; font-size: clamp(18px, 3.2vw, 26px);
+    line-height: 1.3; color: var(--cream); margin-bottom: 14px; font-style: italic; }
+  .deck { font-size: 10.5px; line-height: 1.7; color: var(--text-muted);
+    letter-spacing: 0.03em; max-width: 540px; }
+  .corner-deco { position: absolute; top: 44px; right: 40px; text-align: right; }
+  .corner-deco .vol-label { font-size: 8px; letter-spacing: 0.2em; color: var(--text-muted);
+    text-transform: uppercase; }
+  .corner-deco .vol-num { font-family: "Playfair Display", serif; font-size: 52px;
+    font-weight: 900; color: rgba(123,79,214,0.15); line-height: 1; letter-spacing: -0.04em; }
+  .grid-section { display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--wire); }
+  .grid-col { padding: 22px 24px; border-right: 1px solid var(--wire); position: relative; }
+  .grid-col:last-child { border-right: none; }
+  .col-tag { font-size: 7.5px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 10px; font-weight: 500; }
+  .col-title { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700;
+    line-height: 1.25; margin-bottom: 10px; color: var(--cream); }
+  .col-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .sparkline { margin-top: 14px; height: 32px; display: flex; align-items: flex-end; gap: 2px; }
+  .bar { flex: 1; background: var(--wire); border-radius: 1px; }
+  .bar.hi { background: rgba(244,123,58,0.55); }
+  .bar.lo { background: rgba(193,18,31,0.5); }
+  .bar.mid-hi { background: rgba(232,81,122,0.45); }
+  .metrics-strip { display: grid; grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--wire); }
+  .metric { padding: 16px 20px; border-right: 1px solid var(--wire); position: relative; }
+  .metric:last-child { border-right: none; }
+  .metric-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .metric-val { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .metric-delta { font-size: 9px; letter-spacing: 0.05em; }
+  .metric-delta.up { color: #4CAF50; }
+  .metric-delta.dn { color: var(--red); }
+  .metric-delta.neutral { color: var(--tangerine); }
+  .thought-block { padding: 26px 40px; border-bottom: 1px solid var(--wire);
+    display: grid; grid-template-columns: 3px 1fr; gap: 22px; align-items: start; }
+  .thought-rule { background: linear-gradient(to bottom, var(--purple), var(--pink), transparent);
+    height: 100%; min-height: 60px; }
+  .thought-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 8px; font-weight: 500; }
+  .thought-q { font-family: "DM Serif Display", serif; font-size: 18px; font-style: italic;
+    line-height: 1.4; color: var(--cream); margin-bottom: 10px; }
+  .thought-body { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .links-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .links-header { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 14px; font-weight: 500; }
+  .links-table { border-collapse: collapse; width: 100%; font-size: 9px; }
+  .links-table th { color: rgba(245,240,232,0.3); text-align: left; padding: 5px 10px;
+    border-bottom: 1px solid var(--wire); letter-spacing: 0.1em; font-weight: 400; }
+  .links-table td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top; }
+  .ts { color: var(--text-muted); white-space: nowrap; width: 120px; }
+  .author { color: var(--tangerine); white-space: nowrap; width: 140px; }
+  .links-table a { color: var(--pink); text-decoration: none; word-break: break-all; }
+  .links-table a:hover { text-decoration: underline; color: var(--cream); }
+  .feed-num { color: var(--text-muted); width: 28px; text-align: right; padding-right: 14px; font-size: 8px; letter-spacing: 0.05em; }
+  .feed-link { color: var(--purple) !important; text-decoration: none !important; border-bottom: 1px solid rgba(123,79,214,0.4); }
+  .feed-link:hover { color: var(--cream) !important; }
+  tr:target { background: rgba(123,79,214,0.08); outline: 1px solid rgba(123,79,214,0.3); }
+  .embeds-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  /* ---- SIGINT signal cards (tactical trade-reference look) ---- */
+  .tweet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+    gap: 14px; align-items: stretch; }
+  .tweet-embed { min-width: 0; display: flex; }
+  .tweet-embed:target .tw-card { outline: 1px solid rgba(184,151,90,0.55); outline-offset: 2px; }
+  .tw-card { position: relative; display: flex; flex-direction: column; width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+    border: 1px solid var(--wire); border-left: 2px solid var(--tangerine);
+    padding: 12px 14px; font-size: 10px; line-height: 1.65;
+    color: rgba(245,240,232,0.78); transition: border-color .15s, transform .15s; }
+  .tw-card::before, .tw-card::after { content: ""; position: absolute; width: 7px; height: 7px;
+    border-color: rgba(244,123,58,0.5); pointer-events: none; }
+  .tw-card::before { top: 4px; right: 4px; border-top: 1px solid; border-right: 1px solid; }
+  .tw-card::after  { bottom: 4px; left: 4px; border-bottom: 1px solid; border-left: 1px solid; }
+  .tw-card:hover { border-left-color: var(--cream); transform: translateY(-1px); }
+  .tw-card-cited { border-left: 2px solid var(--gold);
+    background: linear-gradient(180deg, rgba(184,151,90,0.10), rgba(184,151,90,0.02));
+    box-shadow: inset 0 0 0 1px rgba(184,151,90,0.15); }
+  .tw-card-cited::before, .tw-card-cited::after { border-color: rgba(184,151,90,0.7); }
+  .tw-head { display: flex; justify-content: space-between; align-items: baseline;
+    gap: 8px; margin-bottom: 7px; }
+  .tw-handle { color: var(--tangerine); font-weight: 500; letter-spacing: 0.05em; }
+  .tw-meta { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .tw-cited { font-size: 7px; letter-spacing: 0.18em; color: var(--gold); font-weight: 600;
+    border: 1px solid rgba(184,151,90,0.45); padding: 1px 5px; background: rgba(184,151,90,0.08); }
+  .tw-ts { color: var(--text-muted); font-size: 8px; letter-spacing: 0.04em; }
+  .tw-body { color: rgba(245,240,232,0.82); flex: 1; }
+  .tw-link { display: inline-block; margin-top: 10px; font-size: 8px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--pink); text-decoration: none;
+    border-top: 1px solid var(--wire); padding-top: 7px; }
+  .tw-link:hover { color: var(--cream); }
+  .footer { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: rgba(193,18,31,0.04); }
+  .footer-left { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .footer-left span { color: var(--pink); }
+  .footer-right { display: flex; align-items: center; gap: 18px; }
+  .footer-tag { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); padding: 4px 10px; border: 1px solid var(--wire); }
+  .footer-tag.active { border-color: rgba(123,79,214,0.5); color: var(--purple); }
+  .scanline { position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+  .bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 14px; margin-bottom: 5px; font-weight: 500; }
+  .bear-body { font-size: 9px; line-height: 1.7; color: rgba(245,240,232,0.38); }
+  .conviction-tag { margin-top: 7px; font-size: 8.5px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .thought-bear-label { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--pink); margin-top: 16px; margin-bottom: 6px; font-weight: 500; }
+  .thought-bear { font-size: 9.5px; line-height: 1.75; color: var(--text-muted); }
+  .thought-conviction { margin-top: 8px; font-size: 9px; letter-spacing: 0.08em;
+    color: var(--tangerine); font-weight: 500; }
+  .synopsis-section { padding: 28px 40px; border-bottom: 1px solid var(--wire);
+    background: rgba(123,79,214,0.03); }
+  .synopsis-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 6px; font-weight: 500; }
+  .synopsis-byline { font-size: 8px; color: var(--text-muted); letter-spacing: 0.08em;
+    margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wire); }
+  .synopsis-body { column-count: 2; column-gap: 36px; }
+  .synopsis-para { font-size: 10px; line-height: 1.8; color: var(--cream);
+    margin-bottom: 14px; letter-spacing: 0.02em; text-align: justify; }
+  .synopsis-para:first-child::first-letter { font-family: "Playfair Display", serif;
+    font-size: 2.8em; font-weight: 900; float: left; line-height: 0.8;
+    margin: 4px 8px 0 0; color: var(--purple); }
+  @media (max-width: 600px) { .synopsis-body { column-count: 1; } }
+  .trading-section { padding: 22px 28px; border-bottom: 1px solid var(--wire); }
+  .trading-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--tangerine); margin-bottom: 14px; font-weight: 500; }
+  .trading-grid { display: flex; gap: 14px; flex-wrap: wrap; }
+  .tc-card { flex: 1; min-width: 180px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--wire); padding: 14px 16px; }
+  .tc-header { display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; }
+  .tc-sym { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); }
+  .tc-rec { font-size: 8px; letter-spacing: 0.2em; font-weight: 600;
+    padding: 3px 8px; border: 1px solid; }
+  .rec-in  { color: #4CAF50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.07); }
+  .rec-out { color: var(--red); border-color: rgba(193,18,31,0.4); background: rgba(193,18,31,0.07); }
+  .rec-neutral { color: var(--tangerine); border-color: rgba(244,123,58,0.4); background: rgba(244,123,58,0.07); }
+  .tc-price { font-size: 15px; font-weight: 500; color: var(--cream);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .tc-trend { font-size: 9px; letter-spacing: 0.05em; }
+  .tc-row { display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .tc-lbl { font-size: 8px; letter-spacing: 0.1em; color: var(--text-muted); }
+  .tc-val { font-size: 8.5px; color: var(--cream); text-align: right; }
+  .tc-badge { font-size: 7px; letter-spacing: 0.12em; color: var(--tangerine);
+    border: 1px solid rgba(244,123,58,0.35); padding: 1px 4px; margin-left: 4px; }
+  .tc-ts { font-size: 7px; color: var(--text-muted); margin-top: 8px;
+    letter-spacing: 0.05em; text-align: right; }
+  .regime-panel { padding: 22px 28px; border-bottom: 1px solid var(--wire);
+    background: rgba(0,229,160,0.015); }
+  .regime-panel-label { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: #00e5a0; margin-bottom: 12px; font-weight: 500; }
+  .regime-badge-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    flex-wrap: wrap; }
+  .regime-badge { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.2em; padding: 5px 14px; border: 1px solid; }
+  .regime-desc { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; }
+  .regime-warn { font-size: 8px; color: #ff9a3c; letter-spacing: 0.1em;
+    border: 1px solid rgba(255,154,60,0.4); padding: 3px 8px; background: rgba(255,154,60,0.07); }
+  .regime-metrics { display: flex; gap: 0; border: 1px solid var(--wire); }
+  .rm { flex: 1; padding: 10px 14px; border-right: 1px solid var(--wire); }
+  .rm:last-child { border-right: none; }
+  .rm-lbl { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px; }
+  .rm-val { font-family: "Playfair Display", serif; font-size: 18px; font-weight: 700;
+    color: var(--cream); line-height: 1; margin-bottom: 3px; }
+  .rm-sub { font-size: 7.5px; color: var(--text-muted); letter-spacing: 0.05em; }
+  /* ---- Tactical framing: reticle corners + classification banner ---- */
+  .reticle { position: absolute; width: 16px; height: 16px; z-index: 3; pointer-events: none;
+    border-color: rgba(244,123,58,0.55); }
+  .reticle.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
+  .reticle.tr { top: 6px; right: 6px; border-top: 1px solid; border-right: 1px solid; }
+  .reticle.bl { bottom: 6px; left: 6px; border-bottom: 1px solid; border-left: 1px solid; }
+  .reticle.br { bottom: 6px; right: 6px; border-bottom: 1px solid; border-right: 1px solid; }
+  .classbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 28px; background: repeating-linear-gradient(45deg,
+      rgba(193,18,31,0.12) 0 10px, rgba(193,18,31,0.04) 10px 20px);
+    border-bottom: 1px solid rgba(193,18,31,0.25);
+    font-size: 7.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+  .classbar .cb-mid { color: rgba(245,240,232,0.55); letter-spacing: 0.2em; }
+  @media (max-width: 600px) { .classbar .cb-mid { display: none; } }
+  .posture-pill { font-size: 7.5px; letter-spacing: 0.18em; font-weight: 600;
+    padding: 2px 8px; border: 1px solid; margin-left: 6px; }
+  #dataAge { color: var(--tangerine); }
+  /* ---- collapsible sections (native <details>) ---- */
+  details.sec { padding: 0; border-bottom: 1px solid var(--wire); }
+  details.sec > summary { list-style: none; cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between; gap: 12px; padding: 18px 28px 0; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  .sec-summary .links-header { margin-bottom: 0; }
+  .sec-chevron { color: var(--text-muted); font-size: 10px; transition: transform .2s; }
+  details.sec[open] > summary .sec-chevron { transform: rotate(180deg); }
+  details.sec > .tweet-grid, details.sec > .cmdbar { margin: 14px 28px 22px; }
+  details.sec > table.links-table { margin: 8px 28px 20px; width: calc(100% - 56px); }
+  /* ---- command bar (signal filter HUD) ---- */
+  .cmdbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--wire); background: rgba(255,255,255,0.02); }
+  .cmd-input { flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--cream); font-family: "IBM Plex Mono", monospace; font-size: 9px;
+    letter-spacing: 0.1em; padding: 6px 9px; }
+  .cmd-input::placeholder { color: var(--text-muted); letter-spacing: 0.18em; }
+  .cmd-input:focus { outline: none; border-color: rgba(244,123,58,0.6); }
+  .cmd-btn, .cmd-select { background: rgba(0,0,0,0.3); border: 1px solid var(--wire);
+    color: var(--text-muted); font-family: "IBM Plex Mono", monospace; font-size: 8px;
+    letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 10px; cursor: pointer; }
+  .cmd-btn:hover, .cmd-select:hover { color: var(--cream); border-color: rgba(244,123,58,0.5); }
+  .cmd-btn.on { color: var(--gold); border-color: rgba(184,151,90,0.6); background: rgba(184,151,90,0.1); }
+  .cmd-count { font-size: 8px; letter-spacing: 0.12em; color: var(--text-muted); margin-left: auto; }
+  .cmd-link { text-decoration: none; }
+  .seen-tag { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #a78bfa; margin: 2px 0 6px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scanline"></div>
+  <div class="reticle tl"></div><div class="reticle tr"></div>
+  <div class="reticle bl"></div><div class="reticle br"></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pulse"></div>
+      <span class="topbar-label">RedHood Reads &middot; Live Edition</span>
+      <span class="posture-pill" style="color:#f5a623;border-color:#f5a62355;background:#f5a62314">POSTURE&nbsp;&middot;&nbsp;TIGHTENED</span>
+    </div>
+    <span class="topbar-date">Sunday, 15 November 2026 &nbsp;|&nbsp; Week 46 &middot; <span id="dataAge" data-runts="2026-11-15T14:01:50">live</span></span>
+  </div>
+
+  <div class="classbar">
+    <span>// SIGNAL INTELLIGENCE</span>
+    <span class="cb-mid">TRADE REFERENCE &middot; HANDLE WITH DISCRETION</span>
+    <span>NOT FINANCIAL ADVICE //</span>
+  </div>
+
+  <div class="ticker-wrap"><div class="ticker-inner">
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$64,721</span><span class="tick-chg up">+0.92%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val down">$22.49</span><span class="tick-chg down">-2.93%</span></span>
+    <span class="tick-item"><span class="tick-sym">$NVDA</span><span class="tick-val down">$162.85</span><span class="tick-chg down">-2.01%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val down">7,562</span><span class="tick-chg down">-0.40%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val down">$88.56</span><span class="tick-chg down">-0.20%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$3,886</span><span class="tick-chg up">+0.03%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.30</span><span class="tick-chg up">+3.21%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">5.154</span><span class="tick-chg up">+1.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4267</span><span class="tick-chg up">+0.04%</span></span>
+    <span class="tick-item"><span class="tick-sym">BTC/USD</span><span class="tick-val up">$64,721</span><span class="tick-chg up">+0.92%</span></span>
+    <span class="tick-item"><span class="tick-sym">$BLSH</span><span class="tick-val down">$22.49</span><span class="tick-chg down">-2.93%</span></span>
+    <span class="tick-item"><span class="tick-sym">$NVDA</span><span class="tick-val down">$162.85</span><span class="tick-chg down">-2.01%</span></span>
+    <span class="tick-item"><span class="tick-sym">S&P 500</span><span class="tick-val down">7,562</span><span class="tick-chg down">-0.40%</span></span>
+    <span class="tick-item"><span class="tick-sym">WTI</span><span class="tick-val down">$88.56</span><span class="tick-chg down">-0.20%</span></span>
+    <span class="tick-item"><span class="tick-sym">GOLD</span><span class="tick-val up">$3,886</span><span class="tick-chg up">+0.03%</span></span>
+    <span class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val up">19.30</span><span class="tick-chg up">+3.21%</span></span>
+    <span class="tick-item"><span class="tick-sym">10YR UST</span><span class="tick-val up">5.154</span><span class="tick-chg up">+1.00%</span></span>
+    <span class="tick-item"><span class="tick-sym">USD/CAD</span><span class="tick-val up">1.4267</span><span class="tick-chg up">+0.04%</span></span>
+  </div></div>
+
+  <div class="hero">
+    <div class="issue-line">
+      <span class="issue-num">Run &middot; 5.0h window &middot; 2026-11-15 14:01</span>
+      <div class="issue-rule"></div>
+    </div>
+    <div class="masthead">Red<span class="red-accent">Hood</span><br>Reads</div>
+    <div class="sub-masthead">Markets &middot; Macro &middot; Intelligence</div>
+    <div class="site-nav">
+      <a class="site-nav-cta" href="terminal.html">&#9632; OPEN THE TERMINAL</a>
+      <a href="timeline.html">TIMELINE</a>
+      <a href="cards.html">SIGNAL HISTORY</a>
+    </div>
+    <div class="headline-block">
+      <div class="headline">Fed Hawkish-Dovish Split On Inflation</div>
+      <div class="deck">Schmid frames inflation as &#x27;uncomfortably above target&#x27; and &#x27;moving in wrong direction&#x27; while Treasury Secretary Bessent publicly warns the Fed against additional tightening — a classic conflicting-field configuration generating high realiz…</div>
+    </div>
+    <div class="corner-deco">
+      <div class="vol-label">Day</div>
+      <div class="vol-num">15</div>
+    </div>
+  </div>
+
+  <div class="metrics-strip"><div class="metric"><div class="metric-label">Feeds Collected</div><div class="metric-val">97</div><div class="metric-delta neutral">5.0h window</div></div>
+<div class="metric"><div class="metric-label">Fed Hawkish-Dovish Split O…</div><div class="metric-val" style="color:#C1121F">8/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Nvidia Leadership Crisis A…</div><div class="metric-val" style="color:#C1121F">9/10</div><div class="metric-delta dn">HIGH entropy</div></div>
+<div class="metric"><div class="metric-label">Middle East Supply Shock R…</div><div class="metric-val" style="color:#B8975A">7/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Crypto Risk-Off And Infras…</div><div class="metric-val" style="color:#B8975A">6/10</div><div class="metric-delta neutral">MEDIUM entropy</div></div>
+<div class="metric"><div class="metric-label">Global Disinflation Diverg…</div><div class="metric-val" style="color:#4CAF50">4/10</div><div class="metric-delta up">LOW entropy</div></div>
+<div class="metric"><div class="metric-label">Narratives</div><div class="metric-val">5</div><div class="metric-delta neutral">Extracted</div></div></div>
+
+  
+<section class="rh-term" aria-label="RedHood Terminal preview">
+  <style>
+  .rh-term { --rh-ink:#F5F0E8; --rh-mut:rgba(245,240,232,0.45); --rh-wire:rgba(255,255,255,0.09);
+    --rh-red:#C1121F; --rh-gold:#B8975A; --rh-bg:#0C0C0C; --rh-panel:#131313;
+    font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace; color:var(--rh-ink);
+    background:var(--rh-bg); border:1px solid var(--rh-wire); border-radius:3px;
+    margin:28px 0; overflow:hidden; font-variant-numeric:tabular-nums; }
+  .rh-term * { box-sizing:border-box; }
+  .rh-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:7px 12px; background:linear-gradient(180deg,#171717,var(--rh-panel));
+    border-bottom:1px solid var(--rh-wire); }
+  .rh-hood { width:10px; height:10px; background:var(--rh-red); flex:none;
+    clip-path:polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%); }
+  .rh-name { font-size:11px; font-weight:700; letter-spacing:0.16em; }
+  .rh-name em { font-style:normal; color:var(--rh-red); }
+  .rh-tag { font-size:8.5px; letter-spacing:0.22em; color:var(--rh-mut); }
+  .rh-chip { display:flex; align-items:center; gap:6px; margin-left:auto;
+    border:1px solid var(--rh-wire); padding:2px 8px; font-size:9px; letter-spacing:0.08em; }
+  .rh-dot { width:6px; height:6px; border-radius:50%; background:#6E6A64; flex:none; }
+  .rh-strip { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    padding:5px 12px; font-size:8.5px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--rh-gold); border-bottom:1px solid var(--rh-wire); }
+  .rh-strip .rh-dim { color:var(--rh-mut); letter-spacing:0.06em; text-transform:none;
+    font-size:9px; margin-left:auto; }
+  .rh-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
+    gap:1px; background:var(--rh-wire); }
+  .rh-tile { display:block; padding:7px 10px 6px; background:var(--rh-panel);
+    text-decoration:none; color:inherit; transition:background .15s; }
+  .rh-tile:hover { background:#1B1B1B; }
+  .rh-sym { display:block; font-size:10px; font-weight:600; letter-spacing:0.06em;
+    color:var(--rh-gold); margin-bottom:2px; }
+  .rh-spark { display:block; width:100%; height:26px; margin:1px 0 3px; }
+  .rh-px { font-size:13px; font-weight:600; margin-right:6px; }
+  .rh-chg { font-size:10px; }
+  .rh-term .up { color:#2AA198; } .rh-term .dn { color:#D83A3A; }
+  .rh-term .flat { color:var(--rh-mut); }
+  .rh-body { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:0;
+    border-top:1px solid var(--rh-wire); }
+  @media (max-width:640px) { .rh-body { grid-template-columns:minmax(0,1fr); } }
+  .rh-col { padding:9px 12px; min-width:0; }
+  .rh-col + .rh-col { border-left:1px solid var(--rh-wire); }
+  @media (max-width:640px) { .rh-col + .rh-col { border-left:0; border-top:1px solid var(--rh-wire); } }
+  .rh-h { font-size:8.5px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--rh-mut); margin:0 0 6px; }
+  .rh-term ul { list-style:none; margin:0; padding:0; }
+  .rh-term li { display:flex; align-items:baseline; gap:7px; padding:2px 0;
+    border-bottom:1px solid rgba(255,255,255,0.045); font-size:10.5px; }
+  .rh-term li:last-child { border-bottom:0; }
+  .rh-grade { flex:none; width:17px; text-align:center; font-size:9px; font-weight:700;
+    color:#0C0C0C; background:var(--rh-gold); border-radius:2px; }
+  .rh-g-A,.rh-g-A- { background:#F0D9A8; } .rh-g-B { background:#D9B870; }
+  .rh-g-C { background:#B8975A; } .rh-g-D { background:#8E7342; }
+  .rh-g-na { background:rgba(255,255,255,0.14); color:var(--rh-ink); }
+  .rh-nt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rh-nm { margin-left:auto; color:var(--rh-mut); font-size:9px; flex:none; }
+  .rh-kv { font-size:10px; color:var(--rh-mut); line-height:1.7; }
+  .rh-kv b { color:var(--rh-ink); font-weight:600; }
+  .rh-foot { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:9px 12px; border-top:1px solid var(--rh-wire); background:var(--rh-panel); }
+  .rh-cta { display:inline-flex; align-items:center; gap:7px; background:var(--rh-red);
+    color:#fff; text-decoration:none; font-size:10px; font-weight:700; letter-spacing:0.14em;
+    padding:7px 14px; border-radius:2px; transition:filter .15s; }
+  .rh-cta:hover { filter:brightness(1.18); }
+  .rh-ghost { background:none; border:1px solid var(--rh-wire); color:var(--rh-mut);
+    font:inherit; font-size:9.5px; letter-spacing:0.1em; padding:6px 11px; border-radius:2px;
+    cursor:pointer; }
+  .rh-ghost:hover { color:var(--rh-ink); border-color:var(--rh-gold); }
+  .rh-note { font-size:9px; color:var(--rh-mut); margin-left:auto; }
+  .rh-frame { width:100%; height:78vh; min-height:460px; border:0;
+    border-top:1px solid var(--rh-wire); display:block; background:var(--rh-bg); }
+  </style>
+
+  <div class="rh-bar">
+    <span class="rh-hood"></span>
+    <span class="rh-name">RED<em>HOOD</em></span>
+    <span class="rh-tag">TERMINAL</span>
+    <span class="rh-chip"><span class="rh-dot"></span>NO REGIME
+      &middot; T — &middot; x0.00
+      </span>
+  </div>
+
+  <div class="rh-strip">
+    <span>Watchlist</span>
+    <span class="rh-dim">sparkline = last 60 sessions &middot; price &amp; change = latest close</span>
+  </div>
+  <div class="rh-grid"></div>
+
+  <div class="rh-body">
+    <div class="rh-col">
+      <p class="rh-h">Latest narratives</p>
+      <ul><li>No narratives yet</li></ul>
+    </div>
+    <div class="rh-col">
+      <p class="rh-h">What's inside</p>
+      <p class="rh-kv">
+        <b>0</b> symbols &middot; <b>0</b> daily bars<br>
+        <b>0</b> narratives over <b>0</b> runs<br>
+        Realised: &mdash;
+      </p>
+    </div>
+  </div>
+
+  <div class="rh-foot">
+    <a class="rh-cta" href="terminal.html">&#9632; LAUNCH TERMINAL</a>
+    <button class="rh-ghost" type="button" data-rh-embed="terminal.html">Run it inline</button>
+    <span class="rh-note">charts &middot; narrative markers &middot; regime &middot; alpha
+      &mdash; data as of —</span>
+  </div>
+</section>
+<script>
+(function () {
+  var b = document.querySelector('.rh-term [data-rh-embed]');
+  if (!b) return;
+  b.addEventListener('click', function () {
+    var f = document.createElement('iframe');
+    f.className = 'rh-frame';
+    f.src = b.getAttribute('data-rh-embed');
+    f.title = 'RedHood Terminal';
+    f.loading = 'lazy';
+    b.closest('.rh-term').appendChild(f);
+    b.remove();
+  });
+})();
+</script>
+
+
+  <details class="embeds-section sec" open>
+    <summary class="sec-summary">
+      <span class="links-header">SIGINT &mdash; Signal Cards &middot; 50 of 97 &middot; 33 narrative-cited + top 55 &middot; 2026-11-15 14:01</span>
+      <span class="sec-chevron">&#9662;</span>
+    </summary>
+    <div class="cmdbar">
+      <input id="cardSearch" class="cmd-input" type="text" placeholder="SEARCH SIGNALS / HANDLES…" autocomplete="off">
+      <button id="citedToggle" class="cmd-btn" type="button">&#9670; CITED ONLY</button>
+      <select id="acctFilter" class="cmd-select" aria-label="Filter by account"><option value="">ALL ACCOUNTS</option></select>
+      <select id="sortSel" class="cmd-select" aria-label="Sort cards">
+        <option value="recent">SORT &middot; RECENT</option>
+        <option value="handle">SORT &middot; HANDLE</option>
+      </select>
+      <span id="cardCount" class="cmd-count"></span>
+      <a class="cmd-btn cmd-link" href="cards.html">HISTORY &rarr;</a>
+    </div>
+    <div class="tweet-grid" id="tweetGrid"><div class="tweet-embed" id="feed-1" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:41:13" data-search="@marketfeed inflation would remain at 3% excluding energy prices ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:41</span></span></div><div class="tw-body">INFLATION WOULD REMAIN AT 3% EXCLUDING ENERGY PRICES ...</div><a class="tw-link" href="https://t.me/marketfeed/1078220" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-2" data-handle="marketfeed" data-cited="0" data-ts="2026-11-15T13:41:00" data-search="@marketfeed labor market largely balanced: little proof job market or wages fuel inflation ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:41</span></span></div><div class="tw-body">LABOR MARKET LARGELY BALANCED: LITTLE PROOF JOB MARKET OR WAGES FUEL INFLATION ...</div><a class="tw-link" href="https://t.me/marketfeed/1078218" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-3" data-handle="marketfeed" data-cited="0" data-ts="2026-11-15T13:41:00" data-search="@marketfeed it is not the fed’s role to influence the price of any single good or service ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:41</span></span></div><div class="tw-body">IT IS NOT THE FED’S ROLE TO INFLUENCE THE PRICE OF ANY SINGLE GOOD OR SERVICE ...</div><a class="tw-link" href="https://t.me/marketfeed/1078219" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-4" data-handle="marketfeed" data-cited="0" data-ts="2026-11-15T13:40:59" data-search="@marketfeed would push back on idea that fed inflation target demands response from specific prices such as ai-related tech goods ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">WOULD PUSH BACK ON IDEA THAT FED INFLATION TARGET DEMANDS RESPONSE FROM SPECIFIC PRICES SUCH AS AI-RELATED TECH GOODS ...</div><a class="tw-link" href="https://t.me/marketfeed/1078216" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-5" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:40:59" data-search="@marketfeed fed’s schmid: inflation running too high, central bank has some work to do on inflation ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">FED’S SCHMID: INFLATION RUNNING TOO HIGH, CENTRAL BANK HAS SOME WORK TO DO ON INFLATION ...</div><a class="tw-link" href="https://t.me/marketfeed/1078217" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-6" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T13:40:58" data-search="@financialjuice inflation would remain at 3% excluding energy prices|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">Inflation would remain at 3% excluding energy prices|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147326" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-7" data-handle="financialjuice" data-cited="0" data-ts="2026-11-15T13:40:54" data-search="@financialjuice it is not the fed’s role to influence the price of any single good or service|fj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">It is not the Fed’s role to influence the price of any single good or service|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147325" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-8" data-handle="financialjuice" data-cited="0" data-ts="2026-11-15T13:40:51" data-search="@financialjuice labor market largely balanced: little proof job market or wages fuel inflation|fj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">Labor market largely balanced: little proof job market or wages fuel inflation|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147324" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-9" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T13:40:49" data-search="@financialjuice fed’s schmid: inflation running too high, central bank has some work to do on inflation|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">Fed’s Schmid: inflation running too high, central bank has some work to do on inflation|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147323" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-10" data-handle="financialjuice" data-cited="0" data-ts="2026-11-15T13:40:45" data-search="@financialjuice would push back on idea that fed inflation target demands response from specific prices such as ai-related tech goods|fj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">would push back on idea that Fed inflation target demands response from specific prices such as ai-related tech goods|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147322" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-11" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:40:44" data-search="@marketfeed inflation moving in wrong direction, is ‘uncomfortably above 2% target’ ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">INFLATION MOVING IN WRONG DIRECTION, IS ‘UNCOMFORTABLY ABOVE 2% TARGET’ ...</div><a class="tw-link" href="https://t.me/marketfeed/1078214" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-12" data-handle="marketfeed" data-cited="0" data-ts="2026-11-15T13:40:44" data-search="@marketfeed fed: through its influence on demand, holds tools and responsibility to tackle inflation ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">FED: THROUGH ITS INFLUENCE ON DEMAND, HOLDS TOOLS AND RESPONSIBILITY TO TACKLE INFLATION ...</div><a class="tw-link" href="https://t.me/marketfeed/1078215" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-13" data-handle="marketfeed" data-cited="0" data-ts="2026-11-15T13:40:43" data-search="@marketfeed demand always influences inflation ..."><div class="tw-card"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">DEMAND ALWAYS INFLUENCES INFLATION ...</div><a class="tw-link" href="https://t.me/marketfeed/1078212" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-14" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:40:43" data-search="@marketfeed schmid: work involving inflation has only become tougher since warsh&#x27;s jackson hole speech ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">SCHMID: WORK INVOLVING INFLATION HAS ONLY BECOME TOUGHER SINCE WARSH&#x27;S JACKSON HOLE SPEECH ...</div><a class="tw-link" href="https://t.me/marketfeed/1078213" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-15" data-handle="financialjuice" data-cited="0" data-ts="2026-11-15T13:40:41" data-search="@financialjuice fed: through its influence on demand, holds tools and responsibility to tackle inflation|fj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">Fed: through its influence on demand, holds tools and responsibility to tackle inflation|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147321" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-16" data-handle="financialjuice" data-cited="0" data-ts="2026-11-15T13:40:39" data-search="@financialjuice demand always influences inflation|fj"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">Demand always influences inflation|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147318" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-17" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T13:40:39" data-search="@financialjuice schmid: work involving inflation has only become tougher since warsh&#x27;s jackson hole speech|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">Schmid: work involving inflation has only become tougher since Warsh&#x27;s Jackson Hole speech|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147319" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-18" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T13:40:39" data-search="@financialjuice inflation moving in wrong direction, is ‘uncomfortably above 2% target’|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:40</span></span></div><div class="tw-body">Inflation moving in wrong direction, is ‘uncomfortably above 2% target’|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147320" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-19" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:37:59" data-search="@marketfeed yemen&#x27;s houthis: two drones targeted saudi east-west pipeline near riyadh ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:37</span></span></div><div class="tw-body">YEMEN&#x27;S HOUTHIS: TWO DRONES TARGETED SAUDI EAST-WEST PIPELINE NEAR RIYADH ...</div><a class="tw-link" href="https://t.me/marketfeed/1078211" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-20" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T13:37:56" data-search="@financialjuice yemen&#x27;s houthis: two drones targeted saudi east-west pipeline near riyadh|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:37</span></span></div><div class="tw-body">Yemen&#x27;s Houthis: two drones targeted Saudi east-west pipeline near Riyadh|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147317" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-21" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:35:59" data-search="@marketfeed diamondback will pay about $5bn to buy double eagle worth - ft ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:35</span></span></div><div class="tw-body">DIAMONDBACK WILL PAY ABOUT $5BN TO BUY DOUBLE EAGLE WORTH - FT ...</div><a class="tw-link" href="https://t.me/marketfeed/1078210" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-22" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:33:43" data-search="@marketfeed diamondback is nearing a $5 bln deal to expand drilling in the oil-rich permian basin - ft ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:33</span></span></div><div class="tw-body">DIAMONDBACK IS NEARING A $5 BLN DEAL TO EXPAND DRILLING IN THE OIL-RICH PERMIAN BASIN - FT ...</div><a class="tw-link" href="https://t.me/marketfeed/1078209" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-23" data-handle="financefeeds" data-cited="1" data-ts="2026-11-15T13:25:04" data-search="@financefeeds xrp price plunges to $0.89 as etfs record $19.13 million in weekly outflows xrp fell to approximately $0.89 on satrurday, its lowest level since november 2024, as cryptocurrency markets faced renewed selling pressure, withdrawals from exchange-traded funds and… https://financefeeds.com/xrp-price-plunges-to-0-89-as-etfs-record-19-13-million-in-weekly-outflows/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:25</span></span></div><div class="tw-body">XRP Price Plunges to $0.89 as ETFs Record $19.13 Million in Weekly Outflows XRP fell to approximately $0.89 on Satrurday, its lowest level since November 2024, as cryptocurrency markets faced renewed selling pressure, withdrawals from exchange-traded funds and… https://financefee…</div><a class="tw-link" href="https://t.me/financefeeds/36437" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-24" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:19:42" data-search="@marketfeed u.s. treasury secretary bessent says nvidia needs a “dramatic shakeup” in leadership ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:19</span></span></div><div class="tw-body">U.S. TREASURY SECRETARY BESSENT SAYS NVIDIA NEEDS A “DRAMATIC SHAKEUP” IN LEADERSHIP ...</div><a class="tw-link" href="https://t.me/marketfeed/1078208" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-25" data-handle="financefeeds" data-cited="0" data-ts="2026-11-15T13:17:55" data-search="@financefeeds how do crypto exchanges make money from stocks, etfs, and other financial products? cryptocurrency platforms are gradually moving beyond bitcoin, ethereum, and other digital assets. many now want a bigger share of the investment market by giving customers… https://financefeeds.com/how-crypto-brands-make-money-from-stocks/"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-ts">2026-11-15 13:17</span></span></div><div class="tw-body">How Do Crypto Exchanges Make Money From Stocks, ETFs, and Other Financial Products? Cryptocurrency platforms are gradually moving beyond Bitcoin, Ethereum, and other digital assets. Many now want a bigger share of the investment market by giving customers… https://financefeeds.co…</div><a class="tw-link" href="https://t.me/financefeeds/36436" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-26" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:10:58" data-search="@marketfeed howard lutnick expected to fly on air force one with president to china - semafor ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:10</span></span></div><div class="tw-body">HOWARD LUTNICK EXPECTED TO FLY ON AIR FORCE ONE WITH PRESIDENT TO CHINA - SEMAFOR ...</div><a class="tw-link" href="https://t.me/marketfeed/1078207" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-27" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:10:43" data-search="@marketfeed bessent on fox warns federal reserve against additional monetary tightening ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:10</span></span></div><div class="tw-body">BESSENT ON FOX WARNS FEDERAL RESERVE AGAINST ADDITIONAL MONETARY TIGHTENING ...</div><a class="tw-link" href="https://t.me/marketfeed/1078206" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-28" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T13:10:27" data-search="@marketfeed yemen&#x27;s houthis: target king khalid airport in riyadh and financial center with two ballistic missiles ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 13:10</span></span></div><div class="tw-body">YEMEN&#x27;S HOUTHIS: TARGET KING KHALID AIRPORT IN RIYADH AND FINANCIAL CENTER WITH TWO BALLISTIC MISSILES ...</div><a class="tw-link" href="https://t.me/marketfeed/1078205" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-29" data-handle="financefeeds" data-cited="0" data-ts="2026-11-15T12:58:21" data-search="@financefeeds what does a european e-money license allow a crypto company to do? european financial regulations provide several opportunities for crypto companies looking to offer digital payment services, issue stablecoins, and expand into traditional financial markets. one important… https://financefeeds.com/what-does-a-european-e-money-license-allow-a-crypto-company-to-do/"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-ts">2026-11-15 12:58</span></span></div><div class="tw-body">What Does a European E-Money License Allow a Crypto Company to Do? European financial regulations provide several opportunities for crypto companies looking to offer digital payment services, issue stablecoins, and expand into traditional financial markets. One important… https:/…</div><a class="tw-link" href="https://t.me/financefeeds/36435" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-30" data-handle="financefeeds" data-cited="1" data-ts="2026-11-15T12:56:45" data-search="@financefeeds mexc suspends global card payments amid us restrictions cryptocurrency exchange mexc has suspended all transactions and deposits through its global card product for approximately four days, citing changes at an unnamed third-party card… https://financefeeds.com/mexc-suspends-global-card-payments-amid-us-restrictions/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 12:56</span></span></div><div class="tw-body">MEXC Suspends Global Card Payments Amid US Restrictions Cryptocurrency exchange MEXC has suspended all transactions and deposits through its Global Card product for approximately four days, citing changes at an unnamed third-party card… https://financefeeds.com/mexc-suspends-glob…</div><a class="tw-link" href="https://t.me/financefeeds/36434" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-31" data-handle="marketfeed" data-cited="1" data-ts="2026-11-15T12:55:57" data-search="@marketfeed no saudi confirmation of houthi claim ..."><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@marketfeed</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 12:55</span></span></div><div class="tw-body">NO SAUDI CONFIRMATION OF HOUTHI CLAIM ...</div><a class="tw-link" href="https://t.me/marketfeed/1078204" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-32" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T12:55:44" data-search="@financialjuice no saudi confirmation of houthi claim|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 12:55</span></span></div><div class="tw-body">No Saudi confirmation of Houthi claim|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147316" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-33" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T12:55:27" data-search="@financialjuice yemen&#x27;s houthis: target king khalid airport in riyadh and financial center with two ballistic missiles|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 12:55</span></span></div><div class="tw-body">Yemen&#x27;s Houthis: Target king Khalid airport in Riyadh and financial center with two ballistic missiles|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147315" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-34" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T12:41:24" data-search="@financialjuice howard lutnick expected to fly on air force one with president to china: semafor|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 12:41</span></span></div><div class="tw-body">Howard Lutnick expected to fly on Air Force One with president to China: Semafor|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147314" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-35" data-handle="walterbloomberg" data-cited="0" data-ts="2026-11-15T12:23:54" data-search="@walterbloomberg https://t.me/boost/walterbloomberg"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-ts">2026-11-15 12:23</span></span></div><div class="tw-body">https://t.me/boost/WalterBloomberg</div><a class="tw-link" href="https://t.me/WalterBloomberg/38410" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-36" data-handle="financefeeds" data-cited="0" data-ts="2026-11-15T12:06:58" data-search="@financefeeds fca warning names forex broker d prime’s global website the uk’s financial conduct authority (fca) has issued an unauthorised firm warning against d prime vanuatu limited, identifying the official website of international forex and… https://financefeeds.com/fca-warning-names-forex-broker-d-primes-global-website/"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-ts">2026-11-15 12:06</span></span></div><div class="tw-body">FCA Warning Names Forex Broker D Prime’s Global Website The UK’s Financial Conduct Authority (FCA) has issued an unauthorised firm warning against D Prime Vanuatu Limited, identifying the official website of international forex and… https://financefeeds.com/fca-warning-names-fore…</div><a class="tw-link" href="https://t.me/financefeeds/36433" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-37" data-handle="watcherguru" data-cited="1" data-ts="2026-11-15T11:43:08" data-search="@watcherguru just in: 🇺🇸🇨🇳 us investigating whether nvidia $nvda illegally sold restricted ai chips to china. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 11:43</span></span></div><div class="tw-body">JUST IN: 🇺🇸🇨🇳 US investigating whether Nvidia $NVDA illegally sold restricted AI chips to China. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/16053" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-38" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T11:30:43" data-search="@financialjuice israel annual inflation rate at lowest level since april 2021|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 11:30</span></span></div><div class="tw-body">Israel annual inflation rate at lowest level since April 2021|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147313" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-39" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T11:30:36" data-search="@financialjuice israel october cpi 1.1% yr/yr vs 1.6% in september – statistics bureau|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 11:30</span></span></div><div class="tw-body">Israel October CPI 1.1% yr/yr vs 1.6% in September – statistics bureau|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147312" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-40" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T11:30:32" data-search="@financialjuice israel october cpi declines 0.1% month-on-month vs september&#x27;s 0.5% drop – statistics bureau|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 11:30</span></span></div><div class="tw-body">Israel October CPI declines 0.1% month-on-month vs September&#x27;s 0.5% drop – statistics bureau|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147311" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-41" data-handle="watcherguru" data-cited="1" data-ts="2026-11-15T11:29:03" data-search="@watcherguru just in: binance founder cz says binance has not sold any crypto and he recently bought more. &quot;mid-long term, crypto will grow.&quot; @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 11:29</span></span></div><div class="tw-body">JUST IN: Binance founder CZ says Binance has not sold any crypto and he recently bought more. &quot;Mid-long term, crypto will grow.&quot; @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/16051" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-42" data-handle="financefeeds" data-cited="0" data-ts="2026-11-15T11:19:40" data-search="@financefeeds louisiana targets kalshi, polymarket and ig group in sweeping trading restrictions louisiana attorney general liz murrill has accused commodity futures trading commission (cftc) chairman michael selig of making false statements about the state’s authority over prediction… https://financefeeds.com/louisiana-targets-kalshi-polymarket-and-ig-group-in-sweeping-trading-restrictions/"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-ts">2026-11-15 11:19</span></span></div><div class="tw-body">Louisiana Targets Kalshi, Polymarket and IG Group in Sweeping Trading Restrictions Louisiana Attorney General Liz Murrill has accused Commodity Futures Trading Commission (CFTC) Chairman Michael Selig of making false statements about the state’s authority over prediction… https:/…</div><a class="tw-link" href="https://t.me/financefeeds/36432" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-43" data-handle="watcherguru" data-cited="1" data-ts="2026-11-15T11:02:22" data-search="@watcherguru just in: elon musk calls for nvidia $nvda to reinstate jensen huang as ceo. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 11:02</span></span></div><div class="tw-body">JUST IN: Elon Musk calls for Nvidia $NVDA to reinstate Jensen Huang as CEO. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/16049" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-44" data-handle="financialjuice" data-cited="1" data-ts="2026-11-15T10:19:28" data-search="@financialjuice bessent on fox warns federal reserve against additional monetary tightening|fj"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financialjuice</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 10:19</span></span></div><div class="tw-body">Bessent on Fox warns Federal Reserve against additional monetary tightening|FJ</div><a class="tw-link" href="https://t.me/FinancialJuice/147310" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-45" data-handle="watcherguru" data-cited="1" data-ts="2026-11-15T10:14:34" data-search="@watcherguru just in: 🇺🇸 treasury secretary bessent says nvidia $nvda needs to look outside the company for its next ceo following chip export-spying scandal. @watcherguru"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@WatcherGuru</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 10:14</span></span></div><div class="tw-body">JUST IN: 🇺🇸 Treasury Secretary Bessent says Nvidia $NVDA needs to look outside the company for its next CEO following chip export-spying scandal. @WatcherGuru</div><a class="tw-link" href="https://t.me/WatcherGuru/16048" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-46" data-handle="walterbloomberg" data-cited="1" data-ts="2026-11-15T10:10:09" data-search="@walterbloomberg bessent says nvidia needs to &#x27;go outside the company&#x27; in search for new top executive in light of chip export-spying scandal (@walterbloomberg)"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@walterbloomberg</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 10:10</span></span></div><div class="tw-body">BESSENT SAYS NVIDIA NEEDS TO &#x27;GO OUTSIDE THE COMPANY&#x27; IN SEARCH FOR NEW TOP EXECUTIVE IN LIGHT OF CHIP EXPORT-SPYING SCANDAL (@WalterBloomberg)</div><a class="tw-link" href="https://t.me/WalterBloomberg/38409" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-47" data-handle="doomberg" data-cited="0" data-ts="2026-11-15T10:02:24" data-search="@doomberg lame duck à l’orange a legacy-defining bill might just make it to trump’s desk yet."><div class="tw-card"><div class="tw-head"><span class="tw-handle">Doomberg</span><span class="tw-meta"><span class="tw-ts">2026-11-15 10:02</span></span></div><div class="tw-body">Lame Duck à L’Orange A legacy-defining bill might just make it to Trump’s desk yet.</div><a class="tw-link" href="https://newsletter.doomberg.com/p/lame-duck-a-lorange" target="_blank">Read post &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-48" data-handle="ahboyashreads" data-cited="1" data-ts="2026-11-15T09:42:18" data-search="@ahboyashreads ⚠️ 64,000 bitcoin mining machines hijacked, 13 eh/s redirected to ocean pool source"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@ahboyashreads</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 09:42</span></span></div><div class="tw-body">⚠️ 64,000 Bitcoin Mining Machines Hijacked, 13 EH/s Redirected to OCEAN Pool Source</div><a class="tw-link" href="https://t.me/ahboyashreads/25757" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-49" data-handle="tradehaven" data-cited="0" data-ts="2026-11-15T09:38:29" data-search="@tradehaven hong kong property developer new world proposes us$3.2 billion rights issue https://bt.sg/ommcm"><div class="tw-card"><div class="tw-head"><span class="tw-handle">@tradehaven</span><span class="tw-meta"><span class="tw-ts">2026-11-15 09:38</span></span></div><div class="tw-body">Hong Kong property developer New World proposes US$3.2 billion rights issue https://bt.sg/ommcm</div><a class="tw-link" href="https://t.me/tradehaven/81031" target="_blank">View on Telegram &rarr;</a></div></div>
+<div class="tweet-embed" id="feed-50" data-handle="financefeeds" data-cited="1" data-ts="2026-11-15T09:08:12" data-search="@financefeeds kava lend exploit drains $3.76 million as $612k in proceeds is blocked kava lend suffered an exploit involving approximately 55.2 million kava tokens on november 14, 2026, after an attacker manipulated accounting in a nearly inactive stablecoin… https://financefeeds.com/kava-lend-exploit-drains-3-76-million-as-612k-in-proceeds-is-blocked/"><div class="tw-card tw-card-cited"><div class="tw-head"><span class="tw-handle">@financefeeds</span><span class="tw-meta"><span class="tw-cited">&#9670; CITED</span><span class="tw-ts">2026-11-15 09:08</span></span></div><div class="tw-body">Kava Lend Exploit Drains $3.76 Million as $612K in Proceeds Is Blocked Kava Lend suffered an exploit involving approximately 55.2 million KAVA tokens on November 14, 2026, after an attacker manipulated accounting in a nearly inactive stablecoin… https://financefeeds.com/kava-lend…</div><a class="tw-link" href="https://t.me/financefeeds/36431" target="_blank">View on Telegram &rarr;</a></div></div></div>
+  </details>
+
+  <div class="synopsis-section"><div class="synopsis-label">Market Intelligence Synopsis</div><div class="synopsis-byline">Compiled from 97 signal sources &middot; 2026-11-15 14:01 &middot; AI-assisted analysis</div><div class="synopsis-body"><p class="synopsis-para">Schmid frames inflation as &#x27;uncomfortably above target&#x27; and &#x27;moving in wrong direction&#x27; while Treasury Secretary Bessent publicly warns the Fed against additional tightening — a classic conflicting-field configuration generating high realized volatility. The occupation entropy (1.827 nats) sits below equilibrium (2.126), suggesting the market has not fully priced this dispersion, so a volatility-long straddle captures the coming redistribution. Given the CHOPPY regime and 0.57x signal multiplier, we size the straddle small and avoid directional rate bets.</p><p class="synopsis-para">Buy NVDA protective puts (1-2 month) against existing exposure; initiate small long straddle on NVDA to capture headline-driven vol Market participants are closely monitoring nvidia board/ceo announcement, us investigation findings on chip exports.</p><p class="synopsis-para">However, analysts have flagged material downside risks. The core problem is that 1-month SPX straddles are the most time-decay-vulnerable instrument you can own, and implied vol is already elevated into a known event calendar (CPI, FOMC minutes) — meaning you are buying rich gamma that the market has already priced, not cheap convexity. Rhetorical &#x27;conflicting-field&#x27; noise from a Fed president and the Treasury Secretary rarely produces the sustained realized vol needed to overcome theta; markets routinely compress after the actual data prints, crushing both legs. The &#x27;entropy below equilibrium&#x27; framing is a backward-looking artifact that provides no edge on whether realized will exceed implied over the next 20 trading days.</p></div></div>
+
+  <div class="grid-section"><div class="grid-col"><div class="col-tag">Intelligence · Risk 8/10</div><div class="col-title">Fed Hawkish-Dovish Split On Inflation</div><div class="col-body">Buy 1-month SPX straddles; long front-end SOFR futures (bet against further hikes) while fading rate-cut euphoria via short Dec Fed funds calls</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The core problem is that 1-month SPX straddles are the most time-decay-vulnerable instrument you can own, and implied vol is already elevated into a known event calendar (CPI, FOMC minutes) — meaning …</div><div class="conviction-tag">Quarter Size — because owning decaying straddles into an already-priced event calendar is a negative-carry bet on realized exceeding rich implied, so size must be minimal and purely tactical around the print.</div></div>
+<div class="grid-col"><div class="col-tag">Market Signal · Risk 9/10</div><div class="col-title">Nvidia Leadership Crisis And China Chip Probe</div><div class="col-body">Buy NVDA protective puts (1-2 month) against existing exposure; initiate small long straddle on NVDA to capture headline-driven vol</div><div class="sparkline"><div class="bar lo" style="height:20%"></div><div class="bar lo" style="height:45%"></div><div class="bar lo" style="height:30%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:100%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">NVDA implied vol is structurally expensive and the headline noise (Bessent demands, Musk tweets, investigation) has almost certainly already inflated the vol surface, so a long straddle plus protectiv…</div><div class="conviction-tag">Quarter Size — because the protective puts are defensible as a hedge on existing exposure, but adding a long straddle on top of already-elevated IV double-pays for convexity and is likely to bleed on vol compression.</div></div>
+<div class="grid-col"><div class="col-tag">Macro View · Risk 7/10</div><div class="col-title">Middle East Supply Shock Risk Oil</div><div class="col-body">Long USO/Brent via call spreads; pair with long XLE if geopolitical escalation confirms, else keep small</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The thesis rests on an &#x27;unconfirmed&#x27; Houthi strike with &#x27;no Saudi confirmation,&#x27; which strongly suggests the disruption is minor or non-material — and crude has repeatedly shrugged off Middle East hea…</div><div class="conviction-tag">Half Size — because defined-risk call spreads are a reasonable cheap-tail expression given the geopolitical optionality, but the bearish supply backdrop and unconfirmed trigger mean this should stay small and opportunistic.</div></div>
+<div class="grid-col"><div class="col-tag">Geopolitical · Risk 6/10</div><div class="col-title">Crypto Risk-Off And Infrastructure Fragility</div><div class="col-body">Short XRP / small short bias on crypto proxies (COIN puts); avoid new longs given mining hijack and exploit tail risks</div><div class="sparkline"><div class="bar mid-hi" style="height:60%"></div><div class="bar lo" style="height:45%"></div><div class="bar mid-hi" style="height:70%"></div><div class="bar mid-hi" style="height:55%"></div><div class="bar hi" style="height:80%"></div><div class="bar mid-hi" style="height:65%"></div><div class="bar hi" style="height:75%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">Shorting XRP at $0.89 after it has already fallen to a one-year low means chasing a crowded, oversold move where the easy downside is behind you and violent short-squeezes are the dominant tail — cryp…</div><div class="conviction-tag">Quarter Size — because you are shorting into an already-depressed, oversold level where squeeze risk is high and the fragility catalysts are idiosyncratic, so express only via defined-risk COIN puts in minimal size.</div></div>
+<div class="grid-col"><div class="col-tag">Canada / FX · Risk 4/10</div><div class="col-title">Global Disinflation Divergence (Israel vs US)</div><div class="col-body">Long TLT call spreads as a disinflation-convergence hedge; relative-value long Israeli bonds vs US duration</div><div class="sparkline"><div class="bar hi" style="height:90%"></div><div class="bar hi" style="height:80%"></div><div class="bar hi" style="height:70%"></div><div class="bar mid-hi" style="height:60%"></div><div class="bar mid-hi" style="height:50%"></div><div class="bar lo" style="height:40%"></div><div class="bar lo" style="height:35%"></div></div><div class="bear-label">Bear Case</div><div class="bear-body">The thesis conflates a small, idiosyncratic economy&#x27;s disinflation (Israel at 1.1%) with a global diffusion signal that will drag US duration lower in yield — but US rates are driven by US labor, fisc…</div><div class="conviction-tag">Half Size — because the defined-risk TLT call spread limits downside and the RV long-Israel/short-US-duration leg is a cleaner expression, but the macro convergence mechanism is tenuous and fights the Fed&#x27;s own hawkish framing, so keep it modest.</div></div></div>
+
+  <div class="thought-block">
+    <div class="thought-rule"></div>
+    <div>
+      <div class="thought-label">Top Trade Hypothesis</div>
+      <div class="thought-q">Buy 1-month SPX straddles; long front-end SOFR futures (bet against further hikes) while fading rate-cut euphoria via short Dec Fed funds calls</div>
+      <div class="thought-body">Next CPI/PCE print, Upcoming FOMC minutes and dot plot, Further Schmid/Bessent public remarks</div>
+      <div class="thought-bear-label">Bear Case</div>
+      <div class="thought-bear">The core problem is that 1-month SPX straddles are the most time-decay-vulnerable instrument you can own, and implied vol is already elevated into a known event calendar (CPI, FOMC minutes) — meaning you are buying rich gamma that the market has already priced, not cheap convexity. Rhetorical &#x27;conflicting-field&#x27; noise from a Fed president and the Treasury Secretary rarely produces the sustained realized vol needed to overcome theta; markets routinely compress after the actual data prints, crushing both legs. The &#x27;entropy below equilibrium&#x27; framing is a backward-looking artifact that provides no edge on whether realized will exceed implied over the next 20 trading days.</div>
+      <div class="thought-conviction">Quarter Size — because owning decaying straddles into an already-priced event calendar is a negative-carry bet on realized exceeding rich implied, so size must be minimal and purely tactical around the print.</div>
+    </div>
+  </div>
+
+  <div class="trading-section"><div class="trading-label">Quantitative Signal Analysis</div><div class="trading-grid"><div class="tc-card"><div class="tc-header"><span class="tc-sym">META</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$641.69<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+3.47%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">53.3</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.41 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.782 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$637.06 / $679.81</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$93</span></div><div class="tc-ts">2026-11-15 13:59:55</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AAPL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$356.27<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-in">IN</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+2.64%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">58.5</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.28 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.727 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$346.15 / $339.04</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$207</span></div><div class="tc-ts">2026-11-15 13:59:56</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">AMZN</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$266.66<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+5.36%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">62.5</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.42 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.658 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$257.33 / $254.81</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$97</span></div><div class="tc-ts">2026-11-15 13:59:57</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NFLX</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$62.15<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-0.59%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">43.8</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.37 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.846 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$64.34 / $69.18</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$106</span></div><div class="tc-ts">2026-11-15 13:59:58</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">GOOGL</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$295.77<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-7.74%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">38.4</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.52 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.663 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$303.42 / $328.19</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$57</span></div><div class="tc-ts">2026-11-15 13:59:58</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NVDA</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$162.85<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-25.28%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">19.1</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.53 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.790 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$198.69 / $214.65</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$43</span></div><div class="tc-ts">2026-11-15 13:59:59</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">WMT</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$128.09<span class="tc-trend up">&#9650; UP</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-neutral">NEUTRAL</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+7.35%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">66.2</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.26 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.718 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$123.23 / $114.54</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$253</span></div><div class="tc-ts">2026-11-15 14:00:00</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">NU</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$13.22<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val up">+6.61%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">56.5</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.84 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.653 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$12.80 / $13.76</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$24</span></div><div class="tc-ts">2026-11-15 14:00:01</div></div>
+<div class="tc-card"><div class="tc-header"><span class="tc-sym">BTC-USD</span><span class="tc-rec rec-out">OUT</span></div><div class="tc-price">$64,692<span class="tc-trend down">&#9660; DOWN</span></div><div class="tc-row"><span class="tc-lbl">Entropy Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Price Signal</span><span class="tc-val"><span class="tc-rec rec-out">OUT</span></span></div><div class="tc-row"><span class="tc-lbl">Momentum</span><span class="tc-val down">-15.63%</span></div><div class="tc-row"><span class="tc-lbl">RSI</span><span class="tc-val">21.6</span></div><div class="tc-row"><span class="tc-lbl">Temperature</span><span class="tc-val">0.41 <span class="tc-badge">HIGH</span></span></div><div class="tc-row"><span class="tc-lbl">Entropy</span><span class="tc-val">0.766 <span class="tc-badge">MEDIUM</span></span></div><div class="tc-row"><span class="tc-lbl">MA20 / MA50</span><span class="tc-val">$75,024.89 / $79,742.79</span></div><div class="tc-row"><span class="tc-lbl">Position Size</span><span class="tc-val">$78</span></div><div class="tc-ts">2026-11-15 14:00:01</div></div></div></div>
+
+  <div class="regime-panel"><div class="regime-panel-label">Thermodynamic Regime &mdash; SPY (T 20-bar &middot; shape 60-bar &middot; detector v2)</div><div class="regime-badge-row"><span class="regime-badge" style="color:#f5a623;border-color:#f5a62340;background:#f5a62312">CHOPPY</span><span class="regime-desc">High T &middot; Low S &mdash; reduce size</span></div><div class="regime-metrics"><div class="rm"><div class="rm-lbl">Temperature</div><div class="rm-val" style="color:#f5a623">22.3%</div><div class="rm-sub">base 15%</div></div><div class="rm"><div class="rm-lbl">Entropy</div><div class="rm-val">1.827</div><div class="rm-sub">base 2.50</div></div><div class="rm"><div class="rm-lbl">KL Divergence</div><div class="rm-val" style="color:#c8d4f0">0.0475</div><div class="rm-sub">within bounds</div></div><div class="rm"><div class="rm-lbl">Signal Mult</div><div class="rm-val">0.57&times;</div><div class="rm-sub">applied to signals</div></div><div class="rm"><div class="rm-lbl">Heat Budget</div><div class="rm-val">100%</div><div class="rm-sub">remaining</div></div></div></div>
+
+  
+
+  <div class="footer">
+    <div class="footer-left"><span>@redhoodcapital</span> &nbsp;&middot;&nbsp; Not financial advice</div>
+    <div class="footer-right">
+      <span class="footer-tag active">AI</span>
+      <span class="footer-tag">MACRO</span>
+      <span class="footer-tag">CRYPTO</span>
+      <span class="footer-tag">SIGNALS</span>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var grid = document.getElementById('tweetGrid');
+  if (grid) {
+    var cards   = Array.prototype.slice.call(grid.querySelectorAll('.tweet-embed'));
+    var search  = document.getElementById('cardSearch');
+    var cited   = document.getElementById('citedToggle');
+    var acct    = document.getElementById('acctFilter');
+    var sortSel = document.getElementById('sortSel');
+    var count   = document.getElementById('cardCount');
+    var citedOnly = false;
+
+    // Populate the account dropdown from the cards present.
+    var seen = {};
+    cards.forEach(function(c){ var h = c.getAttribute('data-handle'); if (h) seen[h] = 1; });
+    Object.keys(seen).sort().forEach(function(h){
+      var o = document.createElement('option'); o.value = h; o.textContent = '@' + h; acct.appendChild(o);
+    });
+
+    function apply(){
+      var q = (search.value || '').toLowerCase().trim();
+      var a = acct.value;
+      var shown = 0;
+      cards.forEach(function(c){
+        var ok = true;
+        if (q && c.getAttribute('data-search').indexOf(q) < 0) ok = false;
+        if (a && c.getAttribute('data-handle') !== a) ok = false;
+        if (citedOnly && c.getAttribute('data-cited') !== '1') ok = false;
+        c.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      count.textContent = shown + ' / ' + cards.length + ' shown';
+    }
+    function sortCards(){
+      var mode = sortSel.value;
+      cards.slice().sort(function(x, y){
+        if (mode === 'handle') return x.getAttribute('data-handle').localeCompare(y.getAttribute('data-handle'));
+        return y.getAttribute('data-ts').localeCompare(x.getAttribute('data-ts'));
+      }).forEach(function(c){ grid.appendChild(c); });
+    }
+
+    search.addEventListener('input', apply);
+    acct.addEventListener('change', apply);
+    cited.addEventListener('click', function(){
+      citedOnly = !citedOnly; cited.classList.toggle('on', citedOnly); apply();
+    });
+    sortSel.addEventListener('change', function(){ sortCards(); apply(); });
+    apply();
+  }
+
+  // Live data-age readout: "T+Xh Ym" since the run timestamp.
+  var age = document.getElementById('dataAge');
+  if (age) {
+    var t0 = new Date(age.getAttribute('data-runts')).getTime();
+    var tick = function(){
+      if (!t0 || isNaN(t0)) { age.textContent = 'live'; return; }
+      var s = Math.max(0, Math.floor((Date.now() - t0) / 1000));
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      age.textContent = 'T+' + (h ? h + 'h ' : '') + m + 'm';
+    };
+    tick(); setInterval(tick, 30000);
+  }
+})();
+</script>
+</body>
+</html>
